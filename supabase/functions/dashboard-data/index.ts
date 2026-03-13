@@ -174,7 +174,7 @@ serve(async (req) => {
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Valor Bruto", ',', '.')::numeric ELSE 0 END) as receita_bruta,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Valor Líquido", ',', '.')::numeric ELSE 0 END) as receita_liquida
         FROM uelicon_database.controle_green
-        WHERE 1=1 ${salesDateFilter}
+        WHERE ${DASHBOARD_PRODUCTS_FILTER} ${salesDateFilter}
         GROUP BY "Nome do produto"
       `, params);
 
