@@ -101,8 +101,8 @@ serve(async (req) => {
       const bumpRows = await queryExternalPG(`
         SELECT 
           "Data"::date as dia,
-          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Valor Bruto", ',', '.')::numeric ELSE 0 END) as receita_bruta_bump,
-          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Valor Líquido", ',', '.')::numeric ELSE 0 END) as receita_liquida_bump
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_bruta_bump,
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_liquida_bump
         FROM uelicon_database.controle_green
         WHERE ${ORDERBUMP_PRODUCT_FILTER} ${salesDateFilter}
         GROUP BY "Data"::date
