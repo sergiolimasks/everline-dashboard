@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { Calendar } from "lucide-react";
+import { formatDateString } from "@/lib/date-utils";
 
 interface DateFilterProps {
   dateFrom: string;
@@ -20,7 +20,7 @@ export function DateFilter({ dateFrom, dateTo, onDateChange }: DateFilterProps) 
     const to = new Date();
     const from = new Date();
     from.setDate(from.getDate() - days);
-    onDateChange(from.toISOString().split('T')[0], to.toISOString().split('T')[0]);
+    onDateChange(formatDateString(from), formatDateString(to));
   };
 
   return (

@@ -1,6 +1,6 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import type { TrafficDaily } from "@/lib/dashboard-api";
-import type { SalesDaily } from "@/lib/dashboard-api";
+import type { TrafficDaily, SalesDaily } from "@/lib/dashboard-api";
+import { formatDayMonth } from "@/lib/date-utils";
 
 interface FunnelChartProps {
   trafficData: TrafficDaily[] | undefined;
@@ -33,7 +33,7 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: Funne
   const chartData = Array.from(allDays)
     .sort()
     .map((dia) => ({
-      dia: new Date(dia).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+      dia: formatDayMonth(dia),
       Gasto: gastoMap.get(dia) || 0,
       "Receita Líquida": receitaMap.get(dia) || 0,
     }));

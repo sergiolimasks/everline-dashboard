@@ -1,5 +1,6 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import type { TrafficDaily } from "@/lib/dashboard-api";
+import { formatDayMonth } from "@/lib/date-utils";
 
 interface TrafficChartProps {
   data: TrafficDaily[] | undefined;
@@ -17,7 +18,7 @@ export function TrafficChart({ data, isLoading }: TrafficChartProps) {
   }
 
   const chartData = [...(data || [])].reverse().map((d) => ({
-    dia: new Date(d.dia).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+    dia: formatDayMonth(String(d.dia)),
     Cliques: Number(d.cliques),
     "Views Página": Number(d.views_pagina),
     Checkouts: Number(d.checkouts),
