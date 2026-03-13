@@ -58,18 +58,8 @@ serve(async (req) => {
     let data: unknown[] = [];
 
     if (endpoint === 'debug_campaigns') {
-      try {
-        const r1 = await queryExternalPG(`SELECT 1 as test`);
-        const r2 = await queryExternalPG(`SELECT current_database() as db`);
-        let r3: unknown[] = [];
-        try { r3 = await queryExternalPG(`SELECT COUNT(*)::int as cnt FROM bd_ads_clientes.meta_uelicon_venancio`) as unknown[]; } catch(e: any) { r3 = [{ error: e.message }]; }
-        let r4: unknown[] = [];
-        try { r4 = await queryExternalPG(`SELECT schemaname, tablename FROM pg_tables WHERE schemaname NOT IN ('pg_catalog','information_schema') LIMIT 10`) as unknown[]; } catch(e: any) { r4 = [{ error: e.message }]; }
-        data = [{ test: r1, dbinfo: r2, ads_count: r3, tables: r4 }];
-      } catch(e: any) {
-        data = [{ error: e.message }];
-      }
-      return new Response(JSON.stringify({ data }), {
+      const r = await queryExternalPG(`SELECT DISTINCT campanha, MIN(data::date) as min_dt, MAX(data::date) as max_dt, COUNT(*) as rows FROM bd_ads_clientes.meta_uelicon_venancio GROUP BY campanha ORDER BY campanha`);
+      return new Response(JSON.stringify({ data: r }, (_, v) => typeof v === 'bigint' ? Number(v) : v), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } else if (endpoint === 'traffic_daily') {
