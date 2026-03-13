@@ -1,5 +1,6 @@
-// Dashboard data edge function v3 - connects to external PostgreSQL
+// Dashboard data edge function v4
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,8 +8,6 @@ const corsHeaders = {
 };
 
 async function queryExternalPG(sql: string, params: unknown[] = []) {
-  const { Client } = await import("https://deno.land/x/postgres@v0.17.0/mod.ts");
-  
   const client = new Client({
     hostname: "72.60.51.200",
     port: 5432,
@@ -168,7 +167,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Dashboard data error:', error);
+    console.error('Dashboard v4 error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
