@@ -152,22 +152,22 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
           <KPICard
             label="Faturamento" value={isLoading ? null : formatCurrency(current?.receitaBruta || 0)}
             icon={TrendingUp} color="text-primary" isLoading={isLoading}
-            metricKey="receitaBruta" current={current} comp7d={comp7d} comp14d={comp14d}
+            metricKey="receitaBruta" current={current} comp7d={null} comp14d={null}
           />
           <KPICard
             label="Custo Consultas Estimado" value={isLoading ? null : formatCurrency(current?.taxaFixa || 0)}
             icon={Receipt} color="text-chart-purple" isLoading={isLoading}
-            metricKey="taxaFixa" current={current} comp7d={comp7d} comp14d={comp14d} invertComparison
+            metricKey="taxaFixa" current={current} comp7d={null} comp14d={null}
           />
           <KPICard
             label="Co-Produtor" value={isLoading ? null : formatCurrency(current?.coProdutor || 0)}
             icon={Users} color="text-chart-blue" isLoading={isLoading}
-            metricKey="coProdutor" current={current} comp7d={comp7d} comp14d={comp14d}
+            metricKey="coProdutor" current={current} comp7d={null} comp14d={null}
           />
           <KPICard
             label="Taxa Greenn" value={isLoading ? null : formatCurrency(current?.taxaGreen || 0)}
             icon={CreditCard} color="text-chart-yellow" isLoading={isLoading}
-            metricKey="taxaGreen" current={current} comp7d={comp7d} comp14d={comp14d}
+            metricKey="taxaGreen" current={current} comp7d={null} comp14d={null}
           />
         </div>
       )}
