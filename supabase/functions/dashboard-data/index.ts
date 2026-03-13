@@ -7,11 +7,16 @@ const corsHeaders = {
 };
 
 async function queryExternalPG(sql: string, params: unknown[] = []) {
-  const connectionString = Deno.env.get('EXTERNAL_PG_CONNECTION_STRING');
-  if (!connectionString) throw new Error('EXTERNAL_PG_CONNECTION_STRING not configured');
-
   const { Pool } = await import("https://deno.land/x/postgres@v0.17.0/mod.ts");
-  const pool = new Pool(connectionString, 1, true);
+  
+  const pool = new Pool({
+    hostname: "72.60.51.200",
+    port: 5432,
+    database: "postgres",
+    user: "postgres",
+    password: Deno.env.get('EXTERNAL_PG_PASSWORD') || "REDACTED_PG_PASS",
+  }, 1, true);
+  
   const connection = await pool.connect();
   try {
     const result = await connection.queryObject(sql, params);
