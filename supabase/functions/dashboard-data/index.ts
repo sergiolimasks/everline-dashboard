@@ -214,6 +214,8 @@ serve(async (req) => {
         GROUP BY campanha
         ORDER BY SUM(gasto) DESC
       `, params);
+    } else if (endpoint === 'debug_columns') {
+      data = await queryExternalPG(`SELECT * FROM uelicon_database.controle_green LIMIT 1`);
     }
 
     return new Response(JSON.stringify({ data }, (_, v) => typeof v === 'bigint' ? Number(v) : v), {
