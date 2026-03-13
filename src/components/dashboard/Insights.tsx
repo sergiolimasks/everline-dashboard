@@ -25,14 +25,15 @@ export function Insights({ summary, trafficDaily, salesDaily, isLoading }: Insig
   const taxaFixa = Number(summary.sales?.taxa_fixa || 0);
   const coProdutor = Number(summary.sales?.co_produtor || 0);
   const taxaGreen = Number(summary.sales?.taxa_green || 0);
+  const receitaBruta = Number(summary.sales?.receita_bruta || 0);
   const lucro = receitaLiquida - taxaFixa;
-  const roi = totalGasto > 0 ? ((receitaLiquida - totalGasto - taxaFixa) / totalGasto) * 100 : 0;
+  const roi = totalGasto > 0 ? receitaBruta / totalGasto : 0;
   const cac = vendasAprovadas > 0 ? (totalGasto + taxaFixa + coProdutor + taxaGreen) / vendasAprovadas : 0;
 
-  if (roi > 0) {
-    insights.push({ text: `ROI positivo de ${roi.toFixed(1)}%. Para cada R$1 investido, retornam R$${((roi / 100) + 1).toFixed(2)}.`, type: 'success' });
+  if (roi >= 1) {
+    insights.push({ text: `ROI positivo de ${roi.toFixed(2)}. Para cada R$1 investido, retornam R$${roi.toFixed(2)}.`, type: 'success' });
   } else {
-    insights.push({ text: `ROI negativo de ${roi.toFixed(1)}%. Operação no prejuízo de ${formatCurrency(Math.abs(lucro))}.`, type: 'warning' });
+    insights.push({ text: `ROI negativo de ${roi.toFixed(2)}. Operação no prejuízo de ${formatCurrency(Math.abs(lucro))}.`, type: 'warning' });
   }
 
   if (cac > 0) {
