@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, DollarSign, MousePointerClick, Eye, ShoppingCart, Target, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, MousePointerClick, Eye, ShoppingCart, Target, BarChart3, Receipt } from "lucide-react";
 import type { SummaryData } from "@/lib/dashboard-api";
 
 interface KPICardsProps {
@@ -27,18 +27,18 @@ function Skeleton() {
 export function KPICards({ data, isLoading }: KPICardsProps) {
   const traffic = data?.traffic;
   const sales = data?.sales;
-  const checkout = data?.checkout_traffic;
 
   const totalGasto = Number(traffic?.total_gasto || 0);
-  const receitaLiquida = Number(sales?.receita_liquida || 0);
   const receitaBruta = Number(sales?.receita_bruta || 0);
+  const receitaLiquida = Number(sales?.receita_liquida || 0);
   const vendasAprovadas = Number(sales?.vendas_aprovadas || 0);
   const totalCliques = Number(traffic?.total_cliques || 0);
   const totalImpressoes = Number(traffic?.total_impressoes || 0);
   const totalCheckouts = Number(traffic?.total_checkouts || 0);
+  const taxaFixa = Number(sales?.taxa_fixa || 0);
 
-  const lucro = receitaLiquida - totalGasto;
-  const roi = totalGasto > 0 ? ((receitaLiquida - totalGasto) / totalGasto) : 0;
+  const lucro = receitaLiquida - totalGasto - taxaFixa;
+  const roi = totalGasto > 0 ? ((receitaLiquida - totalGasto - taxaFixa) / totalGasto) : 0;
   const cac = vendasAprovadas > 0 ? totalGasto / vendasAprovadas : 0;
   const ctr = totalImpressoes > 0 ? totalCliques / totalImpressoes : 0;
   const taxaConversao = totalCheckouts > 0 ? vendasAprovadas / totalCheckouts : 0;
@@ -51,10 +51,16 @@ export function KPICards({ data, isLoading }: KPICardsProps) {
       color: "text-chart-orange",
     },
     {
-      label: "Receita Líquida",
-      value: isLoading ? null : formatCurrency(receitaLiquida),
+      label: "Receita Bruta",
+      value: isLoading ? null : formatCurrency(receitaBruta),
       icon: TrendingUp,
       color: "text-primary",
+    },
+    {
+      label: "Taxa Fixa (R$18/venda)",
+      value: isLoading ? null : formatCurrency(taxaFixa),
+      icon: Receipt,
+      color: "text-chart-purple",
     },
     {
       label: "Lucro",
@@ -95,7 +101,7 @@ export function KPICards({ data, isLoading }: KPICardsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {kpis.map((kpi) => (
         <div key={kpi.label} className="kpi-card">
           <div className="flex items-center justify-between mb-3">

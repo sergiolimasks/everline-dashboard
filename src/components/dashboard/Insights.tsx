@@ -22,30 +22,23 @@ export function Insights({ summary, trafficDaily, salesDaily, isLoading }: Insig
   const totalGasto = Number(summary.traffic?.total_gasto || 0);
   const receitaLiquida = Number(summary.sales?.receita_liquida || 0);
   const vendasAprovadas = Number(summary.sales?.vendas_aprovadas || 0);
-  const lucro = receitaLiquida - totalGasto;
-  const roi = totalGasto > 0 ? ((receitaLiquida - totalGasto) / totalGasto) * 100 : 0;
+  const taxaFixa = Number(summary.sales?.taxa_fixa || 0);
+  const lucro = receitaLiquida - totalGasto - taxaFixa;
+  const roi = totalGasto > 0 ? ((receitaLiquida - totalGasto - taxaFixa) / totalGasto) * 100 : 0;
   const cac = vendasAprovadas > 0 ? totalGasto / vendasAprovadas : 0;
 
-  // ROI insight
   if (roi > 0) {
     insights.push({ text: `ROI positivo de ${roi.toFixed(1)}%. Para cada R$1 investido, retornam R$${((roi / 100) + 1).toFixed(2)}.`, type: 'success' });
   } else {
     insights.push({ text: `ROI negativo de ${roi.toFixed(1)}%. Operação no prejuízo de ${formatCurrency(Math.abs(lucro))}.`, type: 'warning' });
   }
 
-  // CAC insight
   if (cac > 0) {
     insights.push({ text: `CAC atual: ${formatCurrency(cac)}. Cada cliente custa isso para adquirir.`, type: 'info' });
   }
 
-  // Checkout campaign correlation
-  const gastoCheckout = Number(summary.checkout_traffic?.gasto_checkout || 0);
-  if (gastoCheckout > 0 && totalGasto > 0) {
-    const percentCheckout = (gastoCheckout / totalGasto) * 100;
-    insights.push({
-      text: `Campanhas CHECKOUT representam ${percentCheckout.toFixed(1)}% do investimento total (${formatCurrency(gastoCheckout)}).`,
-      type: 'info',
-    });
+  if (taxaFixa > 0) {
+    insights.push({ text: `Taxa fixa total: ${formatCurrency(taxaFixa)} (R$18 × ${vendasAprovadas} vendas do produto principal).`, type: 'info' });
   }
 
   // Order bump rate
@@ -65,16 +58,11 @@ export function Insights({ summary, trafficDaily, salesDaily, isLoading }: Insig
     });
   }
 
-  // Best day
   if (salesDaily && salesDaily.length > 0) {
-    const dailyMap = new Map<string, number>();
-    salesDaily.forEach((d) => {
-      dailyMap.set(d.dia, (dailyMap.get(d.dia) || 0) + Number(d.vendas_aprovadas));
-    });
-    const bestDay = Array.from(dailyMap.entries()).sort((a, b) => b[1] - a[1])[0];
+    const bestDay = [...salesDaily].sort((a, b) => Number(b.vendas_aprovadas) - Number(a.vendas_aprovadas))[0];
     if (bestDay) {
       insights.push({
-        text: `Melhor dia: ${new Date(bestDay[0]).toLocaleDateString('pt-BR')} com ${bestDay[1]} vendas aprovadas.`,
+        text: `Melhor dia: ${new Date(bestDay.dia).toLocaleDateString('pt-BR')} com ${bestDay.vendas_aprovadas} vendas aprovadas.`,
         type: 'success',
       });
     }
