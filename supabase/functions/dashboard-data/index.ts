@@ -211,13 +211,9 @@ serve(async (req) => {
         ORDER BY SUM(gasto) DESC
       `, params);
     } else if (endpoint === 'debug_campaigns') {
-      // Debug: show all campaigns without filters
+      // Debug: check table contents
       data = await queryExternalPG(`
-        SELECT DISTINCT campanha, MIN(data::date) as min_date, MAX(data::date) as max_date
-        FROM bd_ads_clientes.meta_uelicon_venancio
-        GROUP BY campanha
-        ORDER BY campanha
-        LIMIT 20
+        SELECT COUNT(*) as total FROM bd_ads_clientes.meta_uelicon_venancio
       `);
     }
 
