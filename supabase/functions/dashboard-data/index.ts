@@ -201,6 +201,12 @@ serve(async (req) => {
         },
         products,
       }];
+    } else if (endpoint === 'schema') {
+      data = await queryExternalPG(`
+        SELECT column_name FROM information_schema.columns 
+        WHERE table_schema = 'bd_ads_clientes' AND table_name = 'meta_uelicon_venancio'
+        ORDER BY ordinal_position
+      `);
     } else if (endpoint === 'campaigns') {
       // Only CHECKUP campaigns
       data = await queryExternalPG(`
