@@ -14,17 +14,9 @@ export interface SummaryData {
   };
   sales: {
     vendas_aprovadas: number;
-    total_vendas: number;
     receita_bruta: number;
     receita_liquida: number;
-    taxa_total: number;
-  };
-  checkout_traffic: {
-    gasto_checkout: number;
-    cliques_checkout: number;
-    impressoes_checkout: number;
-    checkouts_checkout: number;
-    compras_checkout: number;
+    taxa_fixa: number;
   };
   products: Array<{
     produto: string;
@@ -49,12 +41,10 @@ export interface TrafficDaily {
 
 export interface SalesDaily {
   dia: string;
-  produto: string;
   vendas_aprovadas: number;
-  total_vendas: number;
   receita_bruta: number;
   receita_liquida: number;
-  taxa_total: number;
+  taxa_fixa: number;
 }
 
 export interface CampaignData {
@@ -71,8 +61,6 @@ export interface CampaignData {
   cpc: number;
   cpm: number;
 }
-
-const PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 
 async function fetchDashboard<T>(endpoint: string, dateFrom?: string, dateTo?: string): Promise<T[]> {
   const params = new URLSearchParams({ endpoint });
