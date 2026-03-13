@@ -79,13 +79,6 @@ async function fetchDashboard<T>(endpoint: string, dateFrom?: string, dateTo?: s
   if (dateFrom) params.set('date_from', dateFrom);
   if (dateTo) params.set('date_to', dateTo);
 
-  const { data, error } = await supabase.functions.invoke('dashboard-data', {
-    body: null,
-    method: 'GET',
-    headers: {},
-  });
-
-  // Use direct fetch since supabase.functions.invoke doesn't support GET params well
   const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-data?${params.toString()}`;
   const response = await fetch(url, {
     headers: {
