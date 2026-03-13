@@ -1,6 +1,6 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import type { TrafficDaily } from "@/lib/dashboard-api";
-import type { SalesDaily } from "@/lib/dashboard-api";
+import type { TrafficDaily, SalesDaily } from "@/lib/dashboard-api";
+import { formatDayMonth } from "@/lib/date-utils";
 
 interface FunnelChartProps {
   trafficData: TrafficDaily[] | undefined;
