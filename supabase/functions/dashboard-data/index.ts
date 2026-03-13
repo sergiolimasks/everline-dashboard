@@ -184,6 +184,7 @@ serve(async (req) => {
         traffic: traffic[0],
         sales: {
           vendas_aprovadas: vendasPrincipal,
+          vendas_bump: Number((bumpSales[0] as any)?.vendas_bump || 0),
           receita_bruta: receitaBrutaTotal,
           receita_liquida: receitaLiquidaTotal,
           taxa_fixa: taxaFixaTotal,

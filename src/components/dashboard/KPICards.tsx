@@ -52,7 +52,7 @@ function calcMetrics(data: SummaryData | undefined) {
   const thumbStopRate = totalImpressoes > 0 ? totalViews3s / totalImpressoes : 0;
 
   return {
-    totalGasto, receitaBruta, receitaLiquida, vendasAprovadas,
+    totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
     taxaFixa, coProdutor, taxaGreen, lucro, roi,
     cac, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
     thumbStopRate,
