@@ -9,6 +9,7 @@ interface DateFilterProps {
 
 export function DateFilter({ dateFrom, dateTo, onDateChange }: DateFilterProps) {
   const presets = [
+    { label: "Hoje", days: 0 },
     { label: "7 dias", days: 7 },
     { label: "14 dias", days: 14 },
     { label: "30 dias", days: 30 },
@@ -19,7 +20,9 @@ export function DateFilter({ dateFrom, dateTo, onDateChange }: DateFilterProps) 
   const applyPreset = (days: number) => {
     const to = new Date();
     const from = new Date();
-    from.setDate(from.getDate() - days);
+    if (days > 0) {
+      from.setDate(from.getDate() - days);
+    }
     onDateChange(formatDateString(from), formatDateString(to));
   };
 
