@@ -1,5 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { SalesDaily } from "@/lib/dashboard-api";
+import { formatDayMonth } from "@/lib/date-utils";
 
 interface SalesChartProps {
   data: SalesDaily[] | undefined;
