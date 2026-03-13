@@ -191,7 +191,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
         <KPICard
           label="CPC" value={isLoading ? null : formatCurrency(current?.cpc || 0)}
           icon={MousePointerClick} color="text-chart-purple" isLoading={isLoading}
-          metricKey="cpc" current={current} comp7d={comp7d} comp14d={comp14d} invertComparison
+          metricKey="cpc" current={current} comp7d={comp7d} comp14d={comp14d}
         />
         <KPICard
           label="CTR" value={isLoading ? null : formatPercent(current?.ctr || 0)}
