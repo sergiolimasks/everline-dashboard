@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns } from "@/hooks/use-dashboard";
+import { formatDateString } from "@/lib/date-utils";
 import { KPICards } from "@/components/dashboard/KPICards";
 import { TrafficChart } from "@/components/dashboard/TrafficChart";
 import { SalesChart } from "@/components/dashboard/SalesChart";
