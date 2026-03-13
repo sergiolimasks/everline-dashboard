@@ -1,3 +1,4 @@
+// Dashboard data edge function - connects to external PostgreSQL
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Pool } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 
