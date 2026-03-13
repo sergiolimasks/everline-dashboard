@@ -14,10 +14,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 const Index = () => {
   const today = new Date();
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(today.getDate() - 30);
 
-  const [dateFrom, setDateFrom] = useState(formatDateString(thirtyDaysAgo));
+  const [dateFrom, setDateFrom] = useState(formatDateString(today));
   const [dateTo, setDateTo] = useState(formatDateString(today));
 
   const queryClient = useQueryClient();
