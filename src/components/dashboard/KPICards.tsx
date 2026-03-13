@@ -120,21 +120,21 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
         <KPICard
           label="Investimento Total" value={isLoading ? null : formatCurrency(current?.totalGasto || 0)}
           icon={DollarSign} color="text-chart-orange" isLoading={isLoading}
-          metricKey="totalGasto" current={current} comp7d={comp7d} comp14d={comp14d} invertComparison
+          metricKey="totalGasto" current={current} comp7d={null} comp14d={null}
         />
         <KPICard
           label="Lucro" value={isLoading ? null : formatCurrency(current?.lucro || 0)}
           icon={(current?.lucro || 0) >= 0 ? TrendingUp : TrendingDown}
           color={(current?.lucro || 0) >= 0 ? "kpi-trend-up" : "kpi-trend-down"}
           isLoading={isLoading}
-          metricKey="lucro" current={current} comp7d={comp7d} comp14d={comp14d}
+          metricKey="lucro" current={current} comp7d={null} comp14d={null}
         />
         <KPICard
           label="ROI" value={isLoading ? null : (current?.roi || 0).toFixed(2)}
           icon={BarChart3}
           color={(current?.roi || 0) >= 0 ? "kpi-trend-up" : "kpi-trend-down"}
           isLoading={isLoading}
-          metricKey="roi" current={current} comp7d={comp7d} comp14d={comp14d}
+          metricKey="roi" current={current} comp7d={null} comp14d={null}
         />
       </div>
 
