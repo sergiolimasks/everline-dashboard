@@ -1,4 +1,4 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { SalesDaily } from "@/lib/dashboard-api";
 
 interface SalesChartProps {
@@ -16,29 +16,11 @@ export function SalesChart({ data, isLoading }: SalesChartProps) {
     );
   }
 
-  // Aggregate by day
-  const dailyMap = new Map<string, { dia: string; checkup: number; orderbumps: number; receita: number }>();
-
-  (data || []).forEach((d) => {
-    const key = d.dia;
-    const existing = dailyMap.get(key) || { dia: key, checkup: 0, orderbumps: 0, receita: 0 };
-    const prodLower = (d.produto || '').toLowerCase();
-
-    if (prodLower.includes('checkup') || prodLower.includes('vida financeira')) {
-      existing.checkup += Number(d.vendas_aprovadas);
-    } else {
-      existing.orderbumps += Number(d.vendas_aprovadas);
-    }
-    existing.receita += Number(d.receita_liquida);
-    dailyMap.set(key, existing);
-  });
-
-  const chartData = Array.from(dailyMap.values())
-    .sort((a, b) => a.dia.localeCompare(b.dia))
+  const chartData = (data || [])
+    .sort((a, b) => String(a.dia).localeCompare(String(b.dia)))
     .map((d) => ({
       dia: new Date(d.dia).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-      "Checkup Vida Financeira": d.checkup,
-      "Order Bumps": d.orderbumps,
+      "Vendas Aprovadas": Number(d.vendas_aprovadas),
     }));
 
   return (
@@ -57,9 +39,7 @@ export function SalesChart({ data, isLoading }: SalesChartProps) {
               color: 'hsl(210, 20%, 92%)',
             }}
           />
-          <Legend />
-          <Bar dataKey="Checkup Vida Financeira" fill="hsl(160, 84%, 44%)" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="Order Bumps" fill="hsl(200, 80%, 50%)" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="Vendas Aprovadas" fill="hsl(160, 84%, 44%)" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
