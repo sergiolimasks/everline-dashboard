@@ -210,18 +210,6 @@ serve(async (req) => {
         GROUP BY campanha
         ORDER BY SUM(gasto) DESC
       `, params);
-    } else if (endpoint === 'debug_campaigns') {
-      try {
-        const r1 = await queryExternalPG(`SELECT 1 as test`);
-        const r2 = await queryExternalPG(`SELECT current_database() as db, current_schema() as schema`);
-        let r3 = [];
-        try { r3 = await queryExternalPG(`SELECT COUNT(*)::int as cnt FROM bd_ads_clientes.meta_uelicon_venancio`); } catch(e) { r3 = [{ error: e.message }]; }
-        let r4 = [];
-        try { r4 = await queryExternalPG(`SELECT schemaname, tablename FROM pg_tables WHERE schemaname NOT IN ('pg_catalog','information_schema') LIMIT 10`); } catch(e) { r4 = [{ error: e.message }]; }
-        data = [{ test: r1, dbinfo: r2, ads_count: r3, tables: r4 }];
-      } catch(e) {
-        data = [{ error: e.message }];
-      }
     }
 
     return new Response(JSON.stringify({ data }, (_, v) => typeof v === 'bigint' ? Number(v) : v), {
