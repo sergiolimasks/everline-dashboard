@@ -147,21 +147,25 @@ serve(async (req) => {
         ? ` AND "Data"::date >= $1 AND "Data"::date <= $2`
         : '';
 
-      // Principal product sales
+      // Principal product sales (with co-produtor and taxa green)
       const principalSales = await queryExternalPG(`
         SELECT 
           COUNT(*) FILTER (WHERE "Status da venda" IN ${APPROVED_STATUSES}) as vendas_aprovadas,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Valor Bruto", ',', '.')::numeric ELSE 0 END) as receita_bruta,
-          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Valor Líquido", ',', '.')::numeric ELSE 0 END) as receita_liquida
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Valor Líquido", ',', '.')::numeric ELSE 0 END) as receita_liquida,
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Co-Produtor", ',', '.')::numeric ELSE 0 END) as co_produtor,
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("TAXA GREEN", ',', '.')::numeric ELSE 0 END) as taxa_green
         FROM uelicon_database.controle_green
         WHERE ${PRINCIPAL_PRODUCT_FILTER} ${salesDateFilter}
       `, params);
 
-      // Order bump revenue only
+      // Order bump revenue + fees
       const bumpSales = await queryExternalPG(`
         SELECT 
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Valor Bruto", ',', '.')::numeric ELSE 0 END) as receita_bruta_bump,
-          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Valor Líquido", ',', '.')::numeric ELSE 0 END) as receita_liquida_bump
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Valor Líquido", ',', '.')::numeric ELSE 0 END) as receita_liquida_bump,
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Co-Produtor", ',', '.')::numeric ELSE 0 END) as co_produtor_bump,
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("TAXA GREEN", ',', '.')::numeric ELSE 0 END) as taxa_green_bump
         FROM uelicon_database.controle_green
         WHERE ${ORDERBUMP_PRODUCT_FILTER} ${salesDateFilter}
       `, params);
@@ -182,6 +186,8 @@ serve(async (req) => {
       const taxaFixaTotal = vendasPrincipal * TAXA_FIXA_POR_VENDA;
       const receitaBrutaTotal = Number((principalSales[0] as any)?.receita_bruta || 0) + Number((bumpSales[0] as any)?.receita_bruta_bump || 0);
       const receitaLiquidaTotal = Number((principalSales[0] as any)?.receita_liquida || 0) + Number((bumpSales[0] as any)?.receita_liquida_bump || 0);
+      const coProdutorTotal = Number((principalSales[0] as any)?.co_produtor || 0) + Number((bumpSales[0] as any)?.co_produtor_bump || 0);
+      const taxaGreenTotal = Number((principalSales[0] as any)?.taxa_green || 0) + Number((bumpSales[0] as any)?.taxa_green_bump || 0);
 
       data = [{
         traffic: traffic[0],
@@ -190,6 +196,8 @@ serve(async (req) => {
           receita_bruta: receitaBrutaTotal,
           receita_liquida: receitaLiquidaTotal,
           taxa_fixa: taxaFixaTotal,
+          co_produtor: coProdutorTotal,
+          taxa_green: taxaGreenTotal,
         },
         products,
       }];

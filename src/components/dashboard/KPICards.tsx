@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, DollarSign, MousePointerClick, Eye, ShoppingCart, Target, BarChart3, Receipt } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, MousePointerClick, Eye, ShoppingCart, Target, BarChart3, Receipt, Users, CreditCard } from "lucide-react";
 import type { SummaryData } from "@/lib/dashboard-api";
 
 interface KPICardsProps {
@@ -36,10 +36,12 @@ export function KPICards({ data, isLoading }: KPICardsProps) {
   const totalImpressoes = Number(traffic?.total_impressoes || 0);
   const totalCheckouts = Number(traffic?.total_checkouts || 0);
   const taxaFixa = Number(sales?.taxa_fixa || 0);
+  const coProdutor = Number(sales?.co_produtor || 0);
+  const taxaGreen = Number(sales?.taxa_green || 0);
 
-  const lucro = receitaLiquida - totalGasto - taxaFixa;
+  const lucro = receitaLiquida - taxaFixa;
   const roi = totalGasto > 0 ? ((receitaLiquida - totalGasto - taxaFixa) / totalGasto) : 0;
-  const cac = vendasAprovadas > 0 ? totalGasto / vendasAprovadas : 0;
+  const cac = vendasAprovadas > 0 ? (totalGasto + taxaFixa + coProdutor + taxaGreen) / vendasAprovadas : 0;
   const ctr = totalImpressoes > 0 ? totalCliques / totalImpressoes : 0;
   const taxaConversao = totalCheckouts > 0 ? vendasAprovadas / totalCheckouts : 0;
 
@@ -51,16 +53,28 @@ export function KPICards({ data, isLoading }: KPICardsProps) {
       color: "text-chart-orange",
     },
     {
-      label: "Receita Bruta",
+      label: "Faturamento",
       value: isLoading ? null : formatCurrency(receitaBruta),
       icon: TrendingUp,
       color: "text-primary",
     },
     {
-      label: "Taxa Fixa (R$18/venda)",
+      label: "Custo das Consultas Estimado",
       value: isLoading ? null : formatCurrency(taxaFixa),
       icon: Receipt,
       color: "text-chart-purple",
+    },
+    {
+      label: "Co-Produtor",
+      value: isLoading ? null : formatCurrency(coProdutor),
+      icon: Users,
+      color: "text-chart-blue",
+    },
+    {
+      label: "Taxa Greenn",
+      value: isLoading ? null : formatCurrency(taxaGreen),
+      icon: CreditCard,
+      color: "text-chart-yellow",
     },
     {
       label: "Lucro",

@@ -17,6 +17,8 @@ export interface SummaryData {
     receita_bruta: number;
     receita_liquida: number;
     taxa_fixa: number;
+    co_produtor: number;
+    taxa_green: number;
   };
   products: Array<{
     produto: string;
