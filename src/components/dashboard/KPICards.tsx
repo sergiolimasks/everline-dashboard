@@ -142,6 +142,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
           color={(current?.roi || 0) >= 0 ? "kpi-trend-up" : "kpi-trend-down"}
           isLoading={isLoading}
           metricKey="roi" current={current} comp7d={comp7d} comp14d={comp14d}
+          inlineComparison
         />
       </div>
 
