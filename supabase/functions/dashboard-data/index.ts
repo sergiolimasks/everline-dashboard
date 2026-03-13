@@ -163,10 +163,16 @@ serve(async (req) => {
       `, params);
     } else if (endpoint === 'debug_statuses') {
       data = await queryExternalPG(`
-        SELECT DISTINCT "Status da venda" as status, COUNT(*) as cnt
+        SELECT "Status da venda" as status, "Valor Bruto" as valor_bruto, "Valor Líquido" as valor_liquido
         FROM uelicon_database.controle_green
-        GROUP BY "Status da venda"
-        ORDER BY COUNT(*) DESC
+        LIMIT 10
+      `);
+    } else if (endpoint === 'debug_columns') {
+      data = await queryExternalPG(`
+        SELECT column_name, data_type 
+        FROM information_schema.columns 
+        WHERE table_schema = 'uelicon_database' AND table_name = 'controle_green'
+        ORDER BY ordinal_position
       `);
     }
 
