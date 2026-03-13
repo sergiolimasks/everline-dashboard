@@ -63,13 +63,14 @@ function calcMetrics(data: SummaryData | undefined) {
   };
 }
 
-function ComparisonTag({ current, previous, label }: { current: number; previous: number; label: string }) {
+function ComparisonTag({ current, previous, label, invertColor = false }: { current: number; previous: number; label: string; invertColor?: boolean }) {
   if (previous === 0 && current === 0) return <span className="text-[10px] text-muted-foreground">{label}: --</span>;
   const change = previous !== 0 ? ((current - previous) / Math.abs(previous)) * 100 : (current > 0 ? 100 : 0);
-  const isPositive = change >= 0;
+  const isUp = change >= 0;
+  const isGood = invertColor ? !isUp : isUp;
   return (
-    <span className={`inline-flex items-center gap-0.5 text-[10px] font-medium ${isPositive ? 'text-primary' : 'text-destructive'}`}>
-      {isPositive ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
+    <span className={`inline-flex items-center gap-0.5 text-[10px] font-medium ${isGood ? 'text-primary' : 'text-destructive'}`}>
+      {isUp ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
       {label}: {change >= 0 ? '+' : ''}{change.toFixed(1)}%
     </span>
   );
