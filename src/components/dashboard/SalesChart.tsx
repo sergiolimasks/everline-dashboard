@@ -20,7 +20,7 @@ export function SalesChart({ data, isLoading }: SalesChartProps) {
   const chartData = (data || [])
     .sort((a, b) => String(a.dia).localeCompare(String(b.dia)))
     .map((d) => ({
-      dia: new Date(d.dia).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+      dia: formatDayMonth(String(d.dia)),
       "Vendas Aprovadas": Number(d.vendas_aprovadas),
     }));
 

@@ -17,8 +17,8 @@ const Index = () => {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(today.getDate() - 30);
 
-  const [dateFrom, setDateFrom] = useState(thirtyDaysAgo.toISOString().split('T')[0]);
-  const [dateTo, setDateTo] = useState(today.toISOString().split('T')[0]);
+  const [dateFrom, setDateFrom] = useState(formatDateString(thirtyDaysAgo));
+  const [dateTo, setDateTo] = useState(formatDateString(today));
 
   const queryClient = useQueryClient();
 

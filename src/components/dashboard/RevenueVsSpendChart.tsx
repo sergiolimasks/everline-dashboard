@@ -33,7 +33,7 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: Funne
   const chartData = Array.from(allDays)
     .sort()
     .map((dia) => ({
-      dia: new Date(dia).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+      dia: formatDayMonth(dia),
       Gasto: gastoMap.get(dia) || 0,
       "Receita Líquida": receitaMap.get(dia) || 0,
     }));
