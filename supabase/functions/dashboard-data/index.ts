@@ -127,9 +127,9 @@ serve(async (req) => {
       const products = await queryExternalPG(`
         SELECT 
           "Nome do produto" as produto,
-          COUNT(*) FILTER (WHERE "Status da venda" IN ('Aprovada','aprovada','approved','Completa','completa')) as vendas_aprovadas,
-          SUM(CASE WHEN "Status da venda" IN ('Aprovada','aprovada','approved','Completa','completa') THEN "Valor Bruto"::numeric ELSE 0 END) as receita_bruta,
-          SUM(CASE WHEN "Status da venda" IN ('Aprovada','aprovada','approved','Completa','completa') THEN "Valor Líquido"::numeric ELSE 0 END) as receita_liquida
+          COUNT(*) FILTER (WHERE "Status da venda" IN ('paid','Paid','approved','Aprovada','aprovada','Completa','completa')) as vendas_aprovadas,
+          SUM(CASE WHEN "Status da venda" IN ('paid','Paid','approved','Aprovada','aprovada','Completa','completa') THEN REPLACE("Valor Bruto", ',', '.')::numeric ELSE 0 END) as receita_bruta,
+          SUM(CASE WHEN "Status da venda" IN ('paid','Paid','approved','Aprovada','aprovada','Completa','completa') THEN REPLACE("Valor Líquido", ',', '.')::numeric ELSE 0 END) as receita_liquida
         FROM uelicon_database.controle_green
         WHERE 1=1 ${salesDateFilter}
         GROUP BY "Nome do produto"
