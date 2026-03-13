@@ -63,13 +63,14 @@ function calcMetrics(data: SummaryData | undefined) {
   };
 }
 
-function ComparisonTag({ current, previous, label }: { current: number; previous: number; label: string }) {
+function ComparisonTag({ current, previous, label, invertColor = false }: { current: number; previous: number; label: string; invertColor?: boolean }) {
   if (previous === 0 && current === 0) return <span className="text-[10px] text-muted-foreground">{label}: --</span>;
   const change = previous !== 0 ? ((current - previous) / Math.abs(previous)) * 100 : (current > 0 ? 100 : 0);
-  const isPositive = change >= 0;
+  const isUp = change >= 0;
+  const isGood = invertColor ? !isUp : isUp;
   return (
-    <span className={`inline-flex items-center gap-0.5 text-[10px] font-medium ${isPositive ? 'text-primary' : 'text-destructive'}`}>
-      {isPositive ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
+    <span className={`inline-flex items-center gap-0.5 text-[10px] font-medium ${isGood ? 'text-primary' : 'text-destructive'}`}>
+      {isUp ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
       {label}: {change >= 0 ? '+' : ''}{change.toFixed(1)}%
     </span>
   );
@@ -87,8 +88,8 @@ function KPICard({
 
   const tags = !isLoading && comp7d && comp14d ? (
     <div className="flex items-center gap-2">
-      <ComparisonTag current={invertComparison ? -c : c} previous={invertComparison ? -v7 : v7} label="7d" />
-      <ComparisonTag current={invertComparison ? -c : c} previous={invertComparison ? -v14 : v14} label="14d" />
+      <ComparisonTag current={c} previous={v7} label="7d" invertColor={invertComparison} />
+      <ComparisonTag current={c} previous={v14} label="14d" invertColor={invertComparison} />
     </div>
   ) : null;
 
@@ -185,12 +186,12 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
         <KPICard
           label="CAC" value={isLoading ? null : formatCurrency(current?.cac || 0)}
           icon={Target} color="text-chart-blue" isLoading={isLoading}
-          metricKey="cac" current={current} comp7d={comp7d} comp14d={comp14d} invertComparison
+          metricKey="cac" current={current} comp7d={comp7d} comp14d={comp14d}
         />
         <KPICard
           label="CPC" value={isLoading ? null : formatCurrency(current?.cpc || 0)}
           icon={MousePointerClick} color="text-chart-purple" isLoading={isLoading}
-          metricKey="cpc" current={current} comp7d={comp7d} comp14d={comp14d} invertComparison
+          metricKey="cpc" current={current} comp7d={comp7d} comp14d={comp14d}
         />
         <KPICard
           label="CTR" value={isLoading ? null : formatPercent(current?.ctr || 0)}
