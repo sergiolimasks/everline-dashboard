@@ -161,6 +161,13 @@ serve(async (req) => {
         GROUP BY campanha
         ORDER BY SUM(gasto) DESC
       `, params);
+    } else if (endpoint === 'debug_statuses') {
+      data = await queryExternalPG(`
+        SELECT DISTINCT "Status da venda" as status, COUNT(*) as cnt
+        FROM uelicon_database.controle_green
+        GROUP BY "Status da venda"
+        ORDER BY COUNT(*) DESC
+      `);
     }
 
     return new Response(JSON.stringify({ data }, (_, v) => typeof v === 'bigint' ? Number(v) : v), {
