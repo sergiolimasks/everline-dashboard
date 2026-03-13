@@ -163,7 +163,7 @@ serve(async (req) => {
       `, params);
     }
 
-    return new Response(JSON.stringify({ data }), {
+    return new Response(JSON.stringify({ data }, (_, v) => typeof v === 'bigint' ? Number(v) : v), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
