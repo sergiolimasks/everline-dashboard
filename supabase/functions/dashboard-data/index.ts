@@ -53,7 +53,7 @@ serve(async (req) => {
     }
 
     // IMPORTANT: Only CHECKOUT campaigns count for traffic
-    const checkoutFilter = ` AND UPPER(campanha) LIKE '%CHECKOUT%'`;
+    const checkoutFilter = ` AND UPPER(campanha) LIKE '%CHECKUP%'`;
 
     let data: unknown[] = [];
 
@@ -190,7 +190,7 @@ serve(async (req) => {
         products,
       }];
     } else if (endpoint === 'campaigns') {
-      // Only CHECKOUT campaigns
+      // Only CHECKUP campaigns
       data = await queryExternalPG(`
         SELECT 
           campanha,
