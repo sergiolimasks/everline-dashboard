@@ -33,36 +33,30 @@ export function CampaignsTable({ data, isLoading }: CampaignsTableProps) {
           <thead>
             <tr>
               <th>Campanha</th>
-              <th className="text-right">Impressões</th>
-              <th className="text-right">Cliques</th>
-              <th className="text-right">CTR</th>
-              <th className="text-right">Checkouts</th>
-              <th className="text-right">CPC</th>
-              <th className="text-right">CPM</th>
               <th className="text-right">Gasto</th>
+              <th className="text-right">Vendas</th>
+              <th className="text-right">CPA</th>
+              <th className="text-right">Valor Compras</th>
+              <th className="text-right">ROAS</th>
             </tr>
           </thead>
           <tbody>
             {campaigns.map((c, i) => {
-              const ctr = Number(c.impressoes) > 0 ? (Number(c.cliques) / Number(c.impressoes)) * 100 : 0;
-              const isCheckout = (c.campanha || '').toUpperCase().includes('CHECKOUT');
+              const gasto = Number(c.gasto);
+              const compras = Number(c.compras);
+              const valorCompras = Number(c.valor_compras);
+              const cpa = compras > 0 ? gasto / compras : 0;
+              const roas = gasto > 0 ? valorCompras / gasto : 0;
               return (
                 <tr key={i}>
                   <td className="font-medium max-w-xs truncate">
-                    <div className="flex items-center gap-2">
-                      {isCheckout && (
-                        <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
-                      )}
-                      <span className="truncate">{c.campanha}</span>
-                    </div>
+                    <span className="truncate">{c.campanha}</span>
                   </td>
-                  <td className="text-right">{formatNumber(Number(c.impressoes))}</td>
-                  <td className="text-right">{formatNumber(Number(c.cliques))}</td>
-                  <td className="text-right">{ctr.toFixed(2)}%</td>
-                  <td className="text-right">{formatNumber(Number(c.checkouts))}</td>
-                  <td className="text-right">{formatCurrency(Number(c.cpc))}</td>
-                  <td className="text-right">{formatCurrency(Number(c.cpm))}</td>
-                  <td className="text-right font-display font-semibold">{formatCurrency(Number(c.gasto))}</td>
+                  <td className="text-right font-display font-semibold">{formatCurrency(gasto)}</td>
+                  <td className="text-right">{formatNumber(compras)}</td>
+                  <td className="text-right">{formatCurrency(cpa)}</td>
+                  <td className="text-right">{formatCurrency(valorCompras)}</td>
+                  <td className="text-right font-display font-semibold">{roas.toFixed(2)}x</td>
                 </tr>
               );
             })}
