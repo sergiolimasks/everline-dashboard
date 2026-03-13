@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { Calendar } from "lucide-react";
+import { formatDateString } from "@/lib/date-utils";
 
 interface DateFilterProps {
   dateFrom: string;
