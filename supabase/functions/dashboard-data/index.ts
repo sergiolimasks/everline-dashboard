@@ -10,9 +10,13 @@ const corsHeaders = {
 const APPROVED_STATUSES = `('paid','Paid','approved','Aprovada','aprovada','Completa','completa')`;
 const TAXA_FIXA_POR_VENDA = 18;
 
-// Products considered "principal" (not order bumps)
-const PRINCIPAL_PRODUCT_FILTER = `(LOWER("Nome do produto") LIKE '%checkup%' OR LOWER("Nome do produto") LIKE '%vida financeira%')`;
-const ORDERBUMP_PRODUCT_FILTER = `NOT ${PRINCIPAL_PRODUCT_FILTER}`;
+// Only these products belong to this dashboard
+const DASHBOARD_PRODUCTS_FILTER = `(LOWER("Nome do produto") LIKE '%check-up%' OR LOWER("Nome do produto") LIKE '%checkup%' OR LOWER("Nome do produto") LIKE '%vida financeira%' OR LOWER("Nome do produto") LIKE '%avalia__o individual%' OR LOWER("Nome do produto") LIKE '%cnpj%')`;
+
+// Products considered "principal" (not order bumps) — only Check-up da Vida Financeira
+const PRINCIPAL_PRODUCT_FILTER = `(LOWER("Nome do produto") LIKE '%check-up da vida%' OR LOWER("Nome do produto") LIKE '%checkup da vida%' OR LOWER("Nome do produto") LIKE '%check-up da vida financeira%')`;
+// Order bumps: Avaliação individual + Check-up do CNPJ
+const ORDERBUMP_PRODUCT_FILTER = `(${DASHBOARD_PRODUCTS_FILTER} AND NOT ${PRINCIPAL_PRODUCT_FILTER})`;
 
 async function queryExternalPG(sql: string, params: unknown[] = []) {
   const client = new Client({
