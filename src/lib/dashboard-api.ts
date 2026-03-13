@@ -15,6 +15,7 @@ export interface SummaryData {
   };
   sales: {
     vendas_aprovadas: number;
+    vendas_bump: number;
     receita_bruta: number;
     receita_liquida: number;
     taxa_fixa: number;

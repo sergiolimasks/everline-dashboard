@@ -153,6 +153,7 @@ serve(async (req) => {
 
       const bumpSales = await queryExternalPG(`
         SELECT 
+          COUNT(*) FILTER (WHERE "Status da venda" IN ${APPROVED_STATUSES}) as vendas_bump,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_bruta_bump,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_liquida_bump,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor_bump,
@@ -183,6 +184,7 @@ serve(async (req) => {
         traffic: traffic[0],
         sales: {
           vendas_aprovadas: vendasPrincipal,
+          vendas_bump: Number((bumpSales[0] as any)?.vendas_bump || 0),
           receita_bruta: receitaBrutaTotal,
           receita_liquida: receitaLiquidaTotal,
           taxa_fixa: taxaFixaTotal,

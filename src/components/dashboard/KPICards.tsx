@@ -30,6 +30,7 @@ function calcMetrics(data: SummaryData | undefined) {
   const receitaBruta = Number(sales?.receita_bruta || 0);
   const receitaLiquida = Number(sales?.receita_liquida || 0);
   const vendasAprovadas = Number(sales?.vendas_aprovadas || 0);
+  const vendasBump = Number(sales?.vendas_bump || 0);
   const totalCliques = Number(traffic?.total_cliques || 0);
   const totalImpressoes = Number(traffic?.total_impressoes || 0);
   const totalCheckouts = Number(traffic?.total_checkouts || 0);
@@ -51,7 +52,7 @@ function calcMetrics(data: SummaryData | undefined) {
   const thumbStopRate = totalImpressoes > 0 ? totalViews3s / totalImpressoes : 0;
 
   return {
-    totalGasto, receitaBruta, receitaLiquida, vendasAprovadas,
+    totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
     taxaFixa, coProdutor, taxaGreen, lucro, roi,
     cac, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
     thumbStopRate,
@@ -144,12 +145,24 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
 
   return (
     <div className="space-y-4">
-      {/* Fixed: Investimento, Lucro, ROI */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Fixed: Investimento, Vendas, Order Bumps, Lucro, ROI */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <KPICard
           label="Investimento Total" value={isLoading ? null : formatCurrency(current?.totalGasto || 0)}
           icon={DollarSign} color="text-chart-orange" isLoading={isLoading}
           metricKey="totalGasto" current={current} comp7d={null} comp14d={null}
+        />
+        <KPICard
+          label="Vendas Aprovadas" value={isLoading ? null : String(current?.vendasAprovadas || 0)}
+          icon={ShoppingCart} color="text-chart-green" isLoading={isLoading}
+          metricKey="vendasAprovadas" current={current} comp7d={comp7d} comp14d={comp14d}
+          inlineComparison
+        />
+        <KPICard
+          label="Order Bumps" value={isLoading ? null : String(current?.vendasBump || 0)}
+          icon={Target} color="text-chart-purple" isLoading={isLoading}
+          metricKey="vendasBump" current={current} comp7d={comp7d} comp14d={comp14d}
+          inlineComparison
         />
         <KPICard
           label="Lucro" value={isLoading ? null : formatCurrency(current?.lucro || 0)}
