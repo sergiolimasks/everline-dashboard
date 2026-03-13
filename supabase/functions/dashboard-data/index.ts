@@ -1,5 +1,6 @@
-// Dashboard data edge function - connects to external PostgreSQL
+// Dashboard data edge function v4
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,18 +8,21 @@ const corsHeaders = {
 };
 
 async function queryExternalPG(sql: string, params: unknown[] = []) {
-  const connectionString = Deno.env.get('EXTERNAL_PG_CONNECTION_STRING');
-  if (!connectionString) throw new Error('EXTERNAL_PG_CONNECTION_STRING not configured');
-
-  const { Pool } = await import("https://deno.land/x/postgres@v0.17.0/mod.ts");
-  const pool = new Pool(connectionString, 1, true);
-  const connection = await pool.connect();
+  const client = new Client({
+    hostname: "72.60.51.200",
+    port: 5432,
+    database: "postgres",
+    user: "postgres",
+    password: "REDACTED_PG_PASS",
+    tls: { enabled: false },
+  });
+  
+  await client.connect();
   try {
-    const result = await connection.queryObject(sql, params);
+    const result = await client.queryObject(sql, params);
     return result.rows;
   } finally {
-    connection.release();
-    await pool.end();
+    await client.end();
   }
 }
 
@@ -163,7 +167,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Dashboard data error:', error);
+    console.error('Dashboard v4 error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
