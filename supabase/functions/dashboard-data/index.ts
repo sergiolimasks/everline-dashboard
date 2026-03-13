@@ -153,8 +153,8 @@ serve(async (req) => {
           COUNT(*) FILTER (WHERE "Status da venda" IN ${APPROVED_STATUSES}) as vendas_aprovadas,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Valor Bruto", ',', '.')::numeric ELSE 0 END) as receita_bruta,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Valor Líquido", ',', '.')::numeric ELSE 0 END) as receita_liquida,
-          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Co-Produtor", ',', '.')::numeric ELSE 0 END) as co_produtor,
-          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("TAXA GREEN", ',', '.')::numeric ELSE 0 END) as taxa_green
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor,
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("TAXA GREEN", ',', '.'), '')::numeric, 0) ELSE 0 END) as taxa_green
         FROM uelicon_database.controle_green
         WHERE ${PRINCIPAL_PRODUCT_FILTER} ${salesDateFilter}
       `, params);
@@ -164,8 +164,8 @@ serve(async (req) => {
         SELECT 
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Valor Bruto", ',', '.')::numeric ELSE 0 END) as receita_bruta_bump,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Valor Líquido", ',', '.')::numeric ELSE 0 END) as receita_liquida_bump,
-          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Co-Produtor", ',', '.')::numeric ELSE 0 END) as co_produtor_bump,
-          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("TAXA GREEN", ',', '.')::numeric ELSE 0 END) as taxa_green_bump
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor_bump,
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("TAXA GREEN", ',', '.'), '')::numeric, 0) ELSE 0 END) as taxa_green_bump
         FROM uelicon_database.controle_green
         WHERE ${ORDERBUMP_PRODUCT_FILTER} ${salesDateFilter}
       `, params);
