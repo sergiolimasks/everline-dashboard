@@ -10,6 +10,7 @@ export interface SummaryData {
     total_compras_meta: number;
     total_valor_compras: number;
     total_gasto: number;
+    total_views_3s: number;
     dias_ativos: number;
   };
   sales: {
@@ -39,6 +40,7 @@ export interface TrafficDaily {
   compras: number;
   valor_compras: number;
   gasto: number;
+  views_3s: number;
 }
 
 export interface SalesDaily {

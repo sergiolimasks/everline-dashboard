@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Target, BarChart3, Receipt, Users, CreditCard, MousePointerClick, Eye, Monitor, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Target, BarChart3, Receipt, Users, CreditCard, MousePointerClick, Eye, Monitor, CheckCircle, ChevronDown, ChevronUp, PlayCircle } from "lucide-react";
 import type { SummaryData } from "@/lib/dashboard-api";
 
 interface KPICardsProps {
@@ -13,17 +13,11 @@ function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
 
-function formatNumber(value: number) {
-  if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
-  if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
-  return value.toLocaleString('pt-BR');
-}
-
 function formatPercent(value: number) {
   return `${(value * 100).toFixed(2)}%`;
 }
 
-function Skeleton() {
+function SkeletonBlock() {
   return <div className="h-8 w-24 bg-muted rounded animate-pulse" />;
 }
 
@@ -40,7 +34,7 @@ function calcMetrics(data: SummaryData | undefined) {
   const totalImpressoes = Number(traffic?.total_impressoes || 0);
   const totalCheckouts = Number(traffic?.total_checkouts || 0);
   const totalViews = Number(traffic?.total_views || 0);
-  const totalComprasMeta = Number(traffic?.total_compras_meta || 0);
+  const totalViews3s = Number(traffic?.total_views_3s || 0);
   const taxaFixa = Number(sales?.taxa_fixa || 0);
   const coProdutor = Number(sales?.co_produtor || 0);
   const taxaGreen = Number(sales?.taxa_green || 0);
@@ -53,13 +47,14 @@ function calcMetrics(data: SummaryData | undefined) {
   const cpm = totalImpressoes > 0 ? (totalGasto / totalImpressoes) * 1000 : 0;
   const taxaCarregamento = totalCliques > 0 ? totalViews / totalCliques : 0;
   const taxaConversaoPagina = totalViews > 0 ? totalCheckouts / totalViews : 0;
-  // Taxa conversão checkout: vendas Greenn / checkouts Meta
   const taxaConversaoCheckout = totalCheckouts > 0 ? vendasAprovadas / totalCheckouts : 0;
+  const thumbStopRate = totalImpressoes > 0 ? totalViews3s / totalImpressoes : 0;
 
   return {
     totalGasto, receitaBruta, receitaLiquida, vendasAprovadas,
     taxaFixa, coProdutor, taxaGreen, lucro, roi,
     cac, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
+    thumbStopRate,
   };
 }
 
@@ -69,10 +64,32 @@ function ComparisonTag({ current, previous, label, invertColor = false }: { curr
   const isUp = change >= 0;
   const isGood = invertColor ? !isUp : isUp;
   return (
-    <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${isGood ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
-      {isUp ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
-      {label}: {change >= 0 ? '+' : ''}{change.toFixed(1)}%
-    </span>
+    <div className={`flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold ${isGood ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
+      {isUp ? <TrendingUp className="h-2.5 w-2.5 shrink-0" /> : <TrendingDown className="h-2.5 w-2.5 shrink-0" />}
+      <span>{change >= 0 ? '+' : ''}{change.toFixed(1)}%</span>
+    </div>
+  );
+}
+
+function ComparisonRow({ metricKey, current, comp7d, comp14d, invertColor = false }: {
+  metricKey: string; current: any; comp7d: any; comp14d: any; invertColor?: boolean;
+}) {
+  if (!comp7d || !comp14d) return null;
+  const c = current?.[metricKey] ?? 0;
+  const v7 = comp7d?.[metricKey] ?? 0;
+  const v14 = comp14d?.[metricKey] ?? 0;
+
+  return (
+    <div className="flex items-center gap-2 mt-2">
+      <div className="flex flex-col items-center gap-0.5">
+        <span className="text-[9px] text-muted-foreground font-medium">7d</span>
+        <ComparisonTag current={c} previous={v7} label="7d" invertColor={invertColor} />
+      </div>
+      <div className="flex flex-col items-center gap-0.5">
+        <span className="text-[9px] text-muted-foreground font-medium">14d</span>
+        <ComparisonTag current={c} previous={v14} label="14d" invertColor={invertColor} />
+      </div>
+    </div>
   );
 }
 
@@ -82,34 +99,38 @@ function KPICard({
   label: string; value: string | null; icon: any; color: string; isLoading: boolean;
   metricKey: string; current: any; comp7d: any; comp14d: any; invertComparison?: boolean; inlineComparison?: boolean;
 }) {
-  const c = current?.[metricKey] ?? 0;
-  const v7 = comp7d?.[metricKey] ?? 0;
-  const v14 = comp14d?.[metricKey] ?? 0;
-
-  const tags = !isLoading && comp7d && comp14d ? (
-    <div className="flex items-center gap-2">
-      <ComparisonTag current={c} previous={v7} label="7d" invertColor={invertComparison} />
-      <ComparisonTag current={c} previous={v14} label="14d" invertColor={invertComparison} />
-    </div>
-  ) : null;
-
   return (
-    <div className="kpi-card">
+    <div className="kpi-card flex flex-col h-full">
       <div className="flex items-center justify-between mb-1">
         <span className="kpi-label">{label}</span>
-        <Icon className={`h-4 w-4 ${color}`} />
+        <Icon className={`h-4 w-4 ${color} shrink-0`} />
       </div>
-      {inlineComparison ? (
-        <div className="flex items-center gap-3">
-          {value ? <span className={`kpi-value ${color}`}>{value}</span> : <Skeleton />}
-          {tags}
-        </div>
-      ) : (
-        <>
-          {value ? <span className={`kpi-value ${color}`}>{value}</span> : <Skeleton />}
-          {tags && <div className="mt-1.5">{tags}</div>}
-        </>
-      )}
+      <div className="flex-1 flex flex-col justify-center">
+        {inlineComparison ? (
+          <div className="flex items-center gap-3 flex-wrap">
+            {value ? <span className={`kpi-value ${color}`}>{value}</span> : <SkeletonBlock />}
+            {!isLoading && comp7d && comp14d && (
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col items-center gap-0.5">
+                  <span className="text-[9px] text-muted-foreground font-medium">7d</span>
+                  <ComparisonTag current={current?.[metricKey] ?? 0} previous={comp7d?.[metricKey] ?? 0} label="7d" invertColor={invertComparison} />
+                </div>
+                <div className="flex flex-col items-center gap-0.5">
+                  <span className="text-[9px] text-muted-foreground font-medium">14d</span>
+                  <ComparisonTag current={current?.[metricKey] ?? 0} previous={comp14d?.[metricKey] ?? 0} label="14d" invertColor={invertComparison} />
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            {value ? <span className={`kpi-value ${color}`}>{value}</span> : <SkeletonBlock />}
+            {!isLoading && comp7d && comp14d && (
+              <ComparisonRow metricKey={metricKey} current={current} comp7d={comp7d} comp14d={comp14d} invertColor={invertComparison} />
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -182,7 +203,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
       )}
 
       {/* Fixed metrics row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
         <KPICard
           label="CAC" value={isLoading ? null : formatCurrency(current?.cac || 0)}
           icon={Target} color="text-chart-blue" isLoading={isLoading}
@@ -202,6 +223,11 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
           label="CPM" value={isLoading ? null : formatCurrency(current?.cpm || 0)}
           icon={Eye} color="text-chart-yellow" isLoading={isLoading}
           metricKey="cpm" current={current} comp7d={comp7d} comp14d={comp14d} invertComparison
+        />
+        <KPICard
+          label="Thumb Stop" value={isLoading ? null : formatPercent(current?.thumbStopRate || 0)}
+          icon={PlayCircle} color="text-chart-red" isLoading={isLoading}
+          metricKey="thumbStopRate" current={current} comp7d={comp7d} comp14d={comp14d}
         />
         <KPICard
           label="Tx Carreg. Página" value={isLoading ? null : formatPercent(current?.taxaCarregamento || 0)}

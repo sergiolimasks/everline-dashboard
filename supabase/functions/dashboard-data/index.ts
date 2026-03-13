@@ -1,4 +1,4 @@
-// Dashboard data edge function v5
+// Dashboard data edge function v6
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
@@ -10,12 +10,8 @@ const corsHeaders = {
 const APPROVED_STATUSES = `('paid','Paid','approved','Aprovada','aprovada','Completa','completa')`;
 const TAXA_FIXA_POR_VENDA = 18;
 
-// Only these products belong to this dashboard
 const DASHBOARD_PRODUCTS_FILTER = `(LOWER("Nome do produto") LIKE '%check-up%' OR LOWER("Nome do produto") LIKE '%checkup%' OR LOWER("Nome do produto") LIKE '%vida financeira%' OR LOWER("Nome do produto") LIKE '%avalia__o individual%' OR LOWER("Nome do produto") LIKE '%cnpj%')`;
-
-// Products considered "principal" (not order bumps) — only Check-up da Vida Financeira
 const PRINCIPAL_PRODUCT_FILTER = `(LOWER("Nome do produto") LIKE '%check-up da vida%' OR LOWER("Nome do produto") LIKE '%checkup da vida%' OR LOWER("Nome do produto") LIKE '%check-up da vida financeira%')`;
-// Order bumps: Avaliação individual + Check-up do CNPJ
 const ORDERBUMP_PRODUCT_FILTER = `(${DASHBOARD_PRODUCTS_FILTER} AND NOT ${PRINCIPAL_PRODUCT_FILTER})`;
 
 async function queryExternalPG(sql: string, params: unknown[] = []) {
@@ -56,7 +52,6 @@ serve(async (req) => {
       params.push(dateFrom, dateTo);
     }
 
-    // IMPORTANT: Only CHECKOUT campaigns count for traffic
     const checkoutFilter = ` AND UPPER(campanha) LIKE '%CHECKUP%'`;
 
     let data: unknown[] = [];
@@ -73,7 +68,8 @@ serve(async (req) => {
           SUM(checkouts) as checkouts,
           SUM(compras) as compras,
           SUM(valor_compras) as valor_compras,
-          SUM(gasto) as gasto
+          SUM(gasto) as gasto,
+          SUM(views_3s) as views_3s
         FROM bd_ads_clientes.meta_uelicon_venancio
         WHERE 1=1 ${dateFilter} ${checkoutFilter}
         GROUP BY data::date
@@ -84,7 +80,6 @@ serve(async (req) => {
         ? ` AND "Data"::date >= $1 AND "Data"::date <= $2`
         : '';
       
-      // Principal product: count sales + revenue
       const principalRows = await queryExternalPG(`
         SELECT 
           "Data"::date as dia,
@@ -97,7 +92,6 @@ serve(async (req) => {
         ORDER BY "Data"::date DESC
       `, params);
 
-      // Order bumps: only revenue, no count
       const bumpRows = await queryExternalPG(`
         SELECT 
           "Data"::date as dia,
@@ -108,7 +102,6 @@ serve(async (req) => {
         GROUP BY "Data"::date
       `, params);
 
-      // Merge by day
       const bumpMap = new Map();
       for (const b of bumpRows as any[]) {
         bumpMap.set(String(b.dia), b);
@@ -127,7 +120,6 @@ serve(async (req) => {
         };
       });
     } else if (endpoint === 'summary') {
-      // Traffic: only CHECKOUT campaigns
       const traffic = await queryExternalPG(`
         SELECT 
           SUM(impressoes) as total_impressoes,
@@ -138,6 +130,7 @@ serve(async (req) => {
           SUM(compras) as total_compras_meta,
           SUM(valor_compras) as total_valor_compras,
           SUM(gasto) as total_gasto,
+          SUM(views_3s) as total_views_3s,
           COUNT(DISTINCT data::date) as dias_ativos
         FROM bd_ads_clientes.meta_uelicon_venancio
         WHERE 1=1 ${dateFilter} ${checkoutFilter}
@@ -147,7 +140,6 @@ serve(async (req) => {
         ? ` AND "Data"::date >= $1 AND "Data"::date <= $2`
         : '';
 
-      // Principal product sales (with co-produtor and taxa green)
       const principalSales = await queryExternalPG(`
         SELECT 
           COUNT(*) FILTER (WHERE "Status da venda" IN ${APPROVED_STATUSES}) as vendas_aprovadas,
@@ -159,7 +151,6 @@ serve(async (req) => {
         WHERE ${PRINCIPAL_PRODUCT_FILTER} ${salesDateFilter}
       `, params);
 
-      // Order bump revenue + fees
       const bumpSales = await queryExternalPG(`
         SELECT 
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_bruta_bump,
@@ -170,7 +161,6 @@ serve(async (req) => {
         WHERE ${ORDERBUMP_PRODUCT_FILTER} ${salesDateFilter}
       `, params);
 
-      // Products breakdown
       const products = await queryExternalPG(`
         SELECT 
           "Nome do produto" as produto,
@@ -201,14 +191,7 @@ serve(async (req) => {
         },
         products,
       }];
-    } else if (endpoint === 'schema') {
-      data = await queryExternalPG(`
-        SELECT column_name FROM information_schema.columns 
-        WHERE table_schema = 'bd_ads_clientes' AND table_name = 'meta_uelicon_venancio'
-        ORDER BY ordinal_position
-      `);
     } else if (endpoint === 'campaigns') {
-      // Only CHECKUP campaigns
       data = await queryExternalPG(`
         SELECT 
           campanha,
@@ -234,7 +217,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Dashboard v5 error:', error);
+    console.error('Dashboard v6 error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
