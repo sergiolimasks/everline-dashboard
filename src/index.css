@@ -72,7 +72,7 @@
 
 @layer components {
   .kpi-card {
-    @apply bg-card rounded-xl border border-border p-5 transition-all duration-300;
+    @apply bg-card rounded-xl border border-border px-4 py-3 transition-all duration-300;
     @apply hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5;
   }
 
