@@ -88,8 +88,8 @@ function KPICard({
 
   const tags = !isLoading && comp7d && comp14d ? (
     <div className="flex items-center gap-2">
-      <ComparisonTag current={invertComparison ? -c : c} previous={invertComparison ? -v7 : v7} label="7d" />
-      <ComparisonTag current={invertComparison ? -c : c} previous={invertComparison ? -v14 : v14} label="14d" />
+      <ComparisonTag current={c} previous={v7} label="7d" invertColor={invertComparison} />
+      <ComparisonTag current={c} previous={v14} label="14d" invertColor={invertComparison} />
     </div>
   ) : null;
 
