@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Calendar } from "lucide-react";
 import { formatDateString } from "@/lib/date-utils";
 
@@ -8,8 +9,11 @@ interface DateFilterProps {
 }
 
 export function DateFilter({ dateFrom, dateTo, onDateChange }: DateFilterProps) {
+  const [activePreset, setActivePreset] = useState<string | null>("Hoje");
+
   const presets = [
     { label: "Hoje", days: 0 },
+    { label: "Ontem", days: -1 },
     { label: "7 dias", days: 7 },
     { label: "14 dias", days: 14 },
     { label: "30 dias", days: 30 },
@@ -17,13 +21,23 @@ export function DateFilter({ dateFrom, dateTo, onDateChange }: DateFilterProps) 
     { label: "90 dias", days: 90 },
   ];
 
-  const applyPreset = (days: number) => {
+  const applyPreset = (label: string, days: number) => {
     const to = new Date();
     const from = new Date();
-    if (days > 0) {
+    if (days === -1) {
+      // Ontem
+      to.setDate(to.getDate() - 1);
+      from.setDate(from.getDate() - 1);
+    } else if (days > 0) {
       from.setDate(from.getDate() - days);
     }
+    setActivePreset(label);
     onDateChange(formatDateString(from), formatDateString(to));
+  };
+
+  const handleManualDate = (from: string, to: string) => {
+    setActivePreset(null);
+    onDateChange(from, to);
   };
 
   return (
@@ -32,9 +46,13 @@ export function DateFilter({ dateFrom, dateTo, onDateChange }: DateFilterProps) 
       <div className="flex gap-2">
         {presets.map((p) => (
           <button
-            key={p.days}
-            onClick={() => applyPreset(p.days)}
-            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-card text-secondary-foreground hover:border-primary/50 hover:text-primary transition-colors"
+            key={p.label}
+            onClick={() => applyPreset(p.label, p.days)}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              activePreset === p.label
+                ? "border-primary bg-primary/15 text-primary shadow-sm shadow-primary/10"
+                : "border-border bg-card text-secondary-foreground hover:border-primary/50 hover:text-primary"
+            }`}
           >
             {p.label}
           </button>
@@ -44,14 +62,14 @@ export function DateFilter({ dateFrom, dateTo, onDateChange }: DateFilterProps) 
         <input
           type="date"
           value={dateFrom}
-          onChange={(e) => onDateChange(e.target.value, dateTo)}
+          onChange={(e) => handleManualDate(e.target.value, dateTo)}
           className="px-3 py-1.5 text-xs rounded-lg border border-border bg-card text-secondary-foreground"
         />
         <span className="text-muted-foreground text-xs">até</span>
         <input
           type="date"
           value={dateTo}
-          onChange={(e) => onDateChange(dateFrom, e.target.value)}
+          onChange={(e) => handleManualDate(dateFrom, e.target.value)}
           className="px-3 py-1.5 text-xs rounded-lg border border-border bg-card text-secondary-foreground"
         />
       </div>
