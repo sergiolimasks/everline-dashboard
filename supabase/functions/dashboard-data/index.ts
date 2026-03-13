@@ -190,7 +190,7 @@ serve(async (req) => {
         products,
       }];
     } else if (endpoint === 'campaigns') {
-      // Only CHECKOUT campaigns
+      // Only CHECKUP campaigns
       data = await queryExternalPG(`
         SELECT 
           campanha,
@@ -210,6 +210,15 @@ serve(async (req) => {
         GROUP BY campanha
         ORDER BY SUM(gasto) DESC
       `, params);
+    } else if (endpoint === 'debug_campaigns') {
+      // Debug: show all campaigns without filters
+      data = await queryExternalPG(`
+        SELECT DISTINCT campanha, MIN(data::date) as min_date, MAX(data::date) as max_date
+        FROM bd_ads_clientes.meta_uelicon_venancio
+        GROUP BY campanha
+        ORDER BY campanha
+        LIMIT 20
+      `);
     }
 
     return new Response(JSON.stringify({ data }, (_, v) => typeof v === 'bigint' ? Number(v) : v), {
