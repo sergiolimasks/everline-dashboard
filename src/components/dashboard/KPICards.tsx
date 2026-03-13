@@ -87,21 +87,23 @@ function KPICard({
 
   return (
     <div className="kpi-card">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-1">
         <span className="kpi-label">{label}</span>
         <Icon className={`h-4 w-4 ${color}`} />
       </div>
-      {value ? (
-        <span className={`kpi-value ${color}`}>{value}</span>
-      ) : (
-        <Skeleton />
-      )}
-      {!isLoading && comp7d && comp14d && (
-        <div className="flex flex-col gap-0.5 mt-2">
-          <ComparisonTag current={invertComparison ? -c : c} previous={invertComparison ? -v7 : v7} label="7d" />
-          <ComparisonTag current={invertComparison ? -c : c} previous={invertComparison ? -v14 : v14} label="14d" />
-        </div>
-      )}
+      <div className="flex items-center gap-3">
+        {value ? (
+          <span className={`kpi-value ${color}`}>{value}</span>
+        ) : (
+          <Skeleton />
+        )}
+        {!isLoading && comp7d && comp14d && (
+          <div className="flex items-center gap-2">
+            <ComparisonTag current={invertComparison ? -c : c} previous={invertComparison ? -v7 : v7} label="7d" />
+            <ComparisonTag current={invertComparison ? -c : c} previous={invertComparison ? -v14 : v14} label="14d" />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
