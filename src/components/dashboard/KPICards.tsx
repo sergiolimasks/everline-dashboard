@@ -76,14 +76,21 @@ function ComparisonTag({ current, previous, label }: { current: number; previous
 }
 
 function KPICard({
-  label, value, icon: Icon, color, isLoading, metricKey, current, comp7d, comp14d, invertComparison = false,
+  label, value, icon: Icon, color, isLoading, metricKey, current, comp7d, comp14d, invertComparison = false, inlineComparison = false,
 }: {
   label: string; value: string | null; icon: any; color: string; isLoading: boolean;
-  metricKey: string; current: any; comp7d: any; comp14d: any; invertComparison?: boolean;
+  metricKey: string; current: any; comp7d: any; comp14d: any; invertComparison?: boolean; inlineComparison?: boolean;
 }) {
   const c = current?.[metricKey] ?? 0;
   const v7 = comp7d?.[metricKey] ?? 0;
   const v14 = comp14d?.[metricKey] ?? 0;
+
+  const tags = !isLoading && comp7d && comp14d ? (
+    <div className="flex items-center gap-2">
+      <ComparisonTag current={invertComparison ? -c : c} previous={invertComparison ? -v7 : v7} label="7d" />
+      <ComparisonTag current={invertComparison ? -c : c} previous={invertComparison ? -v14 : v14} label="14d" />
+    </div>
+  ) : null;
 
   return (
     <div className="kpi-card">
@@ -91,19 +98,17 @@ function KPICard({
         <span className="kpi-label">{label}</span>
         <Icon className={`h-4 w-4 ${color}`} />
       </div>
-      <div className="flex items-center gap-3">
-        {value ? (
-          <span className={`kpi-value ${color}`}>{value}</span>
-        ) : (
-          <Skeleton />
-        )}
-        {!isLoading && comp7d && comp14d && (
-          <div className="flex items-center gap-2">
-            <ComparisonTag current={invertComparison ? -c : c} previous={invertComparison ? -v7 : v7} label="7d" />
-            <ComparisonTag current={invertComparison ? -c : c} previous={invertComparison ? -v14 : v14} label="14d" />
-          </div>
-        )}
-      </div>
+      {inlineComparison ? (
+        <div className="flex items-center gap-3">
+          {value ? <span className={`kpi-value ${color}`}>{value}</span> : <Skeleton />}
+          {tags}
+        </div>
+      ) : (
+        <>
+          {value ? <span className={`kpi-value ${color}`}>{value}</span> : <Skeleton />}
+          {tags && <div className="mt-1.5">{tags}</div>}
+        </>
+      )}
     </div>
   );
 }
@@ -137,6 +142,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
           color={(current?.roi || 0) >= 0 ? "kpi-trend-up" : "kpi-trend-down"}
           isLoading={isLoading}
           metricKey="roi" current={current} comp7d={comp7d} comp14d={comp14d}
+          inlineComparison
         />
       </div>
 
