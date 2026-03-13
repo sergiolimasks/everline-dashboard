@@ -211,12 +211,10 @@ serve(async (req) => {
         ORDER BY SUM(gasto) DESC
       `, params);
     } else if (endpoint === 'debug_campaigns') {
-      // Debug: list tables in bd_ads_clientes schema
-      data = await queryExternalPG(`
-        SELECT table_name FROM information_schema.tables 
-        WHERE table_schema = 'bd_ads_clientes' 
-        ORDER BY table_name
-      `);
+      // Debug: list all schemas and try direct query
+      const schemas = await queryExternalPG(`SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('pg_catalog','information_schema','pg_toast') ORDER BY schema_name`);
+      const tables = await queryExternalPG(`SELECT schemaname, tablename FROM pg_tables WHERE schemaname NOT IN ('pg_catalog','information_schema') ORDER BY schemaname, tablename`);
+      data = [{ schemas, tables }];
     }
 
     return new Response(JSON.stringify({ data }, (_, v) => typeof v === 'bigint' ? Number(v) : v), {
