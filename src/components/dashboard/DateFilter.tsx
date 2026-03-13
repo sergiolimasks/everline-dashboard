@@ -20,7 +20,9 @@ export function DateFilter({ dateFrom, dateTo, onDateChange }: DateFilterProps) 
   const applyPreset = (days: number) => {
     const to = new Date();
     const from = new Date();
-    from.setDate(from.getDate() - days);
+    if (days > 0) {
+      from.setDate(from.getDate() - days);
+    }
     onDateChange(formatDateString(from), formatDateString(to));
   };
 
