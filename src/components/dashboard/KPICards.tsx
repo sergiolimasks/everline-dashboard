@@ -134,7 +134,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
           icon={BarChart3}
           color={(current?.roi || 0) >= 0 ? "kpi-trend-up" : "kpi-trend-down"}
           isLoading={isLoading}
-          metricKey="roi" current={current} comp7d={null} comp14d={null}
+          metricKey="roi" current={current} comp7d={comp7d} comp14d={comp14d}
         />
       </div>
 
