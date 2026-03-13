@@ -145,12 +145,24 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
 
   return (
     <div className="space-y-4">
-      {/* Fixed: Investimento, Lucro, ROI */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Fixed: Investimento, Vendas, Order Bumps, Lucro, ROI */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <KPICard
           label="Investimento Total" value={isLoading ? null : formatCurrency(current?.totalGasto || 0)}
           icon={DollarSign} color="text-chart-orange" isLoading={isLoading}
           metricKey="totalGasto" current={current} comp7d={null} comp14d={null}
+        />
+        <KPICard
+          label="Vendas Aprovadas" value={isLoading ? null : String(current?.vendasAprovadas || 0)}
+          icon={ShoppingCart} color="text-chart-green" isLoading={isLoading}
+          metricKey="vendasAprovadas" current={current} comp7d={comp7d} comp14d={comp14d}
+          inlineComparison
+        />
+        <KPICard
+          label="Order Bumps" value={isLoading ? null : String(current?.vendasBump || 0)}
+          icon={Target} color="text-chart-purple" isLoading={isLoading}
+          metricKey="vendasBump" current={current} comp7d={comp7d} comp14d={comp14d}
+          inlineComparison
         />
         <KPICard
           label="Lucro" value={isLoading ? null : formatCurrency(current?.lucro || 0)}
