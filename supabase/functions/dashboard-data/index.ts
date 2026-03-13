@@ -73,11 +73,11 @@ serve(async (req) => {
         SELECT 
           "Data"::date as dia,
           "Nome do produto" as produto,
-          COUNT(*) FILTER (WHERE "Status da venda" IN ('Aprovada','aprovada','approved','Completa','completa')) as vendas_aprovadas,
+          COUNT(*) FILTER (WHERE "Status da venda" IN ('paid','Paid','approved','Aprovada','aprovada','Completa','completa')) as vendas_aprovadas,
           COUNT(*) as total_vendas,
-          SUM(CASE WHEN "Status da venda" IN ('Aprovada','aprovada','approved','Completa','completa') THEN "Valor Bruto"::numeric ELSE 0 END) as receita_bruta,
-          SUM(CASE WHEN "Status da venda" IN ('Aprovada','aprovada','approved','Completa','completa') THEN "Valor Líquido"::numeric ELSE 0 END) as receita_liquida,
-          SUM(CASE WHEN "Status da venda" IN ('Aprovada','aprovada','approved','Completa','completa') THEN "TAXA GREEN"::numeric ELSE 0 END) as taxa_total
+          SUM(CASE WHEN "Status da venda" IN ('paid','Paid','approved','Aprovada','aprovada','Completa','completa') THEN REPLACE("Valor Bruto", ',', '.')::numeric ELSE 0 END) as receita_bruta,
+          SUM(CASE WHEN "Status da venda" IN ('paid','Paid','approved','Aprovada','aprovada','Completa','completa') THEN REPLACE("Valor Líquido", ',', '.')::numeric ELSE 0 END) as receita_liquida,
+          SUM(CASE WHEN "Status da venda" IN ('paid','Paid','approved','Aprovada','aprovada','Completa','completa') THEN REPLACE("TAXA GREEN", ',', '.')::numeric ELSE 0 END) as taxa_total
         FROM uelicon_database.controle_green
         WHERE 1=1 ${salesDateFilter}
         GROUP BY "Data"::date, "Nome do produto"
