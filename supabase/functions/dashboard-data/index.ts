@@ -57,12 +57,7 @@ serve(async (req) => {
 
     let data: unknown[] = [];
 
-    if (endpoint === 'debug_campaigns') {
-      const r = await queryExternalPG(`SELECT DISTINCT campanha, MIN(data::date) as min_dt, MAX(data::date) as max_dt, COUNT(*) as rows FROM bd_ads_clientes.meta_uelicon_venancio GROUP BY campanha ORDER BY campanha`);
-      return new Response(JSON.stringify({ data: r }, (_, v) => typeof v === 'bigint' ? Number(v) : v), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    } else if (endpoint === 'traffic_daily') {
+    if (endpoint === 'traffic_daily') {
       data = await queryExternalPG(`
         SELECT 
           data::date as dia,
