@@ -1,4 +1,4 @@
-// Dashboard data edge function - connects to external PostgreSQL
+// Dashboard data edge function v3 - connects to external PostgreSQL
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
