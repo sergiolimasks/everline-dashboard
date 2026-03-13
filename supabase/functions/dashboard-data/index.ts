@@ -211,9 +211,11 @@ serve(async (req) => {
         ORDER BY SUM(gasto) DESC
       `, params);
     } else if (endpoint === 'debug_campaigns') {
-      // Debug: check table contents
+      // Debug: list tables in bd_ads_clientes schema
       data = await queryExternalPG(`
-        SELECT COUNT(*) as total FROM bd_ads_clientes.meta_uelicon_venancio
+        SELECT table_name FROM information_schema.tables 
+        WHERE table_schema = 'bd_ads_clientes' 
+        ORDER BY table_name
       `);
     }
 
