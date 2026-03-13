@@ -30,6 +30,7 @@ function calcMetrics(data: SummaryData | undefined) {
   const receitaBruta = Number(sales?.receita_bruta || 0);
   const receitaLiquida = Number(sales?.receita_liquida || 0);
   const vendasAprovadas = Number(sales?.vendas_aprovadas || 0);
+  const vendasBump = Number(sales?.vendas_bump || 0);
   const totalCliques = Number(traffic?.total_cliques || 0);
   const totalImpressoes = Number(traffic?.total_impressoes || 0);
   const totalCheckouts = Number(traffic?.total_checkouts || 0);
