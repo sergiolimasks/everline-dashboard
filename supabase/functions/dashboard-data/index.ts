@@ -162,8 +162,8 @@ serve(async (req) => {
       // Order bump revenue + fees
       const bumpSales = await queryExternalPG(`
         SELECT 
-          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Valor Bruto", ',', '.')::numeric ELSE 0 END) as receita_bruta_bump,
-          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN REPLACE("Valor Líquido", ',', '.')::numeric ELSE 0 END) as receita_liquida_bump,
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_bruta_bump,
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_liquida_bump,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor_bump,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("TAXA GREEN", ',', '.'), '')::numeric, 0) ELSE 0 END) as taxa_green_bump
         FROM uelicon_database.controle_green
