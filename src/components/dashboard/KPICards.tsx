@@ -268,7 +268,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
       label: "CTR",
     },
     cpm: {
-      metricFn: (d) => d.impressoes > 0 ? (d.gasto / d.impressoes) * 1000 : 0,
+      metricFn: (d) => d.impressoes > 0 ? ((d.gasto * 1.125) / d.impressoes) * 1000 : 0,
       format: formatCurrency,
       label: "CPM",
     },
