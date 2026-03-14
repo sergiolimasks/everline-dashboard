@@ -26,8 +26,9 @@ export function Insights({ summary, trafficDaily, salesDaily, isLoading }: Insig
   const coProdutor = Number(summary.sales?.co_produtor || 0);
   const taxaGreen = Number(summary.sales?.taxa_green || 0);
   const receitaBruta = Number(summary.sales?.receita_bruta || 0);
-  const lucro = receitaLiquida - taxaFixa;
-  const roi = totalGasto > 0 ? receitaBruta / totalGasto : 0;
+  const lucro = receitaLiquida - totalGasto - taxaFixa;
+  const custoTotal = totalGasto + taxaFixa;
+  const roi = custoTotal > 0 ? receitaLiquida / custoTotal : 0;
   const cac = vendasAprovadas > 0 ? (totalGasto + taxaFixa + coProdutor + taxaGreen) / vendasAprovadas : 0;
 
   if (roi >= 1) {
