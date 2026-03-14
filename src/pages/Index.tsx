@@ -64,7 +64,7 @@ const Index = () => {
         <DateFilter dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} />
 
         {/* KPIs */}
-        <KPICards data={summary} isLoading={loadingSummary} comparison7d={comparison7d} comparison14d={comparison14d} trafficDaily={trafficDaily} />
+        <KPICards data={summary} isLoading={loadingSummary} comparison7d={comparison7d} comparison14d={comparison14d} trafficDaily={sparklineTraffic} />
 
         {/* Insights */}
         <Insights
