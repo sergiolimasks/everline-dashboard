@@ -81,8 +81,20 @@ function ComparisonTag({ current, previous, label, invertColor = false }: {
   );
 }
 
-function ComparisonRow({ metricKey, current, comp7d, comp14d, invertColor = false, showValue = false, formatValue }: {
-  metricKey: string; current: any; comp7d: any; comp14d: any; invertColor?: boolean; showValue?: boolean; formatValue?: (v: number) => string;
+function ComparisonColumn({ current, previous, label, invertColor = false, formatValue }: {
+  current: number; previous: number; label: string; invertColor?: boolean; formatValue?: (v: number) => string;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-0.5">
+      <span className="text-[9px] text-muted-foreground font-medium">{label}</span>
+      <ComparisonTag current={current} previous={previous} label={label} invertColor={invertColor} />
+      {formatValue && <span className="text-[9px] text-muted-foreground">{formatValue(previous)}</span>}
+    </div>
+  );
+}
+
+function ComparisonRow({ metricKey, current, comp7d, comp14d, invertColor = false, formatValue }: {
+  metricKey: string; current: any; comp7d: any; comp14d: any; invertColor?: boolean; formatValue?: (v: number) => string;
 }) {
   if (!comp7d || !comp14d) return null;
   const c = current?.[metricKey] ?? 0;
@@ -90,25 +102,19 @@ function ComparisonRow({ metricKey, current, comp7d, comp14d, invertColor = fals
   const v14 = comp14d?.[metricKey] ?? 0;
 
   return (
-    <div className="flex items-center gap-2 mt-2">
-      <div className="flex flex-col items-center gap-0.5">
-        <span className="text-[9px] text-muted-foreground font-medium">7d</span>
-        <ComparisonTag current={c} previous={v7} label="7d" invertColor={invertColor} showValue={showValue} formatValue={formatValue} />
-      </div>
-      <div className="flex flex-col items-center gap-0.5">
-        <span className="text-[9px] text-muted-foreground font-medium">14d</span>
-        <ComparisonTag current={c} previous={v14} label="14d" invertColor={invertColor} showValue={showValue} formatValue={formatValue} />
-      </div>
+    <div className="flex items-center gap-3 mt-2">
+      <ComparisonColumn current={c} previous={v7} label="7d" invertColor={invertColor} formatValue={formatValue} />
+      <ComparisonColumn current={c} previous={v14} label="14d" invertColor={invertColor} formatValue={formatValue} />
     </div>
   );
 }
 
 function KPICard({
-  label, value, icon: Icon, color, isLoading, metricKey, current, comp7d, comp14d, invertComparison = false, inlineComparison = false, showValue = false, formatValue,
+  label, value, icon: Icon, color, isLoading, metricKey, current, comp7d, comp14d, invertComparison = false, inlineComparison = false, formatValue,
 }: {
   label: string; value: string | null; icon: any; color: string; isLoading: boolean;
   metricKey: string; current: any; comp7d: any; comp14d: any; invertComparison?: boolean; inlineComparison?: boolean;
-  showValue?: boolean; formatValue?: (v: number) => string;
+  formatValue?: (v: number) => string;
 }) {
   return (
     <div className="kpi-card flex flex-col h-full">
@@ -121,15 +127,9 @@ function KPICard({
           <div className="flex items-center gap-3 flex-wrap">
             {value ? <span className={`kpi-value ${color}`}>{value}</span> : <SkeletonBlock />}
             {!isLoading && comp7d && comp14d && (
-              <div className="flex items-center gap-2">
-                <div className="flex flex-col items-center gap-0.5">
-                  <span className="text-[9px] text-muted-foreground font-medium">7d</span>
-                  <ComparisonTag current={current?.[metricKey] ?? 0} previous={comp7d?.[metricKey] ?? 0} label="7d" invertColor={invertComparison} showValue={showValue} formatValue={formatValue} />
-                </div>
-                <div className="flex flex-col items-center gap-0.5">
-                  <span className="text-[9px] text-muted-foreground font-medium">14d</span>
-                  <ComparisonTag current={current?.[metricKey] ?? 0} previous={comp14d?.[metricKey] ?? 0} label="14d" invertColor={invertComparison} showValue={showValue} formatValue={formatValue} />
-                </div>
+              <div className="flex items-center gap-3">
+                <ComparisonColumn current={current?.[metricKey] ?? 0} previous={comp7d?.[metricKey] ?? 0} label="7d" invertColor={invertComparison} formatValue={formatValue} />
+                <ComparisonColumn current={current?.[metricKey] ?? 0} previous={comp14d?.[metricKey] ?? 0} label="14d" invertColor={invertComparison} formatValue={formatValue} />
               </div>
             )}
           </div>
@@ -137,7 +137,7 @@ function KPICard({
           <>
             {value ? <span className={`kpi-value ${color}`}>{value}</span> : <SkeletonBlock />}
             {!isLoading && comp7d && comp14d && (
-              <ComparisonRow metricKey={metricKey} current={current} comp7d={comp7d} comp14d={comp14d} invertColor={invertComparison} showValue={showValue} formatValue={formatValue} />
+              <ComparisonRow metricKey={metricKey} current={current} comp7d={comp7d} comp14d={comp14d} invertColor={invertComparison} formatValue={formatValue} />
             )}
           </>
         )}
