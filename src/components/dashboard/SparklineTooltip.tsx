@@ -9,8 +9,13 @@ interface SparklineTooltipProps {
 }
 
 export function SparklineTooltip({ dailyData, metricFn, formatValue, label }: SparklineTooltipProps) {
-  if (!dailyData || dailyData.length < 2) {
-    return <span className="text-[10px] text-muted-foreground">Dados insuficientes</span>;
+  if (!dailyData || dailyData.length === 0) {
+    return (
+      <div className="w-72 p-3">
+        <p className="text-xs font-semibold mb-1 text-foreground">{label} — Linha do Tempo</p>
+        <p className="text-[10px] text-muted-foreground">Selecione um período maior para ver o gráfico</p>
+      </div>
+    );
   }
 
   const chartData = dailyData.map((d) => ({
