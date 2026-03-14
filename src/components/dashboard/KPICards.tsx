@@ -245,11 +245,40 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <KPICard
-          label="Receita/Venda" value={isLoading ? null : formatCurrency(current?.receitaPorVenda || 0)}
-          icon={DollarSign} color="text-chart-green" isLoading={isLoading}
-          metricKey="receitaPorVenda" current={current} comp7d={comp7d} comp14d={comp14d}
-        />
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <KPICard
+                  label="Receita/Venda" value={isLoading ? null : formatCurrency(current?.receitaPorVenda || 0)}
+                  icon={DollarSign} color="text-chart-green" isLoading={isLoading}
+                  metricKey="receitaPorVenda" current={current} comp7d={comp7d} comp14d={comp14d}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="w-72 p-3">
+              <p className="text-xs font-semibold mb-2 text-foreground">Receita por Venda por Produto</p>
+              <div className="space-y-1.5 text-[11px]">
+                {(data?.products || []).map((p) => {
+                  const rpv = p.vendas_aprovadas > 0 ? p.receita_bruta / p.vendas_aprovadas : 0;
+                  return (
+                    <div key={p.produto} className="flex justify-between">
+                      <span className="text-muted-foreground truncate mr-2">{p.produto}</span>
+                      <span className="font-medium text-foreground shrink-0">{formatCurrency(rpv)}</span>
+                    </div>
+                  );
+                })}
+                {(data?.products || []).length === 0 && (
+                  <span className="text-muted-foreground">Sem dados de produtos</span>
+                )}
+                <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
+                  <span className="text-muted-foreground">Média Geral</span>
+                  <span className="text-foreground">{formatCurrency(current?.receitaPorVenda || 0)}</span>
+                </div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <KPICard
           label="CPC" value={isLoading ? null : formatCurrency(current?.cpc || 0)}
           icon={MousePointerClick} color="text-chart-purple" isLoading={isLoading}
