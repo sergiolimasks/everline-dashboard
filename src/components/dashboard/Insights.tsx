@@ -27,10 +27,11 @@ export function Insights({ summary, trafficDaily, salesDaily, isLoading }: Insig
   const coProdutor = Number(summary.sales?.co_produtor || 0);
   const taxaGreen = Number(summary.sales?.taxa_green || 0);
   const receitaBruta = Number(summary.sales?.receita_bruta || 0);
-  const lucro = receitaLiquida - totalGasto - taxaFixa;
-  const custoTotal = totalGasto + taxaFixa;
+  const custoManychat = vendasAprovadas * 0.35;
+  const lucro = receitaLiquida - totalGasto - taxaFixa - custoManychat;
+  const custoTotal = totalGasto + taxaFixa + custoManychat;
   const roi = custoTotal > 0 ? receitaLiquida / custoTotal : 0;
-  const cac = vendasAprovadas > 0 ? (totalGasto + taxaFixa + coProdutor + taxaGreen) / vendasAprovadas : 0;
+  const cac = vendasAprovadas > 0 ? (totalGasto + taxaFixa + custoManychat + coProdutor + taxaGreen) / vendasAprovadas : 0;
 
   if (roi >= 1) {
     insights.push({ text: `ROI positivo de ${roi.toFixed(2)}. Para cada R$1 investido, retornam R$${roi.toFixed(2)}.`, type: 'success' });
