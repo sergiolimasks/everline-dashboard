@@ -40,6 +40,7 @@ function calcMetrics(data: SummaryData | undefined) {
   const taxaFixa = Number(sales?.taxa_fixa || 0);
   const coProdutor = Number(sales?.co_produtor || 0);
   const taxaGreen = Number(sales?.taxa_green || 0);
+  const diasAtivos = Number(traffic?.dias_ativos || 1);
 
   const lucro = receitaLiquida - taxaFixa;
   const roi = totalGasto > 0 ? receitaBruta / totalGasto : 0;
@@ -53,11 +54,15 @@ function calcMetrics(data: SummaryData | undefined) {
   const thumbStopRate = totalImpressoes > 0 ? totalViews3s / totalImpressoes : 0;
   const receitaPorVenda = vendasAprovadas > 0 ? receitaBruta / vendasAprovadas : 0;
 
+  // Daily averages for absolute metrics (for fair comparison across different period lengths)
+  const vendasAprovDia = vendasAprovadas / diasAtivos;
+  const vendasBumpDia = vendasBump / diasAtivos;
+
   return {
     totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
-    taxaFixa, coProdutor, taxaGreen, lucro, roi,
+    taxaFixa, coProdutor, taxaGreen, lucro, roi, diasAtivos,
     cac, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
-    thumbStopRate, receitaPorVenda,
+    thumbStopRate, receitaPorVenda, vendasAprovDia, vendasBumpDia,
   };
 }
 
