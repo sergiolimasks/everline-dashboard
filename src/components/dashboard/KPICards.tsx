@@ -408,6 +408,24 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
             icon={CreditCard} color="text-chart-yellow" isLoading={isLoading}
             metricKey="taxaGreen" current={current} comp7d={null} comp14d={null}
           />
+          <KPICard
+            label="ManyChat" value={isLoading ? null : formatCurrency(current?.custoManychat || 0)}
+            icon={MessageCircle} color="text-chart-orange" isLoading={isLoading}
+            metricKey="custoManychat" current={current} comp7d={null} comp14d={null}
+            tooltipContent={!isLoading ? (
+              <div className="w-64 p-3">
+                <p className="text-xs font-semibold mb-2 text-foreground">Custo ManyChat</p>
+                <div className="space-y-1.5 text-[11px]">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Vendas principal</span><span className="font-medium text-foreground">{current?.vendasAprovadas || 0}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Custo por envio</span><span className="font-medium text-foreground">R$ 0,35</span></div>
+                  <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
+                    <span className="text-muted-foreground">Total</span>
+                    <span className="text-foreground">{formatCurrency(current?.custoManychat || 0)}</span>
+                  </div>
+                </div>
+              </div>
+            ) : undefined}
+          />
         </div>
       )}
 
