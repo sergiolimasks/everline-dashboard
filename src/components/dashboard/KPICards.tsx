@@ -265,6 +265,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
                   label="Receita/Venda" value={isLoading ? null : formatCurrency(current?.receitaPorVenda || 0)}
                   icon={DollarSign} color="text-chart-green" isLoading={isLoading}
                   metricKey="receitaPorVenda" current={current} comp7d={comp7d} comp14d={comp14d}
+                  showValue formatValue={formatCurrency}
                 />
               </div>
             </TooltipTrigger>
