@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Target, BarChart3, Receipt, Users, CreditCard, MousePointerClick, Eye, Monitor, CheckCircle, ChevronDown, ChevronUp, PlayCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Target, BarChart3, Receipt, Users, CreditCard, MousePointerClick, Eye, Monitor, CheckCircle, ChevronDown, ChevronUp, PlayCircle, MessageCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SparklineTooltip } from "@/components/dashboard/SparklineTooltip";
 import type { SummaryData, TrafficDaily } from "@/lib/dashboard-api";
