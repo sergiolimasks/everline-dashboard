@@ -29,7 +29,9 @@ function calcMetrics(data: SummaryData | undefined) {
   const traffic = data.traffic;
   const sales = data.sales;
 
-  const totalGasto = Number(traffic?.total_gasto || 0);
+  const gastoMeta = Number(traffic?.total_gasto || 0);
+  const impostoMeta = gastoMeta * 0.125;
+  const totalGasto = gastoMeta + impostoMeta;
   const receitaBruta = Number(sales?.receita_bruta || 0);
   const receitaLiquida = Number(sales?.receita_liquida || 0);
   const vendasAprovadas = Number(sales?.vendas_aprovadas || 0);
