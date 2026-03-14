@@ -304,36 +304,43 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
           label="CPC" value={isLoading ? null : formatCurrency(current?.cpc || 0)}
           icon={MousePointerClick} color="text-chart-purple" isLoading={isLoading}
           metricKey="cpc" current={current} comp7d={comp7d} comp14d={comp14d}
+          showValue formatValue={formatCurrency} invertComparison
         />
         <KPICard
           label="CTR" value={isLoading ? null : formatPercent(current?.ctr || 0)}
           icon={MousePointerClick} color="text-chart-orange" isLoading={isLoading}
           metricKey="ctr" current={current} comp7d={comp7d} comp14d={comp14d}
+          showValue formatValue={formatPercent}
         />
         <KPICard
           label="CPM" value={isLoading ? null : formatCurrency(current?.cpm || 0)}
           icon={Eye} color="text-chart-yellow" isLoading={isLoading}
           metricKey="cpm" current={current} comp7d={comp7d} comp14d={comp14d} invertComparison
+          showValue formatValue={formatCurrency}
         />
         <KPICard
           label="Thumb Stop" value={isLoading ? null : formatPercent(current?.thumbStopRate || 0)}
           icon={PlayCircle} color="text-chart-red" isLoading={isLoading}
           metricKey="thumbStopRate" current={current} comp7d={comp7d} comp14d={comp14d}
+          showValue formatValue={formatPercent}
         />
         <KPICard
           label="Tx Carreg. Página" value={isLoading ? null : formatPercent(current?.taxaCarregamento || 0)}
           icon={Monitor} color="text-chart-green" isLoading={isLoading}
           metricKey="taxaCarregamento" current={current} comp7d={comp7d} comp14d={comp14d}
+          showValue formatValue={formatPercent}
         />
         <KPICard
           label="Tx Conv. Página" value={isLoading ? null : formatPercent(current?.taxaConversaoPagina || 0)}
           icon={CheckCircle} color="text-chart-blue" isLoading={isLoading}
           metricKey="taxaConversaoPagina" current={current} comp7d={comp7d} comp14d={comp14d}
+          showValue formatValue={formatPercent}
         />
         <KPICard
           label="Tx Conv. Checkout" value={isLoading ? null : formatPercent(current?.taxaConversaoCheckout || 0)}
           icon={ShoppingCart} color="text-primary" isLoading={isLoading}
           metricKey="taxaConversaoCheckout" current={current} comp7d={comp7d} comp14d={comp14d}
+          showValue formatValue={formatPercent}
         />
       </div>
     </div>
