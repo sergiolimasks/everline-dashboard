@@ -258,7 +258,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
 
   const sparklineConfigs: Record<string, { metricFn: (d: TrafficDaily) => number; format: (v: number) => string; label: string }> = {
     cpc: {
-      metricFn: (d) => d.cliques > 0 ? d.gasto / d.cliques : 0,
+      metricFn: (d) => d.cliques > 0 ? (d.gasto * 1.125) / d.cliques : 0,
       format: formatCurrency,
       label: "CPC",
     },
