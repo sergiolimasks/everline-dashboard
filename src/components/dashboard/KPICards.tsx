@@ -256,23 +256,31 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
                 />
               </div>
             </TooltipTrigger>
-            <TooltipContent side="bottom" className="w-72 p-3">
-              <p className="text-xs font-semibold mb-2 text-foreground">Receita por Venda por Produto</p>
+            <TooltipContent side="bottom" className="w-80 p-3">
+              <p className="text-xs font-semibold mb-1 text-foreground">Contribuição por Produto na Receita/Venda</p>
+              <p className="text-[10px] text-muted-foreground mb-2">Receita de cada produto ÷ vendas do produto principal</p>
               <div className="space-y-1.5 text-[11px]">
-                {(data?.products || []).map((p) => {
-                  const rpv = p.vendas_aprovadas > 0 ? p.receita_bruta / p.vendas_aprovadas : 0;
-                  return (
-                    <div key={p.produto} className="flex justify-between">
-                      <span className="text-muted-foreground truncate mr-2">{p.produto}</span>
-                      <span className="font-medium text-foreground shrink-0">{formatCurrency(rpv)}</span>
-                    </div>
-                  );
-                })}
+                {(() => {
+                  const products = data?.products || [];
+                  const vendasPrincipal = current?.vendasAprovadas || 0;
+                  return products.map((p) => {
+                    const contribuicao = vendasPrincipal > 0 ? p.receita_bruta / vendasPrincipal : 0;
+                    return (
+                      <div key={p.produto} className="flex justify-between gap-2">
+                        <span className="text-muted-foreground truncate">{p.produto}</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-[10px] text-muted-foreground/60">{p.vendas_aprovadas}v</span>
+                          <span className="font-medium text-foreground">{formatCurrency(contribuicao)}</span>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
                 {(data?.products || []).length === 0 && (
                   <span className="text-muted-foreground">Sem dados de produtos</span>
                 )}
                 <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
-                  <span className="text-muted-foreground">Média Geral</span>
+                  <span className="text-muted-foreground">Receita/Venda Total</span>
                   <span className="text-foreground">{formatCurrency(current?.receitaPorVenda || 0)}</span>
                 </div>
               </div>
