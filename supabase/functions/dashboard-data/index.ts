@@ -56,30 +56,7 @@ serve(async (req) => {
 
     let data: unknown[] = [];
 
-    if (endpoint === 'debug_raw') {
-      data = await queryExternalPG(`
-        SELECT column_name, data_type 
-        FROM information_schema.columns 
-        WHERE table_schema = 'bd_ads_clientes' AND table_name = 'meta_uelicon_venancio'
-        ORDER BY ordinal_position
-      `);
-    } else if (endpoint === 'debug_rows') {
-      data = await queryExternalPG(`
-        SELECT COUNT(*) as total_rows, 
-               COUNT(DISTINCT campanha) as campanhas,
-               SUM(impressoes) as sum_impressoes_all,
-               SUM(views_3s) as sum_views3s_all
-        FROM bd_ads_clientes.meta_uelicon_venancio
-        WHERE 1=1 ${dateFilter}
-      `, params);
-    } else if (endpoint === 'debug_sample') {
-      data = await queryExternalPG(`
-        SELECT campanha, data, impressoes, views_3s
-        FROM bd_ads_clientes.meta_uelicon_venancio
-        WHERE 1=1 ${dateFilter} ${checkoutFilter}
-        LIMIT 5
-      `, params);
-    } else if (endpoint === 'traffic_daily') {
+    if (endpoint === 'traffic_daily') {
       data = await queryExternalPG(`
         SELECT 
           data::date as dia,
