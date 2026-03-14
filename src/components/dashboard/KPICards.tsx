@@ -387,7 +387,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
       </button>
 
       {showDetails && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <KPICard
             label="Faturamento" value={isLoading ? null : formatCurrency(current?.receitaBruta || 0)}
             icon={TrendingUp} color="text-primary" isLoading={isLoading}
