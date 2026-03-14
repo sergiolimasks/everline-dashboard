@@ -23,6 +23,7 @@ const Index = () => {
   const { data: summary, isLoading: loadingSummary } = useSummary(dateFrom, dateTo);
   const { data: comparison7d } = useComparison7d(dateFrom, dateTo);
   const { data: comparison14d } = useComparison14d(dateFrom, dateTo);
+  const { data: sparklineTraffic } = useSparklineTraffic(dateFrom);
   const { data: trafficDaily, isLoading: loadingTraffic } = useTrafficDaily(dateFrom, dateTo);
   const { data: salesDaily, isLoading: loadingSales } = useSalesDaily(dateFrom, dateTo);
   const { data: campaigns, isLoading: loadingCampaigns } = useCampaigns(dateFrom, dateTo);
