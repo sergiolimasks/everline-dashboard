@@ -20,7 +20,7 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: Funne
 
   const gastoMap = new Map<string, number>();
   (trafficData || []).forEach((d) => {
-    gastoMap.set(d.dia, Number(d.gasto));
+    gastoMap.set(d.dia, Number(d.gasto) * 1.125);
   });
 
   const receitaMap = new Map<string, number>();
