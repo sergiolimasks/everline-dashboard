@@ -29,7 +29,9 @@ function calcMetrics(data: SummaryData | undefined) {
   const traffic = data.traffic;
   const sales = data.sales;
 
-  const totalGasto = Number(traffic?.total_gasto || 0);
+  const gastoMeta = Number(traffic?.total_gasto || 0);
+  const impostoMeta = gastoMeta * 0.125;
+  const totalGasto = gastoMeta + impostoMeta;
   const receitaBruta = Number(sales?.receita_bruta || 0);
   const receitaLiquida = Number(sales?.receita_liquida || 0);
   const vendasAprovadas = Number(sales?.vendas_aprovadas || 0);
@@ -61,7 +63,7 @@ function calcMetrics(data: SummaryData | undefined) {
   const vendasBumpDia = vendasBump / diasAtivos;
 
   return {
-    totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
+    gastoMeta, impostoMeta, totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
     taxaFixa, coProdutor, taxaGreen, lucro, roi, diasAtivos,
     cac, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
     thumbStopRate, receitaPorVenda, vendasAprovDia, vendasBumpDia,
@@ -256,7 +258,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
 
   const sparklineConfigs: Record<string, { metricFn: (d: TrafficDaily) => number; format: (v: number) => string; label: string }> = {
     cpc: {
-      metricFn: (d) => d.cliques > 0 ? d.gasto / d.cliques : 0,
+      metricFn: (d) => d.cliques > 0 ? (d.gasto * 1.125) / d.cliques : 0,
       format: formatCurrency,
       label: "CPC",
     },
@@ -266,7 +268,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
       label: "CTR",
     },
     cpm: {
-      metricFn: (d) => d.impressoes > 0 ? (d.gasto / d.impressoes) * 1000 : 0,
+      metricFn: (d) => d.impressoes > 0 ? ((d.gasto * 1.125) / d.impressoes) * 1000 : 0,
       format: formatCurrency,
       label: "CPM",
     },
@@ -306,6 +308,19 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
           label="Investimento Total" value={isLoading ? null : formatCurrency(current?.totalGasto || 0)}
           icon={DollarSign} color="text-chart-orange" isLoading={isLoading}
           metricKey="totalGasto" current={current} comp7d={null} comp14d={null}
+          tooltipContent={!isLoading ? (
+            <div className="w-72 p-3">
+              <p className="text-xs font-semibold mb-2 text-foreground">Composição do Investimento</p>
+              <div className="space-y-1.5 text-[11px]">
+                <div className="flex justify-between"><span className="text-muted-foreground">Gasto Meta Ads</span><span className="font-medium text-foreground">{formatCurrency(current?.gastoMeta || 0)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Imposto Meta (12,5%)</span><span className="font-medium text-foreground">{formatCurrency(current?.impostoMeta || 0)}</span></div>
+                <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
+                  <span className="text-muted-foreground">Investimento Total</span>
+                  <span className="text-foreground">{formatCurrency(current?.totalGasto || 0)}</span>
+                </div>
+              </div>
+            </div>
+          ) : undefined}
         />
         <KPICard
           label="Vendas Aprovadas" value={isLoading ? null : String(current?.vendasAprovadas || 0)}

@@ -19,7 +19,8 @@ export function Insights({ summary, trafficDaily, salesDaily, isLoading }: Insig
 
   const insights: Array<{ text: string; type: 'success' | 'warning' | 'info' }> = [];
 
-  const totalGasto = Number(summary.traffic?.total_gasto || 0);
+  const gastoMeta = Number(summary.traffic?.total_gasto || 0);
+  const totalGasto = gastoMeta * 1.125;
   const receitaLiquida = Number(summary.sales?.receita_liquida || 0);
   const vendasAprovadas = Number(summary.sales?.vendas_aprovadas || 0);
   const taxaFixa = Number(summary.sales?.taxa_fixa || 0);
