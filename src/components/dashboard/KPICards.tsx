@@ -308,6 +308,19 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
           label="Investimento Total" value={isLoading ? null : formatCurrency(current?.totalGasto || 0)}
           icon={DollarSign} color="text-chart-orange" isLoading={isLoading}
           metricKey="totalGasto" current={current} comp7d={null} comp14d={null}
+          tooltipContent={!isLoading ? (
+            <div className="w-72 p-3">
+              <p className="text-xs font-semibold mb-2 text-foreground">Composição do Investimento</p>
+              <div className="space-y-1.5 text-[11px]">
+                <div className="flex justify-between"><span className="text-muted-foreground">Gasto Meta Ads</span><span className="font-medium text-foreground">{formatCurrency(current?.gastoMeta || 0)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Imposto Meta (12,5%)</span><span className="font-medium text-foreground">{formatCurrency(current?.impostoMeta || 0)}</span></div>
+                <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
+                  <span className="text-muted-foreground">Investimento Total</span>
+                  <span className="text-foreground">{formatCurrency(current?.totalGasto || 0)}</span>
+                </div>
+              </div>
+            </div>
+          ) : undefined}
         />
         <KPICard
           label="Vendas Aprovadas" value={isLoading ? null : String(current?.vendasAprovadas || 0)}
