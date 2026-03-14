@@ -238,6 +238,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
                   label="CAC" value={isLoading ? null : formatCurrency(current?.cac || 0)}
                   icon={Target} color="text-chart-blue" isLoading={isLoading}
                   metricKey="cac" current={current} comp7d={comp7d} comp14d={comp14d}
+                  showValue formatValue={formatCurrency} invertComparison
                 />
               </div>
             </TooltipTrigger>
