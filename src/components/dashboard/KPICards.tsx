@@ -226,7 +226,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
       )}
 
       {/* Fixed metrics row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <TooltipProvider delayDuration={200}>
           <Tooltip>
             <TooltipTrigger asChild>
