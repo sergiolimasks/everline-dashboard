@@ -229,15 +229,20 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
                 />
               </div>
             </TooltipTrigger>
-            <TooltipContent side="bottom" className="w-56 p-3">
-              <p className="text-xs font-semibold mb-2 text-foreground">Composição do CAC</p>
-              <div className="space-y-1.5 text-xs">
-                <div className="flex justify-between"><span className="text-muted-foreground">Investimento Tráfego</span><span className="font-medium text-foreground">{formatCurrency(current?.totalGasto || 0)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Custo Consultas</span><span className="font-medium text-foreground">{formatCurrency(current?.taxaFixa || 0)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Co-Produtor</span><span className="font-medium text-foreground">{formatCurrency(current?.coProdutor || 0)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Taxa Greenn</span><span className="font-medium text-foreground">{formatCurrency(current?.taxaGreen || 0)}</span></div>
-                <div className="border-t border-border pt-1.5 flex justify-between font-semibold"><span className="text-muted-foreground">Total / {current?.vendasAprovadas || 0} vendas</span><span className="text-foreground">{formatCurrency(current?.cac || 0)}</span></div>
+            <TooltipContent side="bottom" className="w-64 p-3">
+              <p className="text-xs font-semibold mb-2 text-foreground">O que compõe o CAC?</p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed mb-2">
+                Soma de todos os custos dividida pelas vendas aprovadas:
+              </p>
+              <div className="space-y-1 text-[11px] text-muted-foreground">
+                <p>• Investimento em Tráfego (Meta Ads)</p>
+                <p>• Custo das Consultas (R$18/venda)</p>
+                <p>• Taxa do Co-Produtor</p>
+                <p>• Taxa da Greenn</p>
               </div>
+              <p className="text-[10px] text-muted-foreground/70 mt-2 border-t border-border pt-2 italic">
+                CAC = (Tráfego + Consultas + Co-Prod. + Greenn) ÷ Vendas
+              </p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
