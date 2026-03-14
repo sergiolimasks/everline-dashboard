@@ -51,12 +51,13 @@ function calcMetrics(data: SummaryData | undefined) {
   const taxaConversaoPagina = totalViews > 0 ? totalCheckouts / totalViews : 0;
   const taxaConversaoCheckout = totalCheckouts > 0 ? vendasAprovadas / totalCheckouts : 0;
   const thumbStopRate = totalImpressoes > 0 ? totalViews3s / totalImpressoes : 0;
+  const receitaPorVenda = vendasAprovadas > 0 ? receitaBruta / vendasAprovadas : 0;
 
   return {
     totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
     taxaFixa, coProdutor, taxaGreen, lucro, roi,
     cac, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
-    thumbStopRate,
+    thumbStopRate, receitaPorVenda,
   };
 }
 
@@ -244,6 +245,11 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+        <KPICard
+          label="Receita/Venda" value={isLoading ? null : formatCurrency(current?.receitaPorVenda || 0)}
+          icon={DollarSign} color="text-chart-green" isLoading={isLoading}
+          metricKey="receitaPorVenda" current={current} comp7d={comp7d} comp14d={comp14d}
+        />
         <KPICard
           label="CPC" value={isLoading ? null : formatCurrency(current?.cpc || 0)}
           icon={MousePointerClick} color="text-chart-purple" isLoading={isLoading}
