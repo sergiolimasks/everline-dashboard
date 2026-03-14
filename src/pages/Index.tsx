@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useComparison7d, useComparison14d } from "@/hooks/use-dashboard";
+import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useComparison7d, useComparison14d, useSparklineTraffic } from "@/hooks/use-dashboard";
 import { formatDateString } from "@/lib/date-utils";
 import { KPICards } from "@/components/dashboard/KPICards";
 import { TrafficChart } from "@/components/dashboard/TrafficChart";
@@ -23,6 +23,7 @@ const Index = () => {
   const { data: summary, isLoading: loadingSummary } = useSummary(dateFrom, dateTo);
   const { data: comparison7d } = useComparison7d(dateFrom, dateTo);
   const { data: comparison14d } = useComparison14d(dateFrom, dateTo);
+  const { data: sparklineTraffic } = useSparklineTraffic(dateFrom);
   const { data: trafficDaily, isLoading: loadingTraffic } = useTrafficDaily(dateFrom, dateTo);
   const { data: salesDaily, isLoading: loadingSales } = useSalesDaily(dateFrom, dateTo);
   const { data: campaigns, isLoading: loadingCampaigns } = useCampaigns(dateFrom, dateTo);
@@ -63,7 +64,7 @@ const Index = () => {
         <DateFilter dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} />
 
         {/* KPIs */}
-        <KPICards data={summary} isLoading={loadingSummary} comparison7d={comparison7d} comparison14d={comparison14d} trafficDaily={trafficDaily} />
+        <KPICards data={summary} isLoading={loadingSummary} comparison7d={comparison7d} comparison14d={comparison14d} trafficDaily={sparklineTraffic} />
 
         {/* Insights */}
         <Insights
