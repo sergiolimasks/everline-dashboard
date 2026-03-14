@@ -168,14 +168,14 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
         <KPICard
           label="Vendas Aprovadas" value={isLoading ? null : String(current?.vendasAprovadas || 0)}
           icon={ShoppingCart} color="text-chart-green" isLoading={isLoading}
-          metricKey="vendasAprovadas" current={current} comp7d={comp7d} comp14d={comp14d}
-          inlineComparison
+          metricKey="vendasAprovDia" current={current} comp7d={comp7d} comp14d={comp14d}
+          inlineComparison showValue formatValue={(v) => `${v.toFixed(0)}/d`}
         />
         <KPICard
           label="Order Bumps" value={isLoading ? null : String(current?.vendasBump || 0)}
           icon={Target} color="text-chart-purple" isLoading={isLoading}
-          metricKey="vendasBump" current={current} comp7d={comp7d} comp14d={comp14d}
-          inlineComparison
+          metricKey="vendasBumpDia" current={current} comp7d={comp7d} comp14d={comp14d}
+          inlineComparison showValue formatValue={(v) => `${v.toFixed(0)}/d`}
         />
         <KPICard
           label="Lucro" value={isLoading ? null : formatCurrency(current?.lucro || 0)}
