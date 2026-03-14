@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Target, BarChart3, Receipt, Users, CreditCard, MousePointerClick, Eye, Monitor, CheckCircle, ChevronDown, ChevronUp, PlayCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { SummaryData } from "@/lib/dashboard-api";
 
 interface KPICardsProps {
@@ -217,11 +218,29 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
 
       {/* Fixed metrics row */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-        <KPICard
-          label="CAC" value={isLoading ? null : formatCurrency(current?.cac || 0)}
-          icon={Target} color="text-chart-blue" isLoading={isLoading}
-          metricKey="cac" current={current} comp7d={comp7d} comp14d={comp14d}
-        />
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <KPICard
+                  label="CAC" value={isLoading ? null : formatCurrency(current?.cac || 0)}
+                  icon={Target} color="text-chart-blue" isLoading={isLoading}
+                  metricKey="cac" current={current} comp7d={comp7d} comp14d={comp14d}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="w-56 p-3">
+              <p className="text-xs font-semibold mb-2 text-foreground">Composição do CAC</p>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between"><span className="text-muted-foreground">Investimento Tráfego</span><span className="font-medium text-foreground">{formatCurrency(current?.totalGasto || 0)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Custo Consultas</span><span className="font-medium text-foreground">{formatCurrency(current?.taxaFixa || 0)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Co-Produtor</span><span className="font-medium text-foreground">{formatCurrency(current?.coProdutor || 0)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Taxa Greenn</span><span className="font-medium text-foreground">{formatCurrency(current?.taxaGreen || 0)}</span></div>
+                <div className="border-t border-border pt-1.5 flex justify-between font-semibold"><span className="text-muted-foreground">Total / {current?.vendasAprovadas || 0} vendas</span><span className="text-foreground">{formatCurrency(current?.cac || 0)}</span></div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <KPICard
           label="CPC" value={isLoading ? null : formatCurrency(current?.cpc || 0)}
           icon={MousePointerClick} color="text-chart-purple" isLoading={isLoading}
