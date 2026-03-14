@@ -40,6 +40,7 @@ function calcMetrics(data: SummaryData | undefined) {
   const taxaFixa = Number(sales?.taxa_fixa || 0);
   const coProdutor = Number(sales?.co_produtor || 0);
   const taxaGreen = Number(sales?.taxa_green || 0);
+  const diasAtivos = Number(traffic?.dias_ativos || 1);
 
   const lucro = receitaLiquida - taxaFixa;
   const roi = totalGasto > 0 ? receitaBruta / totalGasto : 0;
@@ -53,15 +54,21 @@ function calcMetrics(data: SummaryData | undefined) {
   const thumbStopRate = totalImpressoes > 0 ? totalViews3s / totalImpressoes : 0;
   const receitaPorVenda = vendasAprovadas > 0 ? receitaBruta / vendasAprovadas : 0;
 
+  // Daily averages for absolute metrics (for fair comparison across different period lengths)
+  const vendasAprovDia = vendasAprovadas / diasAtivos;
+  const vendasBumpDia = vendasBump / diasAtivos;
+
   return {
     totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
-    taxaFixa, coProdutor, taxaGreen, lucro, roi,
+    taxaFixa, coProdutor, taxaGreen, lucro, roi, diasAtivos,
     cac, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
-    thumbStopRate, receitaPorVenda,
+    thumbStopRate, receitaPorVenda, vendasAprovDia, vendasBumpDia,
   };
 }
 
-function ComparisonTag({ current, previous, label, invertColor = false }: { current: number; previous: number; label: string; invertColor?: boolean }) {
+function ComparisonTag({ current, previous, label, invertColor = false, showValue = false, formatValue }: { 
+  current: number; previous: number; label: string; invertColor?: boolean; showValue?: boolean; formatValue?: (v: number) => string;
+}) {
   if (previous === 0 && current === 0) return <span className="text-[10px] text-muted-foreground opacity-50">{label}: --</span>;
   const change = previous !== 0 ? ((current - previous) / Math.abs(previous)) * 100 : (current > 0 ? 100 : 0);
   const isUp = change >= 0;
@@ -70,12 +77,15 @@ function ComparisonTag({ current, previous, label, invertColor = false }: { curr
     <div className={`flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold ${isGood ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
       {isUp ? <TrendingUp className="h-2.5 w-2.5 shrink-0" /> : <TrendingDown className="h-2.5 w-2.5 shrink-0" />}
       <span>{change >= 0 ? '+' : ''}{change.toFixed(1)}%</span>
+      {showValue && formatValue && (
+        <span className="text-[9px] opacity-70">({formatValue(previous)})</span>
+      )}
     </div>
   );
 }
 
-function ComparisonRow({ metricKey, current, comp7d, comp14d, invertColor = false }: {
-  metricKey: string; current: any; comp7d: any; comp14d: any; invertColor?: boolean;
+function ComparisonRow({ metricKey, current, comp7d, comp14d, invertColor = false, showValue = false, formatValue }: {
+  metricKey: string; current: any; comp7d: any; comp14d: any; invertColor?: boolean; showValue?: boolean; formatValue?: (v: number) => string;
 }) {
   if (!comp7d || !comp14d) return null;
   const c = current?.[metricKey] ?? 0;
@@ -86,21 +96,22 @@ function ComparisonRow({ metricKey, current, comp7d, comp14d, invertColor = fals
     <div className="flex items-center gap-2 mt-2">
       <div className="flex flex-col items-center gap-0.5">
         <span className="text-[9px] text-muted-foreground font-medium">7d</span>
-        <ComparisonTag current={c} previous={v7} label="7d" invertColor={invertColor} />
+        <ComparisonTag current={c} previous={v7} label="7d" invertColor={invertColor} showValue={showValue} formatValue={formatValue} />
       </div>
       <div className="flex flex-col items-center gap-0.5">
         <span className="text-[9px] text-muted-foreground font-medium">14d</span>
-        <ComparisonTag current={c} previous={v14} label="14d" invertColor={invertColor} />
+        <ComparisonTag current={c} previous={v14} label="14d" invertColor={invertColor} showValue={showValue} formatValue={formatValue} />
       </div>
     </div>
   );
 }
 
 function KPICard({
-  label, value, icon: Icon, color, isLoading, metricKey, current, comp7d, comp14d, invertComparison = false, inlineComparison = false,
+  label, value, icon: Icon, color, isLoading, metricKey, current, comp7d, comp14d, invertComparison = false, inlineComparison = false, showValue = false, formatValue,
 }: {
   label: string; value: string | null; icon: any; color: string; isLoading: boolean;
   metricKey: string; current: any; comp7d: any; comp14d: any; invertComparison?: boolean; inlineComparison?: boolean;
+  showValue?: boolean; formatValue?: (v: number) => string;
 }) {
   return (
     <div className="kpi-card flex flex-col h-full">
@@ -116,11 +127,11 @@ function KPICard({
               <div className="flex items-center gap-2">
                 <div className="flex flex-col items-center gap-0.5">
                   <span className="text-[9px] text-muted-foreground font-medium">7d</span>
-                  <ComparisonTag current={current?.[metricKey] ?? 0} previous={comp7d?.[metricKey] ?? 0} label="7d" invertColor={invertComparison} />
+                  <ComparisonTag current={current?.[metricKey] ?? 0} previous={comp7d?.[metricKey] ?? 0} label="7d" invertColor={invertComparison} showValue={showValue} formatValue={formatValue} />
                 </div>
                 <div className="flex flex-col items-center gap-0.5">
                   <span className="text-[9px] text-muted-foreground font-medium">14d</span>
-                  <ComparisonTag current={current?.[metricKey] ?? 0} previous={comp14d?.[metricKey] ?? 0} label="14d" invertColor={invertComparison} />
+                  <ComparisonTag current={current?.[metricKey] ?? 0} previous={comp14d?.[metricKey] ?? 0} label="14d" invertColor={invertComparison} showValue={showValue} formatValue={formatValue} />
                 </div>
               </div>
             )}
@@ -129,7 +140,7 @@ function KPICard({
           <>
             {value ? <span className={`kpi-value ${color}`}>{value}</span> : <SkeletonBlock />}
             {!isLoading && comp7d && comp14d && (
-              <ComparisonRow metricKey={metricKey} current={current} comp7d={comp7d} comp14d={comp14d} invertColor={invertComparison} />
+              <ComparisonRow metricKey={metricKey} current={current} comp7d={comp7d} comp14d={comp14d} invertColor={invertComparison} showValue={showValue} formatValue={formatValue} />
             )}
           </>
         )}
@@ -157,14 +168,14 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
         <KPICard
           label="Vendas Aprovadas" value={isLoading ? null : String(current?.vendasAprovadas || 0)}
           icon={ShoppingCart} color="text-chart-green" isLoading={isLoading}
-          metricKey="vendasAprovadas" current={current} comp7d={comp7d} comp14d={comp14d}
-          inlineComparison
+          metricKey="vendasAprovDia" current={current} comp7d={comp7d} comp14d={comp14d}
+          inlineComparison showValue formatValue={(v) => `${v.toFixed(0)}/d`}
         />
         <KPICard
           label="Order Bumps" value={isLoading ? null : String(current?.vendasBump || 0)}
           icon={Target} color="text-chart-purple" isLoading={isLoading}
-          metricKey="vendasBump" current={current} comp7d={comp7d} comp14d={comp14d}
-          inlineComparison
+          metricKey="vendasBumpDia" current={current} comp7d={comp7d} comp14d={comp14d}
+          inlineComparison showValue formatValue={(v) => `${v.toFixed(0)}/d`}
         />
         <KPICard
           label="Lucro" value={isLoading ? null : formatCurrency(current?.lucro || 0)}
@@ -227,6 +238,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
                   label="CAC" value={isLoading ? null : formatCurrency(current?.cac || 0)}
                   icon={Target} color="text-chart-blue" isLoading={isLoading}
                   metricKey="cac" current={current} comp7d={comp7d} comp14d={comp14d}
+                  showValue formatValue={formatCurrency} invertComparison
                 />
               </div>
             </TooltipTrigger>
@@ -253,6 +265,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
                   label="Receita/Venda" value={isLoading ? null : formatCurrency(current?.receitaPorVenda || 0)}
                   icon={DollarSign} color="text-chart-green" isLoading={isLoading}
                   metricKey="receitaPorVenda" current={current} comp7d={comp7d} comp14d={comp14d}
+                  showValue formatValue={formatCurrency}
                 />
               </div>
             </TooltipTrigger>
@@ -291,36 +304,43 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
           label="CPC" value={isLoading ? null : formatCurrency(current?.cpc || 0)}
           icon={MousePointerClick} color="text-chart-purple" isLoading={isLoading}
           metricKey="cpc" current={current} comp7d={comp7d} comp14d={comp14d}
+          showValue formatValue={formatCurrency} invertComparison
         />
         <KPICard
           label="CTR" value={isLoading ? null : formatPercent(current?.ctr || 0)}
           icon={MousePointerClick} color="text-chart-orange" isLoading={isLoading}
           metricKey="ctr" current={current} comp7d={comp7d} comp14d={comp14d}
+          showValue formatValue={formatPercent}
         />
         <KPICard
           label="CPM" value={isLoading ? null : formatCurrency(current?.cpm || 0)}
           icon={Eye} color="text-chart-yellow" isLoading={isLoading}
           metricKey="cpm" current={current} comp7d={comp7d} comp14d={comp14d} invertComparison
+          showValue formatValue={formatCurrency}
         />
         <KPICard
           label="Thumb Stop" value={isLoading ? null : formatPercent(current?.thumbStopRate || 0)}
           icon={PlayCircle} color="text-chart-red" isLoading={isLoading}
           metricKey="thumbStopRate" current={current} comp7d={comp7d} comp14d={comp14d}
+          showValue formatValue={formatPercent}
         />
         <KPICard
           label="Tx Carreg. Página" value={isLoading ? null : formatPercent(current?.taxaCarregamento || 0)}
           icon={Monitor} color="text-chart-green" isLoading={isLoading}
           metricKey="taxaCarregamento" current={current} comp7d={comp7d} comp14d={comp14d}
+          showValue formatValue={formatPercent}
         />
         <KPICard
           label="Tx Conv. Página" value={isLoading ? null : formatPercent(current?.taxaConversaoPagina || 0)}
           icon={CheckCircle} color="text-chart-blue" isLoading={isLoading}
           metricKey="taxaConversaoPagina" current={current} comp7d={comp7d} comp14d={comp14d}
+          showValue formatValue={formatPercent}
         />
         <KPICard
           label="Tx Conv. Checkout" value={isLoading ? null : formatPercent(current?.taxaConversaoCheckout || 0)}
           icon={ShoppingCart} color="text-primary" isLoading={isLoading}
           metricKey="taxaConversaoCheckout" current={current} comp7d={comp7d} comp14d={comp14d}
+          showValue formatValue={formatPercent}
         />
       </div>
     </div>
