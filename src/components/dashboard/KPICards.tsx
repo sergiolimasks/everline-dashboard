@@ -42,14 +42,15 @@ function calcMetrics(data: SummaryData | undefined) {
   const totalViews = Number(traffic?.total_views || 0);
   const totalViews3s = Number(traffic?.total_views_3s || 0);
   const taxaFixa = Number(sales?.taxa_fixa || 0);
+  const custoManychat = vendasAprovadas * 0.35;
   const coProdutor = Number(sales?.co_produtor || 0);
   const taxaGreen = Number(sales?.taxa_green || 0);
   const diasAtivos = Number(traffic?.dias_ativos || 1);
 
-  const lucro = receitaLiquida - totalGasto - taxaFixa;
-  const custoTotal = totalGasto + taxaFixa;
+  const lucro = receitaLiquida - totalGasto - taxaFixa - custoManychat;
+  const custoTotal = totalGasto + taxaFixa + custoManychat;
   const roi = custoTotal > 0 ? receitaLiquida / custoTotal : 0;
-  const cac = vendasAprovadas > 0 ? (totalGasto + taxaFixa + coProdutor + taxaGreen) / vendasAprovadas : 0;
+  const cac = vendasAprovadas > 0 ? (totalGasto + taxaFixa + custoManychat + coProdutor + taxaGreen) / vendasAprovadas : 0;
   const cpc = totalCliques > 0 ? totalGasto / totalCliques : 0;
   const ctr = totalImpressoes > 0 ? totalCliques / totalImpressoes : 0;
   const cpm = totalImpressoes > 0 ? (totalGasto / totalImpressoes) * 1000 : 0;
