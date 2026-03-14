@@ -231,16 +231,13 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
             </TooltipTrigger>
             <TooltipContent side="bottom" className="w-72 p-3">
               <p className="text-xs font-semibold mb-2 text-foreground">Composição do CAC</p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed mb-2">
-                Soma de todos os custos dividida pelas vendas aprovadas:
-              </p>
               <div className="space-y-1.5 text-[11px]">
-                <div className="flex justify-between"><span className="text-muted-foreground">Investimento em Tráfego</span><span className="font-medium text-foreground">{formatCurrency(current?.totalGasto || 0)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Custo das Consultas</span><span className="font-medium text-foreground">{formatCurrency(current?.taxaFixa || 0)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Taxa Co-Produtor</span><span className="font-medium text-foreground">{formatCurrency(current?.coProdutor || 0)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Taxa Greenn</span><span className="font-medium text-foreground">{formatCurrency(current?.taxaGreen || 0)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Investimento em Tráfego</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.totalGasto || 0) / current.vendasAprovadas : 0)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Custo das Consultas</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.taxaFixa || 0) / current.vendasAprovadas : 0)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Taxa Co-Produtor</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.coProdutor || 0) / current.vendasAprovadas : 0)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Taxa Greenn</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.taxaGreen || 0) / current.vendasAprovadas : 0)}</span></div>
                 <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
-                  <span className="text-muted-foreground">Total ÷ {current?.vendasAprovadas || 0} vendas</span>
+                  <span className="text-muted-foreground">CAC Total</span>
                   <span className="text-foreground">{formatCurrency(current?.cac || 0)}</span>
                 </div>
               </div>
