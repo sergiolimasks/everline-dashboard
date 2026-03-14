@@ -63,7 +63,7 @@ function calcMetrics(data: SummaryData | undefined) {
   const vendasBumpDia = vendasBump / diasAtivos;
 
   return {
-    totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
+    gastoMeta, impostoMeta, totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
     taxaFixa, coProdutor, taxaGreen, lucro, roi, diasAtivos,
     cac, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
     thumbStopRate, receitaPorVenda, vendasAprovDia, vendasBumpDia,
