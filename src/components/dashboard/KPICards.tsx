@@ -174,13 +174,32 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
           metricKey="vendasBumpDia" current={current} comp7d={comp7d} comp14d={comp14d}
           inlineComparison formatValue={(v) => `${v.toFixed(0)}/d`}
         />
-        <KPICard
-          label="Lucro" value={isLoading ? null : formatCurrency(current?.lucro || 0)}
-          icon={(current?.lucro || 0) >= 0 ? TrendingUp : TrendingDown}
-          color={(current?.lucro || 0) >= 0 ? "kpi-trend-up" : "kpi-trend-down"}
-          isLoading={isLoading}
-          metricKey="lucro" current={current} comp7d={null} comp14d={null}
-        />
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <KPICard
+                  label="Lucro" value={isLoading ? null : formatCurrency(current?.lucro || 0)}
+                  icon={(current?.lucro || 0) >= 0 ? TrendingUp : TrendingDown}
+                  color={(current?.lucro || 0) >= 0 ? "kpi-trend-up" : "kpi-trend-down"}
+                  isLoading={isLoading}
+                  metricKey="lucro" current={current} comp7d={null} comp14d={null}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="w-72 p-3">
+              <p className="text-xs font-semibold mb-2 text-foreground">Composição do Lucro</p>
+              <div className="space-y-1.5 text-[11px]">
+                <div className="flex justify-between"><span className="text-primary">Receita Líquida</span><span className="font-medium text-primary">+ {formatCurrency(current?.receitaLiquida || 0)}</span></div>
+                <div className="flex justify-between"><span className="text-destructive">Custo Consultas</span><span className="font-medium text-destructive">- {formatCurrency(current?.taxaFixa || 0)}</span></div>
+                <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
+                  <span className="text-muted-foreground">Lucro</span>
+                  <span className={`${(current?.lucro || 0) >= 0 ? 'text-primary' : 'text-destructive'}`}>{formatCurrency(current?.lucro || 0)}</span>
+                </div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <KPICard
           label="ROI" value={isLoading ? null : (current?.roi || 0).toFixed(2)}
           icon={BarChart3}
