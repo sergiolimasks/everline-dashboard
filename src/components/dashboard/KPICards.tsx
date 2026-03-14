@@ -190,8 +190,11 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
             <TooltipContent side="bottom" className="w-72 p-3">
               <p className="text-xs font-semibold mb-2 text-foreground">Composição do Lucro</p>
               <div className="space-y-1.5 text-[11px]">
-                <div className="flex justify-between"><span className="text-primary">Receita Líquida</span><span className="font-medium text-primary">+ {formatCurrency(current?.receitaLiquida || 0)}</span></div>
+                <div className="flex justify-between"><span className="text-primary">Faturamento</span><span className="font-medium text-primary">+ {formatCurrency(current?.receitaBruta || 0)}</span></div>
+                <div className="flex justify-between"><span className="text-destructive">Investimento</span><span className="font-medium text-destructive">- {formatCurrency(current?.totalGasto || 0)}</span></div>
                 <div className="flex justify-between"><span className="text-destructive">Custo Consultas</span><span className="font-medium text-destructive">- {formatCurrency(current?.taxaFixa || 0)}</span></div>
+                <div className="flex justify-between"><span className="text-destructive">Co-Produtor</span><span className="font-medium text-destructive">- {formatCurrency(current?.coProdutor || 0)}</span></div>
+                <div className="flex justify-between"><span className="text-destructive">Taxa Greenn</span><span className="font-medium text-destructive">- {formatCurrency(current?.taxaGreen || 0)}</span></div>
                 <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
                   <span className="text-muted-foreground">Lucro</span>
                   <span className={`${(current?.lucro || 0) >= 0 ? 'text-primary' : 'text-destructive'}`}>{formatCurrency(current?.lucro || 0)}</span>
