@@ -44,7 +44,7 @@ function calcMetrics(data: SummaryData | undefined) {
 
   const lucro = receitaLiquida - totalGasto - taxaFixa;
     const custoTotal = totalGasto + taxaFixa;
-    const roi = custoTotal > 0 ? receitaBruta / custoTotal : 0;
+    const roi = custoTotal > 0 ? receitaLiquida / custoTotal : 0;
   const cac = vendasAprovadas > 0 ? (totalGasto + taxaFixa + coProdutor + taxaGreen) / vendasAprovadas : 0;
   const cpc = totalCliques > 0 ? totalGasto / totalCliques : 0;
   const ctr = totalImpressoes > 0 ? totalCliques / totalImpressoes : 0;
