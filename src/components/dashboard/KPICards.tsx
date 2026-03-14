@@ -245,6 +245,11 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d }: KPICa
           </Tooltip>
         </TooltipProvider>
         <KPICard
+          label="Receita/Venda" value={isLoading ? null : formatCurrency(current?.receitaPorVenda || 0)}
+          icon={DollarSign} color="text-chart-green" isLoading={isLoading}
+          metricKey="receitaPorVenda" current={current} comp7d={comp7d} comp14d={comp14d}
+        />
+        <KPICard
           label="CPC" value={isLoading ? null : formatCurrency(current?.cpc || 0)}
           icon={MousePointerClick} color="text-chart-purple" isLoading={isLoading}
           metricKey="cpc" current={current} comp7d={comp7d} comp14d={comp14d}
