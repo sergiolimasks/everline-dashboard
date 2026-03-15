@@ -15,6 +15,9 @@ function formatNumber(value: number) {
 }
 
 export function CampaignsTable({ data, isLoading }: CampaignsTableProps) {
+  const [showAll, setShowAll] = useState(false);
+  const INITIAL_SHOW = 10;
+
   if (isLoading) {
     return (
       <div className="chart-container">
@@ -25,13 +28,18 @@ export function CampaignsTable({ data, isLoading }: CampaignsTableProps) {
   }
 
   const campaigns = data || [];
+  const visible = showAll ? campaigns : campaigns.slice(0, INITIAL_SHOW);
+  const hasMore = campaigns.length > INITIAL_SHOW;
 
   return (
     <div className="chart-container">
-      <h3 className="dashboard-section-title mb-4">Performance por Campanha</h3>
-      <div className="overflow-x-auto">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="dashboard-section-title">Performance por Campanha</h3>
+        <span className="text-xs text-muted-foreground">{campaigns.length} campanhas</span>
+      </div>
+      <div className="overflow-x-auto max-h-[480px] overflow-y-auto">
         <table className="data-table">
-          <thead>
+          <thead className="sticky top-0 bg-card z-10">
             <tr>
               <th>Campanha</th>
               <th className="text-right">Gasto</th>
@@ -42,7 +50,7 @@ export function CampaignsTable({ data, isLoading }: CampaignsTableProps) {
             </tr>
           </thead>
           <tbody>
-            {campaigns.map((c, i) => {
+            {visible.map((c, i) => {
               const gasto = Number(c.gasto);
               const compras = Number(c.compras);
               const valorCompras = Number(c.valor_compras);
@@ -64,6 +72,14 @@ export function CampaignsTable({ data, isLoading }: CampaignsTableProps) {
           </tbody>
         </table>
       </div>
+      {hasMore && (
+        <button
+          onClick={() => setShowAll(!showAll)}
+          className="mt-3 w-full py-2 text-xs font-medium text-primary hover:text-primary/80 transition-colors border border-border rounded-lg hover:border-primary/50"
+        >
+          {showAll ? `Mostrar apenas ${INITIAL_SHOW}` : `Ver todas ${campaigns.length} campanhas`}
+        </button>
+      )}
     </div>
   );
 }
