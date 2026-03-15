@@ -464,31 +464,6 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
             <TooltipTrigger asChild>
               <div>
                 <KPICard
-                  label="Ticket Médio" value={isLoading ? null : formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.receitaBruta || 0) / current.vendasAprovadas : 0)}
-                  icon={Receipt} color="text-chart-green" isLoading={isLoading}
-                  metricKey="receitaPorVenda" current={current} comp7d={comp7d} comp14d={comp14d}
-                  formatValue={formatCurrency}
-                />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="w-64 p-3">
-              <p className="text-xs font-semibold mb-2 text-foreground">Ticket Médio</p>
-              <div className="space-y-1.5 text-[11px]">
-                <div className="flex justify-between"><span className="text-muted-foreground">Faturamento Total</span><span className="font-medium text-foreground">{formatCurrency(current?.receitaBruta || 0)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Vendas do Produto Principal</span><span className="font-medium text-foreground">{current?.vendasAprovadas || 0}</span></div>
-                <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
-                  <span className="text-muted-foreground">Ticket Médio</span>
-                  <span className="text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.receitaBruta || 0) / current.vendasAprovadas : 0)}</span>
-                </div>
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <TooltipProvider delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div>
-                <KPICard
                   label="Receita/Venda" value={isLoading ? null : formatCurrency(current?.receitaPorVenda || 0)}
                   icon={DollarSign} color="text-chart-green" isLoading={isLoading}
                   metricKey="receitaPorVenda" current={current} comp7d={comp7d} comp14d={comp14d}
