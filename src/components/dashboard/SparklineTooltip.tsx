@@ -1,4 +1,3 @@
-import { useState, useCallback } from "react";
 import { LineChart, Line, ReferenceLine, ResponsiveContainer, Dot, Tooltip as RechartsTooltip } from "recharts";
 import type { TrafficDaily } from "@/lib/dashboard-api";
 
@@ -7,6 +6,8 @@ interface SparklineTooltipProps {
   metricFn: (d: TrafficDaily) => number;
   formatValue: (v: number) => string;
   label: string;
+  /** Optional: function that returns true if the raw data for this day is valid for the metric */
+  isValidDay?: (d: TrafficDaily) => boolean;
 }
 
 function formatDayLabel(dia: string) {
@@ -19,44 +20,47 @@ function formatDayLabel(dia: string) {
 }
 
 /**
- * Interpolate zero/missing values using the average of nearest valid neighbors.
- * Each interpolated point gets a small random jitter (±15%) so they don't all look identical.
+ * Interpolate invalid/gap values using the average of nearest valid neighbors.
+ * Also detects outliers (>3x median) and interpolates them.
+ * Adds ±12% jitter so estimated points look natural.
  */
-function interpolateGaps(data: { dia: string; value: number }[]): { dia: string; value: number; estimated: boolean }[] {
-  const result = data.map((d, i) => ({ ...d, estimated: false }));
+function interpolateGaps(
+  data: { dia: string; value: number; valid: boolean }[]
+): { dia: string; value: number; estimated: boolean }[] {
+  const result = data.map((d) => ({ dia: d.dia, value: d.value, estimated: false, valid: d.valid }));
 
-  // Find indices where value is 0 or nonsensical (>10 = 1000% for rates that should be 0-1 range)
-  // We detect "broken" points: if the metric produces a value but key inputs were zero
-  // Instead, just detect zero values as gaps
-  const zeroIndices: number[] = [];
+  // Step 1: collect valid values to compute median for outlier detection
+  const validValues = result.filter(d => d.valid && d.value > 0).map(d => d.value);
+  let median = 0;
+  if (validValues.length > 0) {
+    const sorted = [...validValues].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    median = sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+  }
+
+  // Step 2: mark invalid days AND outliers (>4x median) as needing interpolation
+  const needsInterp: Set<number> = new Set();
   for (let i = 0; i < result.length; i++) {
-    if (result[i].value === 0) {
-      zeroIndices.push(i);
+    if (!result[i].valid || result[i].value === 0) {
+      needsInterp.add(i);
+    } else if (median > 0 && result[i].value > median * 4) {
+      needsInterp.add(i);
     }
   }
 
-  // If ALL are zero or ALL have values, no interpolation needed
-  if (zeroIndices.length === 0 || zeroIndices.length === result.length) {
-    return result;
+  // If none or all need interpolation, return as-is
+  if (needsInterp.size === 0 || needsInterp.size === result.length) {
+    return result.map(d => ({ dia: d.dia, value: d.value, estimated: false }));
   }
 
-  for (const idx of zeroIndices) {
-    // Find nearest previous non-zero
+  for (const idx of needsInterp) {
     let prevVal: number | null = null;
     for (let j = idx - 1; j >= 0; j--) {
-      if (!zeroIndices.includes(j)) {
-        prevVal = result[j].value;
-        break;
-      }
+      if (!needsInterp.has(j)) { prevVal = result[j].value; break; }
     }
-
-    // Find nearest next non-zero
     let nextVal: number | null = null;
     for (let j = idx + 1; j < result.length; j++) {
-      if (!zeroIndices.includes(j)) {
-        nextVal = result[j].value;
-        break;
-      }
+      if (!needsInterp.has(j)) { nextVal = result[j].value; break; }
     }
 
     let estimated = 0;
@@ -68,12 +72,12 @@ function interpolateGaps(data: { dia: string; value: number }[]): { dia: string;
       estimated = nextVal;
     }
 
-    // Add jitter ±15% so points aren't identical
-    const jitter = 1 + (Math.random() * 0.3 - 0.15);
+    // Jitter ±12%
+    const jitter = 1 + (Math.random() * 0.24 - 0.12);
     result[idx] = { ...result[idx], value: estimated * jitter, estimated: true };
   }
 
-  return result;
+  return result.map(d => ({ dia: d.dia, value: d.value, estimated: d.estimated }));
 }
 
 function CustomTooltipContent({ active, payload, avg, formatValue }: any) {
@@ -97,7 +101,7 @@ function CustomTooltipContent({ active, payload, avg, formatValue }: any) {
   );
 }
 
-export function SparklineTooltip({ dailyData, metricFn, formatValue, label }: SparklineTooltipProps) {
+export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isValidDay }: SparklineTooltipProps) {
   if (!dailyData || dailyData.length === 0) {
     return (
       <div className="w-72 p-3">
@@ -110,6 +114,7 @@ export function SparklineTooltip({ dailyData, metricFn, formatValue, label }: Sp
   const rawData = dailyData.map((d) => ({
     dia: d.dia,
     value: metricFn(d),
+    valid: isValidDay ? isValidDay(d) : true,
   }));
 
   const chartData = interpolateGaps(rawData);
@@ -148,7 +153,6 @@ export function SparklineTooltip({ dailyData, metricFn, formatValue, label }: Sp
               dot={(props: any) => {
                 const { cx, cy, payload } = props;
                 if (payload.estimated) {
-                  // Estimated dots: yellow, dashed outline
                   return (
                     <Dot
                       cx={cx}
