@@ -258,48 +258,55 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
   // Sparkline metric extractors for traffic daily
   const dailyData = trafficDaily || [];
 
-  const sparklineConfigs: Record<string, { metricFn: (d: TrafficDaily) => number; format: (v: number) => string; label: string }> = {
+  const sparklineConfigs: Record<string, { metricFn: (d: TrafficDaily) => number; format: (v: number) => string; label: string; isValidDay?: (d: TrafficDaily) => boolean }> = {
     cpc: {
       metricFn: (d) => d.cliques > 0 ? (d.gasto * 1.125) / d.cliques : 0,
       format: formatCurrency,
       label: "CPC",
+      isValidDay: (d) => d.cliques > 0 && d.gasto > 0,
     },
     ctr: {
       metricFn: (d) => d.impressoes > 0 ? d.cliques / d.impressoes : 0,
       format: formatPercent,
       label: "CTR",
+      isValidDay: (d) => d.impressoes > 0,
     },
     cpm: {
       metricFn: (d) => d.impressoes > 0 ? ((d.gasto * 1.125) / d.impressoes) * 1000 : 0,
       format: formatCurrency,
       label: "CPM",
+      isValidDay: (d) => d.impressoes > 0 && d.gasto > 0,
     },
     thumbStopRate: {
       metricFn: (d) => d.impressoes > 0 ? d.views_3s / d.impressoes : 0,
       format: formatPercent,
       label: "Thumb Stop",
+      isValidDay: (d) => d.impressoes > 0 && d.views_3s > 0,
     },
     taxaCarregamento: {
       metricFn: (d) => d.cliques > 0 ? d.views_pagina / d.cliques : 0,
       format: formatPercent,
       label: "Tx Carreg. Página",
+      isValidDay: (d) => d.cliques > 0 && d.views_pagina > 0,
     },
     taxaConversaoPagina: {
       metricFn: (d) => d.views_pagina > 0 ? d.checkouts / d.views_pagina : 0,
       format: formatPercent,
       label: "Tx Conv. Página",
+      isValidDay: (d) => d.views_pagina > 0 && d.checkouts > 0,
     },
     taxaConversaoCheckout: {
       metricFn: (d) => d.checkouts > 0 ? d.compras / d.checkouts : 0,
       format: formatPercent,
       label: "Tx Conv. Checkout",
+      isValidDay: (d) => d.checkouts > 0 && d.compras > 0,
     },
   };
 
   function getSparkline(key: string) {
     const cfg = sparklineConfigs[key];
     if (!cfg) return undefined;
-    return <SparklineTooltip dailyData={dailyData} metricFn={cfg.metricFn} formatValue={cfg.format} label={cfg.label} />;
+    return <SparklineTooltip dailyData={dailyData} metricFn={cfg.metricFn} formatValue={cfg.format} label={cfg.label} isValidDay={cfg.isValidDay} />;
   }
 
   return (
