@@ -211,12 +211,18 @@ serve(async (req) => {
           SUM(gasto) as gasto,
           CASE WHEN SUM(cliques) > 0 THEN SUM(gasto) / SUM(cliques) ELSE 0 END as cpc,
           CASE WHEN SUM(impressoes) > 0 THEN (SUM(gasto) / SUM(impressoes)) * 1000 ELSE 0 END as cpm,
-          MAX(status) as status
+          MAX(status_campanha) as status
         FROM bd_ads_clientes.meta_uelicon_venancio
         WHERE 1=1 ${dateFilter} ${checkoutFilter}
         GROUP BY campanha
         ORDER BY SUM(gasto) DESC
       `, params);
+    } else if (endpoint === 'columns') {
+      data = await queryExternalPG(`
+        SELECT column_name FROM information_schema.columns 
+        WHERE table_schema = 'bd_ads_clientes' AND table_name = 'meta_uelicon_venancio'
+        ORDER BY ordinal_position
+      `, []);
     }
 
     return new Response(JSON.stringify({ data }, (_, v) => typeof v === 'bigint' ? Number(v) : v), {
