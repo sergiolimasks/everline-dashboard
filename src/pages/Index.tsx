@@ -92,6 +92,7 @@ const Index = ({ clientView = false }: IndexProps) => {
           comparison7d={comparison7d}
           comparison14d={comparison14d}
           trafficDaily={sparklineData}
+          salesDaily={sparklineData === trafficDaily ? salesDaily : undefined}
           clientView={clientView}
         />
 
