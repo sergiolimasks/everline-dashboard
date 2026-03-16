@@ -108,7 +108,7 @@ function CustomTooltipContent({ active, payload, avg, formatValue }: any) {
   );
 }
 
-export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isValidDay }: SparklineTooltipProps) {
+export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isValidDay, inverted = false, maxValue }: SparklineTooltipProps) {
   if (!dailyData || dailyData.length === 0) {
     return (
       <div className="w-72 p-3">
