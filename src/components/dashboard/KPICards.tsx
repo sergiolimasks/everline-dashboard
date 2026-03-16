@@ -69,12 +69,12 @@ function calcMetrics(data: SummaryData | undefined) {
   const vendasAprovDia = vendasAprovadas / diasAtivos;
   const vendasBumpDia = vendasBump / diasAtivos;
 
-  return {
-    gastoMeta, impostoMeta, totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
-    taxaFixa, custoManychat, coProdutor, taxaGreen, lucro, roi, diasAtivos,
-    cac, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
-    thumbStopRate, receitaPorVenda, vendasAprovDia, vendasBumpDia,
-  };
+    return {
+      gastoMeta, impostoMeta, totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
+      taxaFixa, custoManychat, coProdutor, taxaGreen, lucro, roi, diasAtivos,
+      cac, cacClient, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
+      thumbStopRate, receitaPorVenda, receitaPorVendaLiquida, vendasAprovDia, vendasBumpDia,
+    };
 }
 
 function ComparisonTag({ current, previous, label, invertColor = false }: { 
