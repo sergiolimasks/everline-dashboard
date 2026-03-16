@@ -301,6 +301,44 @@ serve(async (req) => {
         GROUP BY campanha
         ORDER BY SUM(gasto) DESC
       `, params);
+
+    } else if (endpoint === 'ads') {
+      // Fetch ad-level metrics grouped by anuncio
+      const adsRows = await queryExternalPG(`
+        SELECT 
+          anuncio,
+          SUM(impressoes) as impressoes,
+          SUM(alcance) as alcance,
+          SUM(cliques) as cliques,
+          SUM(cliques_link) as cliques_link,
+          SUM(views_pagina) as views_pagina,
+          SUM(gasto) as gasto,
+          SUM(views_3s) as views_3s,
+          CASE WHEN SUM(impressoes) > 0 THEN SUM(cliques)::numeric / SUM(impressoes) ELSE 0 END as ctr,
+          CASE WHEN SUM(impressoes) > 0 THEN SUM(views_3s)::numeric / SUM(impressoes) ELSE 0 END as thumb_stop_rate,
+          CASE WHEN SUM(cliques) > 0 THEN SUM(gasto) / SUM(cliques) ELSE 0 END as cpc,
+          CASE WHEN SUM(impressoes) > 0 THEN (SUM(gasto) / SUM(impressoes)) * 1000 ELSE 0 END as cpm
+        FROM bd_ads_clientes.meta_uelicon_venancio
+        WHERE 1=1 ${dateFilter} ${metaFilter}
+        GROUP BY anuncio
+        ORDER BY SUM(gasto) DESC
+      `, params);
+
+      // Fetch links from the links table
+      const linksRows = await queryExternalPG(`
+        SELECT anuncio, link
+        FROM bd_ads_clientes.meta_uelicon_venancio_links
+      `, []);
+
+      const linkMap = new Map<string, string>();
+      for (const l of linksRows as any[]) {
+        if (l.anuncio && l.link) linkMap.set(String(l.anuncio), String(l.link));
+      }
+
+      data = (adsRows as any[]).map(row => ({
+        ...row,
+        link: linkMap.get(String(row.anuncio)) || null,
+      }));
     }
 
     return new Response(JSON.stringify({ data }, (_, v) => typeof v === 'bigint' ? Number(v) : v), {

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchSummary, fetchTrafficDaily, fetchSalesDaily, fetchCampaigns } from "@/lib/dashboard-api";
+import { fetchSummary, fetchTrafficDaily, fetchSalesDaily, fetchCampaigns, fetchAds } from "@/lib/dashboard-api";
 import { formatDateString } from "@/lib/date-utils";
 
 export function useSummary(dateFrom?: string, dateTo?: string, offer?: string) {
@@ -75,6 +75,14 @@ export function useCampaigns(dateFrom?: string, dateTo?: string, offer?: string)
   return useQuery({
     queryKey: ['campaigns', dateFrom, dateTo, offer],
     queryFn: () => fetchCampaigns(dateFrom, dateTo, offer),
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useAds(dateFrom?: string, dateTo?: string, offer?: string) {
+  return useQuery({
+    queryKey: ['ads', dateFrom, dateTo, offer],
+    queryFn: () => fetchAds(dateFrom, dateTo, offer),
     staleTime: 1000 * 60 * 5,
   });
 }

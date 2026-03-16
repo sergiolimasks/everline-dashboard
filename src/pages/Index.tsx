@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useComparison7d, useComparison14d, useSparklineTraffic } from "@/hooks/use-dashboard";
+import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useAds, useComparison7d, useComparison14d, useSparklineTraffic } from "@/hooks/use-dashboard";
 import { formatDateString } from "@/lib/date-utils";
 import { KPICards } from "@/components/dashboard/KPICards";
 import { TrafficChart } from "@/components/dashboard/TrafficChart";
@@ -7,6 +7,7 @@ import { SalesChart } from "@/components/dashboard/SalesChart";
 import { RevenueVsSpendChart } from "@/components/dashboard/RevenueVsSpendChart";
 import { ProductsTable } from "@/components/dashboard/ProductsTable";
 import { CampaignsTable } from "@/components/dashboard/CampaignsTable";
+import { CreativesTable } from "@/components/dashboard/CreativesTable";
 import { Insights } from "@/components/dashboard/Insights";
 import { DateFilter } from "@/components/dashboard/DateFilter";
 import { OfferFilter, type OfferType } from "@/components/dashboard/OfferFilter";
@@ -29,6 +30,7 @@ const Index = () => {
   const { data: trafficDaily, isLoading: loadingTraffic } = useTrafficDaily(dateFrom, dateTo, offer);
   const { data: salesDaily, isLoading: loadingSales } = useSalesDaily(dateFrom, dateTo, offer);
   const { data: campaigns, isLoading: loadingCampaigns } = useCampaigns(dateFrom, dateTo, offer);
+  const { data: ads, isLoading: loadingAds } = useAds(dateFrom, dateTo, offer);
 
   const periodDays = Math.round((new Date(dateTo).getTime() - new Date(dateFrom).getTime()) / (1000 * 60 * 60 * 24)) + 1;
   const sparklineData = periodDays > 30 ? trafficDaily : sparklineTraffic;
@@ -100,6 +102,9 @@ const Index = () => {
 
         {/* Campaigns Table */}
         <CampaignsTable data={campaigns} isLoading={loadingCampaigns} />
+
+        {/* Creatives Table */}
+        <CreativesTable data={ads} isLoading={loadingAds} />
       </div>
     </div>
   );
