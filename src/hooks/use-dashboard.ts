@@ -78,3 +78,11 @@ export function useCampaigns(dateFrom?: string, dateTo?: string, offer?: string)
     staleTime: 1000 * 60 * 5,
   });
 }
+
+export function useAds(dateFrom?: string, dateTo?: string, offer?: string) {
+  return useQuery({
+    queryKey: ['ads', dateFrom, dateTo, offer],
+    queryFn: () => fetchAds(dateFrom, dateTo, offer),
+    staleTime: 1000 * 60 * 5,
+  });
+}
