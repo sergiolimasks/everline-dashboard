@@ -54,6 +54,20 @@ export function useSparklineTraffic(dateTo?: string, offer?: string) {
   });
 }
 
+export function useSparklineSales(dateTo?: string, offer?: string) {
+  const enabled = !!dateTo;
+  const end = dateTo ? parseDateStringLocal(dateTo) : new Date();
+  const start = new Date(end);
+  start.setDate(start.getDate() - 29);
+
+  return useQuery({
+    queryKey: ['sparkline_sales', formatDateString(start), formatDateString(end), offer],
+    queryFn: () => fetchSalesDaily(formatDateString(start), formatDateString(end), offer),
+    staleTime: 1000 * 60 * 10,
+    enabled,
+  });
+}
+
 export function useTrafficDaily(dateFrom?: string, dateTo?: string, offer?: string) {
   return useQuery({
     queryKey: ['traffic_daily', dateFrom, dateTo, offer],
