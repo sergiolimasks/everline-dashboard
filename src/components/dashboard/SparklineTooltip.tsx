@@ -1,5 +1,6 @@
 import { LineChart, Line, ReferenceLine, ResponsiveContainer, Dot, Tooltip as RechartsTooltip } from "recharts";
 import type { TrafficDaily } from "@/lib/dashboard-api";
+import { formatDayMonth } from "@/lib/date-utils";
 
 interface SparklineTooltipProps {
   dailyData: TrafficDaily[];
@@ -22,8 +23,7 @@ interface SparklineTooltipProps {
 
 function formatDayLabel(dia: string) {
   try {
-    const d = new Date(dia);
-    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    return formatDayMonth(dia);
   } catch {
     return dia;
   }

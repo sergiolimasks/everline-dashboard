@@ -8,6 +8,14 @@ export function formatDayMonth(dateStr: string): string {
 }
 
 /**
+ * Parses a YYYY-MM-DD string as a LOCAL date to avoid UTC off-by-one issues.
+ */
+export function parseDateStringLocal(dateStr: string): Date {
+  const [year, month, day] = dateStr.split('T')[0].split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/**
  * Returns today's date as YYYY-MM-DD in local timezone.
  */
 export function todayLocalString(): string {
