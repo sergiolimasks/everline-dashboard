@@ -55,7 +55,7 @@ function calcMetrics(data: SummaryData | undefined) {
   const cpc = totalCliques > 0 ? totalGasto / totalCliques : 0;
   const ctr = totalImpressoes > 0 ? totalCliques / totalImpressoes : 0;
   const cpm = totalImpressoes > 0 ? (totalGasto / totalImpressoes) * 1000 : 0;
-  const taxaCarregamento = totalCliques > 0 ? totalViews / totalCliques : 0;
+  const taxaCarregamento = totalCliquesLink > 0 ? totalViews / totalCliquesLink : 0;
   const taxaConversaoPagina = totalViews > 0 ? totalCheckouts / totalViews : 0;
   const taxaConversaoCheckout = totalCheckouts > 0 ? vendasAprovadas / totalCheckouts : 0;
   const thumbStopRate = totalImpressoes > 0 ? totalViews3s / totalImpressoes : 0;
