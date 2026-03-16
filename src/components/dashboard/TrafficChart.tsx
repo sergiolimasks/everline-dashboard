@@ -1,65 +1,78 @@
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import type { TrafficDaily } from "@/lib/dashboard-api";
+import type { SalesDaily } from "@/lib/dashboard-api";
 import { formatDayMonth } from "@/lib/date-utils";
 
 interface TrafficChartProps {
   data: TrafficDaily[] | undefined;
+  salesData?: SalesDaily[] | undefined;
   isLoading: boolean;
 }
 
-export function TrafficChart({ data, isLoading }: TrafficChartProps) {
+function formatNumber(value: number) {
+  return value.toLocaleString('pt-BR');
+}
+
+const FUNNEL_COLORS = [
+  'hsl(200, 80%, 50%)',  // Cliques Link
+  'hsl(270, 60%, 60%)',  // Views Página
+  'hsl(45, 90%, 55%)',   // Checkouts
+  'hsl(160, 84%, 44%)',  // Vendas
+];
+
+export function TrafficChart({ data, salesData, isLoading }: TrafficChartProps) {
   if (isLoading) {
     return (
       <div className="chart-container">
-        <h3 className="dashboard-section-title mb-4">Tráfego Diário</h3>
+        <h3 className="dashboard-section-title mb-4">Funil de Tráfego</h3>
         <div className="h-72 flex items-center justify-center text-muted-foreground">Carregando...</div>
       </div>
     );
   }
 
-  const chartData = [...(data || [])].reverse().map((d) => ({
-    dia: formatDayMonth(String(d.dia)),
-    Cliques: Number(d.cliques),
-    "Views Página": Number(d.views_pagina),
-    Checkouts: Number(d.checkouts),
-    Gasto: Number(d.gasto),
-  }));
+  const trafficArr = [...(data || [])].sort((a, b) => String(a.dia).localeCompare(String(b.dia)));
+  
+  const totalCliquesLink = trafficArr.reduce((s, d) => s + Number(d.cliques_link), 0);
+  const totalViews = trafficArr.reduce((s, d) => s + Number(d.views_pagina), 0);
+  const totalCheckouts = trafficArr.reduce((s, d) => s + Number(d.checkouts), 0);
+  
+  const salesArr = salesData || [];
+  const totalVendas = salesArr.reduce((s, d) => s + Number(d.vendas_aprovadas), 0);
+
+  const funnelData = [
+    { etapa: 'Cliques Link', valor: totalCliquesLink, taxa: '100%' },
+    { etapa: 'Views Página', valor: totalViews, taxa: totalCliquesLink > 0 ? ((totalViews / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
+    { etapa: 'Checkouts', valor: totalCheckouts, taxa: totalViews > 0 ? ((totalCheckouts / totalViews) * 100).toFixed(1) + '%' : '0%' },
+    { etapa: 'Vendas', valor: totalVendas, taxa: totalCheckouts > 0 ? ((totalVendas / totalCheckouts) * 100).toFixed(1) + '%' : '0%' },
+  ];
+
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (!active || !payload?.length) return null;
+    const d = payload[0].payload;
+    return (
+      <div className="rounded-lg border border-border bg-card p-3 shadow-lg">
+        <p className="text-xs font-semibold text-foreground mb-1">{d.etapa}</p>
+        <p className="text-sm font-display font-bold text-foreground">{formatNumber(d.valor)}</p>
+        <p className="text-[10px] text-muted-foreground">Taxa: {d.taxa}</p>
+      </div>
+    );
+  };
 
   return (
     <div className="chart-container">
-      <h3 className="dashboard-section-title mb-4">Tráfego Diário</h3>
+      <h3 className="dashboard-section-title mb-4">Funil de Tráfego</h3>
       <ResponsiveContainer width="100%" height={300}>
-        <AreaChart data={chartData}>
-          <defs>
-            <linearGradient id="colorCliques" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="hsl(200, 80%, 50%)" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="hsl(200, 80%, 50%)" stopOpacity={0} />
-            </linearGradient>
-            <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="hsl(270, 60%, 60%)" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="hsl(270, 60%, 60%)" stopOpacity={0} />
-            </linearGradient>
-            <linearGradient id="colorCheckouts" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="hsl(160, 84%, 44%)" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="hsl(160, 84%, 44%)" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 14%, 18%)" />
-          <XAxis dataKey="dia" tick={{ fill: 'hsl(215, 12%, 55%)', fontSize: 11 }} />
-          <YAxis tick={{ fill: 'hsl(215, 12%, 55%)', fontSize: 11 }} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: 'hsl(220, 18%, 12%)',
-              border: '1px solid hsl(220, 14%, 18%)',
-              borderRadius: '8px',
-              color: 'hsl(210, 20%, 92%)',
-            }}
-          />
-          <Legend />
-          <Area type="monotone" dataKey="Cliques" stroke="hsl(200, 80%, 50%)" fillOpacity={1} fill="url(#colorCliques)" />
-          <Area type="monotone" dataKey="Views Página" stroke="hsl(270, 60%, 60%)" fillOpacity={1} fill="url(#colorViews)" />
-          <Area type="monotone" dataKey="Checkouts" stroke="hsl(160, 84%, 44%)" fillOpacity={1} fill="url(#colorCheckouts)" />
-        </AreaChart>
+        <BarChart data={funnelData} layout="vertical" margin={{ left: 20, right: 40 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 14%, 18%)" horizontal={false} />
+          <XAxis type="number" tick={{ fill: 'hsl(215, 12%, 55%)', fontSize: 11 }} tickFormatter={(v) => formatNumber(v)} />
+          <YAxis type="category" dataKey="etapa" tick={{ fill: 'hsl(215, 12%, 55%)', fontSize: 11 }} width={100} />
+          <Tooltip content={<CustomTooltip />} />
+          <Bar dataKey="valor" radius={[0, 6, 6, 0]} label={{ position: 'right', fill: 'hsl(215, 12%, 55%)', fontSize: 10, formatter: (v: number, _: any, entry: any) => `${formatNumber(v)} (${entry?.payload?.taxa || ''})` }}>
+            {funnelData.map((_, i) => (
+              <Cell key={i} fill={FUNNEL_COLORS[i]} fillOpacity={0.8} />
+            ))}
+          </Bar>
+        </BarChart>
       </ResponsiveContainer>
     </div>
   );

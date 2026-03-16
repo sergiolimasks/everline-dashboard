@@ -8,7 +8,6 @@ import { RevenueVsSpendChart } from "@/components/dashboard/RevenueVsSpendChart"
 import { ProductsTable } from "@/components/dashboard/ProductsTable";
 import { CampaignsTable } from "@/components/dashboard/CampaignsTable";
 import { CreativesTable } from "@/components/dashboard/CreativesTable";
-import { Insights } from "@/components/dashboard/Insights";
 import { DateFilter } from "@/components/dashboard/DateFilter";
 import { OfferFilter, type OfferType } from "@/components/dashboard/OfferFilter";
 import { BarChart3, RefreshCw } from "lucide-react";
@@ -23,16 +22,23 @@ const Index = () => {
 
   const queryClient = useQueryClient();
 
+  // Calculate chart date range: if single day or short range, show 7 retroactive days
+  const periodDays = Math.round((new Date(dateTo).getTime() - new Date(dateFrom).getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const chartDateFrom = periodDays <= 3
+    ? formatDateString(new Date(new Date(dateTo).getTime() - 6 * 24 * 60 * 60 * 1000))
+    : dateFrom;
+
   const { data: summary, isLoading: loadingSummary } = useSummary(dateFrom, dateTo, offer);
   const { data: comparison7d } = useComparison7d(dateFrom, dateTo, offer);
   const { data: comparison14d } = useComparison14d(dateFrom, dateTo, offer);
   const { data: sparklineTraffic } = useSparklineTraffic(dateFrom, offer);
-  const { data: trafficDaily, isLoading: loadingTraffic } = useTrafficDaily(dateFrom, dateTo, offer);
-  const { data: salesDaily, isLoading: loadingSales } = useSalesDaily(dateFrom, dateTo, offer);
+  // Charts use expanded date range
+  const { data: trafficDaily, isLoading: loadingTraffic } = useTrafficDaily(chartDateFrom, dateTo, offer);
+  const { data: salesDaily, isLoading: loadingSales } = useSalesDaily(chartDateFrom, dateTo, offer);
   const { data: campaigns, isLoading: loadingCampaigns } = useCampaigns(dateFrom, dateTo, offer);
   const { data: ads, isLoading: loadingAds } = useAds(dateFrom, dateTo, offer);
 
-  const periodDays = Math.round((new Date(dateTo).getTime() - new Date(dateFrom).getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const sparklinePeriod = periodDays > 30 ? periodDays : 30;
   const sparklineData = periodDays > 30 ? trafficDaily : sparklineTraffic;
 
   const handleDateChange = (from: string, to: string) => {
@@ -76,17 +82,9 @@ const Index = () => {
         {/* KPIs */}
         <KPICards data={summary} isLoading={loadingSummary} comparison7d={comparison7d} comparison14d={comparison14d} trafficDaily={sparklineData} />
 
-        {/* Insights */}
-        <Insights
-          summary={summary}
-          trafficDaily={trafficDaily}
-          salesDaily={salesDaily}
-          isLoading={loadingSummary || loadingSales}
-        />
-
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TrafficChart data={trafficDaily} isLoading={loadingTraffic} />
+          <TrafficChart data={trafficDaily} salesData={salesDaily} isLoading={loadingTraffic} />
           <SalesChart data={salesDaily} isLoading={loadingSales} />
         </div>
 
