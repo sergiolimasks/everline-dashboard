@@ -62,7 +62,9 @@ function calcMetrics(data: SummaryData | undefined) {
   const taxaConversaoPagina = totalViews > 0 ? totalCheckouts / totalViews : 0;
   const taxaConversaoCheckout = totalCheckouts > 0 ? vendasAprovadas / totalCheckouts : 0;
   const thumbStopRate = totalImpressoes > 0 ? totalViews3s / totalImpressoes : 0;
-  const receitaPorVenda = vendasAprovadas > 0 ? receitaBruta / vendasAprovadas : 0;
+    const receitaPorVenda = vendasAprovadas > 0 ? receitaBruta / vendasAprovadas : 0;
+    const receitaPorVendaLiquida = vendasAprovadas > 0 ? receitaLiquida / vendasAprovadas : 0;
+    const cacClient = vendasAprovadas > 0 ? (totalGasto + taxaFixa + custoManychat) / vendasAprovadas : 0;
 
   const vendasAprovDia = vendasAprovadas / diasAtivos;
   const vendasBumpDia = vendasBump / diasAtivos;
