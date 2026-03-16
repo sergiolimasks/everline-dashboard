@@ -194,7 +194,7 @@ function KPICard({
   return cardContent;
 }
 
-export function KPICards({ data, isLoading, comparison7d, comparison14d, trafficDaily, salesDaily, clientView = false }: KPICardsProps) {
+export function KPICards({ data, isLoading, comparison7d, comparison14d, trafficDaily, salesDaily, isSingleDay = false, clientView = false }: KPICardsProps) {
   const [showDetails, setShowDetails] = useState(false);
 
   const current = calcMetrics(data);

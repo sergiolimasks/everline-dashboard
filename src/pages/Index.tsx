@@ -95,6 +95,7 @@ const Index = ({ clientView = false }: IndexProps) => {
           comparison14d={comparison14d}
           trafficDaily={sparklineData}
           salesDaily={sparklineSalesData}
+          isSingleDay={periodDays === 1}
           clientView={clientView}
         />
 
