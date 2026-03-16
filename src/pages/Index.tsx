@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useComparison7d, useComparison14d, useSparklineTraffic } from "@/hooks/use-dashboard";
+import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useAds, useComparison7d, useComparison14d, useSparklineTraffic } from "@/hooks/use-dashboard";
 import { formatDateString } from "@/lib/date-utils";
 import { KPICards } from "@/components/dashboard/KPICards";
 import { TrafficChart } from "@/components/dashboard/TrafficChart";
