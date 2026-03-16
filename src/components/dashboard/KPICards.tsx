@@ -37,6 +37,7 @@ function calcMetrics(data: SummaryData | undefined) {
   const vendasAprovadas = Number(sales?.vendas_aprovadas || 0);
   const vendasBump = Number(sales?.vendas_bump || 0);
   const totalCliques = Number(traffic?.total_cliques || 0);
+  const totalCliquesLink = Number(traffic?.total_cliques_link || 0);
   const totalImpressoes = Number(traffic?.total_impressoes || 0);
   const totalCheckouts = Number(traffic?.total_checkouts || 0);
   const totalViews = Number(traffic?.total_views || 0);
@@ -54,7 +55,7 @@ function calcMetrics(data: SummaryData | undefined) {
   const cpc = totalCliques > 0 ? totalGasto / totalCliques : 0;
   const ctr = totalImpressoes > 0 ? totalCliques / totalImpressoes : 0;
   const cpm = totalImpressoes > 0 ? (totalGasto / totalImpressoes) * 1000 : 0;
-  const taxaCarregamento = totalCliques > 0 ? totalViews / totalCliques : 0;
+  const taxaCarregamento = totalCliquesLink > 0 ? totalViews / totalCliquesLink : 0;
   const taxaConversaoPagina = totalViews > 0 ? totalCheckouts / totalViews : 0;
   const taxaConversaoCheckout = totalCheckouts > 0 ? vendasAprovadas / totalCheckouts : 0;
   const thumbStopRate = totalImpressoes > 0 ? totalViews3s / totalImpressoes : 0;
@@ -306,7 +307,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
       disableEstimation: true,
     },
     taxaCarregamento: {
-      metricFn: (d) => d.cliques > 0 ? d.views_pagina / d.cliques : 0,
+      metricFn: (d) => d.cliques_link > 0 ? d.views_pagina / d.cliques_link : 0,
       format: formatPercent,
       label: "Tx Carreg. Página",
       isValidDay: (d) => d.cliques > 0 && d.views_pagina > 0,
