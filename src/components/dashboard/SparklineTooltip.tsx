@@ -181,8 +181,11 @@ export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isVa
     valid: isValidDay ? isValidDay(d) : true,
   }));
 
-  let chartData = interpolateGaps(rawData);
-  // Apply max value cap if specified (e.g., 100% for conversion rates)
+  let chartData = interpolateGaps(rawData, {
+    disableEstimation,
+    lowOutlierFactor,
+    highOutlierFactor,
+  });
   if (maxValue !== undefined) {
     chartData = chartData.map(d => ({ ...d, value: Math.min(d.value, maxValue) }));
   }
