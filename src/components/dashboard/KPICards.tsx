@@ -156,7 +156,7 @@ function KPICard({
       </div>
       {/* Mobile inline detail */}
       {mobileOpen && tooltipContent && (
-        <div className="mt-3 border-t border-border pt-3 md:hidden">
+        <div className="mt-3 border-t border-border pt-3 md:hidden [&>div]:!w-full [&>div]:!max-w-full [&>div]:!p-0">
           {tooltipContent}
         </div>
       )}

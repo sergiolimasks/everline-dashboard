@@ -197,7 +197,7 @@ export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isVa
   const estimatedCount = chartData.filter(d => d.estimated).length;
 
   return (
-    <div className="w-80 p-3" onClick={(e) => e.stopPropagation()}>
+    <div className="w-80 max-w-full p-3" onClick={(e) => e.stopPropagation()}>
       <p className="text-xs font-semibold mb-1 text-foreground">{label} — {chartData.length} dias</p>
       <p className="text-[10px] text-muted-foreground mb-2">
         Média: <span className="font-medium text-foreground">{formatValue(avg)}</span>
