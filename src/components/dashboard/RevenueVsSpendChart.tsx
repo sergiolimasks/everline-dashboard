@@ -1,4 +1,4 @@
-import { AreaChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceDot } from "recharts";
+import { ComposedChart, Area, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceDot } from "recharts";
 import type { TrafficDaily, SalesDaily } from "@/lib/dashboard-api";
 import { formatDayMonth } from "@/lib/date-utils";
 
