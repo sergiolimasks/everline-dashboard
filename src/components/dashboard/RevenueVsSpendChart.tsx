@@ -1,4 +1,4 @@
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceDot } from "recharts";
+import { AreaChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceDot } from "recharts";
 import type { TrafficDaily, SalesDaily } from "@/lib/dashboard-api";
 import { formatDayMonth } from "@/lib/date-utils";
 
@@ -22,20 +22,20 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: Funne
     );
   }
 
-  // Build gasto map (Meta + 12.5% tax)
   const gastoMetaMap = new Map<string, number>();
   (trafficData || []).forEach((d) => {
     gastoMetaMap.set(d.dia, Number(d.gasto) * 1.125);
   });
 
-  // Build sales maps
   const receitaMap = new Map<string, number>();
   const taxaFixaMap = new Map<string, number>();
   const vendasMap = new Map<string, number>();
+  const coProdutorMap = new Map<string, number>();
   (salesData || []).forEach((d) => {
     receitaMap.set(d.dia, (receitaMap.get(d.dia) || 0) + Number(d.receita_liquida));
     taxaFixaMap.set(d.dia, (taxaFixaMap.get(d.dia) || 0) + Number(d.taxa_fixa));
     vendasMap.set(d.dia, (vendasMap.get(d.dia) || 0) + Number(d.vendas_aprovadas));
+    coProdutorMap.set(d.dia, (coProdutorMap.get(d.dia) || 0) + Number(d.co_produtor || 0));
   });
 
   const allDays = new Set([...gastoMetaMap.keys(), ...receitaMap.keys()]);
@@ -46,6 +46,7 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: Funne
       const taxaFixa = taxaFixaMap.get(dia) || 0;
       const vendas = vendasMap.get(dia) || 0;
       const custoManychat = vendas * 0.35;
+      const coProdutor = coProdutorMap.get(dia) || 0;
       const custoTotal = gastoMeta + taxaFixa + custoManychat;
       const receita = receitaMap.get(dia) || 0;
 
@@ -53,13 +54,13 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: Funne
         dia: formatDayMonth(dia),
         "Custo Total": custoTotal,
         "Receita Líquida": receita,
+        "Co-Produtor": coProdutor,
         gastoMeta,
         taxaFixa,
         custoManychat,
       };
     });
 
-  // Find peaks and valleys
   const custoValues = chartData.map(d => d["Custo Total"]);
   const receitaValues = chartData.map(d => d["Receita Líquida"]);
 
@@ -106,6 +107,10 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: Funne
             <span className="text-primary font-medium">Receita Líquida</span>
             <span className="font-semibold text-primary">{formatCurrency(data?.["Receita Líquida"] || 0)}</span>
           </div>
+          <div className="flex justify-between gap-4">
+            <span className="font-medium" style={{ color: 'hsl(210, 70%, 55%)' }}>Co-Produtor</span>
+            <span className="font-semibold" style={{ color: 'hsl(210, 70%, 55%)' }}>{formatCurrency(data?.["Co-Produtor"] || 0)}</span>
+          </div>
           <div className="border-t border-border pt-1.5 flex justify-between gap-4">
             <span className="text-muted-foreground font-medium">Resultado</span>
             <span className={`font-semibold ${(data?.["Receita Líquida"] || 0) >= (data?.["Custo Total"] || 0) ? 'text-primary' : 'text-destructive'}`}>
@@ -139,6 +144,7 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: Funne
           <Legend />
           <Area type="monotone" dataKey="Custo Total" stroke="hsl(0, 72%, 55%)" strokeWidth={2} fillOpacity={1} fill="url(#colorCusto)" />
           <Area type="monotone" dataKey="Receita Líquida" stroke="hsl(160, 84%, 44%)" strokeWidth={2} fillOpacity={1} fill="url(#colorReceita)" />
+          <Line type="monotone" dataKey="Co-Produtor" stroke="hsl(210, 70%, 55%)" strokeWidth={1.5} dot={false} strokeDasharray="4 3" />
           {peaks.map((p, i) => (
             <ReferenceDot
               key={i}

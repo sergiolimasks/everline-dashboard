@@ -14,9 +14,19 @@ function formatNumber(value: number) {
   return value.toLocaleString('pt-BR');
 }
 
+function StatusIndicator({ status }: { status?: string }) {
+  const isActive = status?.toLowerCase() === 'active' || status?.toLowerCase() === 'ativo' || status?.toLowerCase() === 'ativa';
+  return (
+    <span
+      className={`inline-block w-2.5 h-2.5 rounded-full shrink-0 ${isActive ? 'bg-primary' : 'bg-muted-foreground/40'}`}
+      title={isActive ? 'Ativa' : 'Inativa'}
+    />
+  );
+}
+
 export function CampaignsTable({ data, isLoading }: CampaignsTableProps) {
   const [showAll, setShowAll] = useState(false);
-  const INITIAL_SHOW = 10;
+  const INITIAL_SHOW = 5;
 
   if (isLoading) {
     return (
@@ -30,6 +40,19 @@ export function CampaignsTable({ data, isLoading }: CampaignsTableProps) {
   const campaigns = data || [];
   const visible = showAll ? campaigns : campaigns.slice(0, INITIAL_SHOW);
   const hasMore = campaigns.length > INITIAL_SHOW;
+
+  // Calculate totals
+  const totals = campaigns.reduce(
+    (acc, c) => {
+      acc.gasto += Number(c.gasto);
+      acc.compras += Number(c.compras);
+      acc.valorCompras += Number(c.valor_compras);
+      return acc;
+    },
+    { gasto: 0, compras: 0, valorCompras: 0 }
+  );
+  const totalCpa = totals.compras > 0 ? totals.gasto / totals.compras : 0;
+  const totalRoas = totals.gasto > 0 ? totals.valorCompras / totals.gasto : 0;
 
   return (
     <div className="chart-container">
@@ -58,8 +81,11 @@ export function CampaignsTable({ data, isLoading }: CampaignsTableProps) {
               const roas = gasto > 0 ? valorCompras / gasto : 0;
               return (
                 <tr key={i}>
-                  <td className="font-medium max-w-xs truncate">
-                    <span className="truncate">{c.campanha}</span>
+                  <td className="font-medium max-w-xs">
+                    <div className="flex items-center gap-2">
+                      <StatusIndicator status={c.status} />
+                      <span className="truncate">{c.campanha}</span>
+                    </div>
                   </td>
                   <td className="text-right font-display font-semibold">{formatCurrency(gasto)}</td>
                   <td className="text-right">{formatNumber(compras)}</td>
@@ -70,6 +96,16 @@ export function CampaignsTable({ data, isLoading }: CampaignsTableProps) {
               );
             })}
           </tbody>
+          <tfoot className="border-t-2 border-border">
+            <tr className="font-semibold bg-muted/30">
+              <td className="font-medium">Total ({campaigns.length} campanhas)</td>
+              <td className="text-right font-display">{formatCurrency(totals.gasto)}</td>
+              <td className="text-right">{formatNumber(totals.compras)}</td>
+              <td className="text-right">{formatCurrency(totalCpa)}</td>
+              <td className="text-right">{formatCurrency(totals.valorCompras)}</td>
+              <td className="text-right font-display">{totalRoas.toFixed(2)}x</td>
+            </tr>
+          </tfoot>
         </table>
       </div>
       {hasMore && (
