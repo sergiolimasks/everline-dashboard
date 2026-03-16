@@ -314,6 +314,8 @@ serve(async (req) => {
           SUM(views_pagina) as views_pagina,
           SUM(gasto) as gasto,
           SUM(views_3s) as views_3s,
+          SUM(compras) as compras,
+          SUM(valor_compras) as valor_compras,
           CASE WHEN SUM(impressoes) > 0 THEN SUM(cliques)::numeric / SUM(impressoes) ELSE 0 END as ctr,
           CASE WHEN SUM(impressoes) > 0 THEN SUM(views_3s)::numeric / SUM(impressoes) ELSE 0 END as thumb_stop_rate,
           CASE WHEN SUM(cliques) > 0 THEN SUM(gasto) / SUM(cliques) ELSE 0 END as cpc,

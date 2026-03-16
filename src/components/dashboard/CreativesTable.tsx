@@ -42,12 +42,16 @@ export function CreativesTable({ data, isLoading }: CreativesTableProps) {
       acc.cliques += Number(a.cliques);
       acc.gasto += Number(a.gasto);
       acc.views_3s += Number(a.views_3s);
+      acc.compras += Number(a.compras);
+      acc.valorCompras += Number(a.valor_compras);
       return acc;
     },
-    { impressoes: 0, cliques: 0, gasto: 0, views_3s: 0 }
+    { impressoes: 0, cliques: 0, gasto: 0, views_3s: 0, compras: 0, valorCompras: 0 }
   );
   const totalCtr = totals.impressoes > 0 ? totals.cliques / totals.impressoes : 0;
   const totalTsr = totals.impressoes > 0 ? totals.views_3s / totals.impressoes : 0;
+  const totalCpa = totals.compras > 0 ? totals.gasto / totals.compras : 0;
+  const totalRoas = totals.gasto > 0 ? totals.valorCompras / totals.gasto : 0;
 
   return (
     <div className="chart-container">
@@ -61,51 +65,61 @@ export function CreativesTable({ data, isLoading }: CreativesTableProps) {
             <tr>
               <th>Anúncio</th>
               <th className="text-right">Gasto</th>
-              <th className="text-right">Impressões</th>
-              <th className="text-right">Cliques</th>
+              <th className="text-right">Vendas</th>
+              <th className="text-right">CPA</th>
+              <th className="text-right">Valor Compras</th>
+              <th className="text-right">ROAS</th>
               <th className="text-right">CTR</th>
               <th className="text-right">Thumb Stop Rate</th>
               <th className="text-right">CPC</th>
-              <th className="text-right">CPM</th>
             </tr>
           </thead>
           <tbody>
-            {visible.map((a, i) => (
-              <tr key={i}>
-                <td className="font-medium max-w-xs">
-                  {a.link ? (
-                    <a
-                      href={a.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-primary hover:text-primary/80 transition-colors"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+            {visible.map((a, i) => {
+              const gasto = Number(a.gasto);
+              const compras = Number(a.compras);
+              const valorCompras = Number(a.valor_compras);
+              const cpa = compras > 0 ? gasto / compras : 0;
+              const roas = gasto > 0 ? valorCompras / gasto : 0;
+              return (
+                <tr key={i}>
+                  <td className="font-medium max-w-xs">
+                    {a.link ? (
+                      <a
+                        href={a.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-primary hover:text-primary/80 transition-colors"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{a.anuncio}</span>
+                      </a>
+                    ) : (
                       <span className="truncate">{a.anuncio}</span>
-                    </a>
-                  ) : (
-                    <span className="truncate">{a.anuncio}</span>
-                  )}
-                </td>
-                <td className="text-right font-display font-semibold">{formatCurrency(Number(a.gasto))}</td>
-                <td className="text-right">{formatNumber(Number(a.impressoes))}</td>
-                <td className="text-right">{formatNumber(Number(a.cliques))}</td>
-                <td className="text-right font-display font-semibold">{formatPercent(Number(a.ctr))}</td>
-                <td className="text-right font-display font-semibold">{formatPercent(Number(a.thumb_stop_rate))}</td>
-                <td className="text-right">{formatCurrency(Number(a.cpc))}</td>
-                <td className="text-right">{formatCurrency(Number(a.cpm))}</td>
-              </tr>
-            ))}
+                    )}
+                  </td>
+                  <td className="text-right font-display font-semibold">{formatCurrency(gasto)}</td>
+                  <td className="text-right">{formatNumber(compras)}</td>
+                  <td className="text-right">{formatCurrency(cpa)}</td>
+                  <td className="text-right">{formatCurrency(valorCompras)}</td>
+                  <td className="text-right font-display font-semibold">{roas.toFixed(2)}x</td>
+                  <td className="text-right font-display font-semibold">{formatPercent(Number(a.ctr))}</td>
+                  <td className="text-right font-display font-semibold">{formatPercent(Number(a.thumb_stop_rate))}</td>
+                  <td className="text-right">{formatCurrency(Number(a.cpc))}</td>
+                </tr>
+              );
+            })}
           </tbody>
           <tfoot className="border-t-2 border-border">
             <tr className="font-semibold bg-muted/30">
               <td className="font-medium">Total ({ads.length} anúncios)</td>
               <td className="text-right font-display">{formatCurrency(totals.gasto)}</td>
-              <td className="text-right">{formatNumber(totals.impressoes)}</td>
-              <td className="text-right">{formatNumber(totals.cliques)}</td>
+              <td className="text-right">{formatNumber(totals.compras)}</td>
+              <td className="text-right">{formatCurrency(totalCpa)}</td>
+              <td className="text-right">{formatCurrency(totals.valorCompras)}</td>
+              <td className="text-right font-display">{totalRoas.toFixed(2)}x</td>
               <td className="text-right font-display">{formatPercent(totalCtr)}</td>
               <td className="text-right font-display">{formatPercent(totalTsr)}</td>
-              <td className="text-right">—</td>
               <td className="text-right">—</td>
             </tr>
           </tfoot>

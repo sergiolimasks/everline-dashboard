@@ -78,6 +78,8 @@ export interface AdData {
   views_pagina: number;
   gasto: number;
   views_3s: number;
+  compras: number;
+  valor_compras: number;
   ctr: number;
   thumb_stop_rate: number;
   cpc: number;
