@@ -6,6 +6,7 @@ interface FunnelChartProps {
   trafficData: TrafficDaily[] | undefined;
   salesData: SalesDaily[] | undefined;
   isLoading: boolean;
+  clientView?: boolean;
 }
 
 function formatCurrency(value: number) {

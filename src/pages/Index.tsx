@@ -95,21 +95,27 @@ const Index = ({ clientView = false }: IndexProps) => {
           clientView={clientView}
         />
 
+        {/* Charts Row */}
+        {!clientView && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TrafficChart data={trafficDaily} salesData={salesDaily} isLoading={loadingTraffic} summaryData={summary} />
+            <SalesChart data={salesDaily} isLoading={loadingSales} />
+          </div>
+        )}
+        {clientView && (
+          <SalesChart data={salesDaily} isLoading={loadingSales} />
+        )}
+
+        {/* Revenue vs Spend */}
+        <RevenueVsSpendChart
+          trafficData={trafficDaily}
+          salesData={salesDaily}
+          isLoading={loadingTraffic || loadingSales}
+          clientView={clientView}
+        />
+
         {!clientView && (
           <>
-            {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <TrafficChart data={trafficDaily} salesData={salesDaily} isLoading={loadingTraffic} summaryData={summary} />
-              <SalesChart data={salesDaily} isLoading={loadingSales} />
-            </div>
-
-            {/* Revenue vs Spend */}
-            <RevenueVsSpendChart
-              trafficData={trafficDaily}
-              salesData={salesDaily}
-              isLoading={loadingTraffic || loadingSales}
-            />
-
             {/* Products Table */}
             <ProductsTable data={summary} isLoading={loadingSummary} />
 
