@@ -210,7 +210,8 @@ serve(async (req) => {
           SUM(valor_compras) as valor_compras,
           SUM(gasto) as gasto,
           CASE WHEN SUM(cliques) > 0 THEN SUM(gasto) / SUM(cliques) ELSE 0 END as cpc,
-          CASE WHEN SUM(impressoes) > 0 THEN (SUM(gasto) / SUM(impressoes)) * 1000 ELSE 0 END as cpm
+          CASE WHEN SUM(impressoes) > 0 THEN (SUM(gasto) / SUM(impressoes)) * 1000 ELSE 0 END as cpm,
+          MAX(status) as status
         FROM bd_ads_clientes.meta_uelicon_venancio
         WHERE 1=1 ${dateFilter} ${checkoutFilter}
         GROUP BY campanha
