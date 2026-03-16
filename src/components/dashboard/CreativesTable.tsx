@@ -81,22 +81,29 @@ export function CreativesTable({ data, isLoading }: CreativesTableProps) {
               const valorCompras = Number(a.valor_compras);
               const cpa = compras > 0 ? gasto / compras : 0;
               const roas = gasto > 0 ? valorCompras / gasto : 0;
+              const isActive = a.status && a.status.toUpperCase() === 'ACTIVE';
               return (
                 <tr key={i}>
                   <td className="font-medium max-w-xs">
-                    {a.link ? (
-                      <a
-                        href={a.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-primary hover:text-primary/80 transition-colors"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`w-2 h-2 rounded-full shrink-0 ${isActive ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`}
+                        title={a.status || 'Desconhecido'}
+                      />
+                      {a.link ? (
+                        <a
+                          href={a.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-primary hover:text-primary/80 transition-colors"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{a.anuncio}</span>
+                        </a>
+                      ) : (
                         <span className="truncate">{a.anuncio}</span>
-                      </a>
-                    ) : (
-                      <span className="truncate">{a.anuncio}</span>
-                    )}
+                      )}
+                    </div>
                   </td>
                   <td className="text-right font-display font-semibold">{formatCurrency(gasto)}</td>
                   <td className="text-right">{formatNumber(compras)}</td>
