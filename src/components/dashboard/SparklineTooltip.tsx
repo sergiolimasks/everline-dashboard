@@ -111,7 +111,9 @@ export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isVa
     );
   }
 
-  const rawData = dailyData.map((d) => ({
+  // Reverse so oldest date is on the LEFT, newest on the RIGHT
+  const sorted = [...dailyData].sort((a, b) => new Date(a.dia).getTime() - new Date(b.dia).getTime());
+  const rawData = sorted.map((d) => ({
     dia: d.dia,
     value: metricFn(d),
     valid: isValidDay ? isValidDay(d) : true,
@@ -127,7 +129,7 @@ export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isVa
 
   return (
     <div className="w-80 p-3" onClick={(e) => e.stopPropagation()}>
-      <p className="text-xs font-semibold mb-1 text-foreground">{label} — Últimos {chartData.length} dias</p>
+      <p className="text-xs font-semibold mb-1 text-foreground">{label} — {chartData.length} dias</p>
       <p className="text-[10px] text-muted-foreground mb-2">
         Média: <span className="font-medium text-foreground">{formatValue(avg)}</span>
         <span className="ml-2">({realValues.length} dias reais{estimatedCount > 0 ? `, ${estimatedCount} estimados` : ''})</span>

@@ -42,13 +42,13 @@ export function useComparison14d(dateFrom?: string, dateTo?: string) {
   });
 }
 
-/** Fetch 20 days of traffic daily ending the day before dateFrom (for sparkline tooltips) */
+/** Fetch 30 days of traffic daily ending the day before dateFrom (for sparkline tooltips) */
 export function useSparklineTraffic(dateFrom?: string) {
   const enabled = !!dateFrom;
   const end = new Date(dateFrom || '');
   end.setDate(end.getDate() - 1);
   const start = new Date(end);
-  start.setDate(start.getDate() - 19);
+  start.setDate(start.getDate() - 29);
 
   return useQuery({
     queryKey: ['sparkline_traffic', formatDateString(start), formatDateString(end)],
