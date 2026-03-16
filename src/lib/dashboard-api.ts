@@ -69,6 +69,22 @@ export interface CampaignData {
   status?: string;
 }
 
+export interface AdData {
+  anuncio: string;
+  impressoes: number;
+  alcance: number;
+  cliques: number;
+  cliques_link: number;
+  views_pagina: number;
+  gasto: number;
+  views_3s: number;
+  ctr: number;
+  thumb_stop_rate: number;
+  cpc: number;
+  cpm: number;
+  link: string | null;
+}
+
 async function fetchDashboard<T>(endpoint: string, dateFrom?: string, dateTo?: string, offer?: string): Promise<T[]> {
   const params = new URLSearchParams({ endpoint });
   if (dateFrom) params.set('date_from', dateFrom);
