@@ -30,6 +30,7 @@ const Index = () => {
   const { data: trafficDaily, isLoading: loadingTraffic } = useTrafficDaily(dateFrom, dateTo, offer);
   const { data: salesDaily, isLoading: loadingSales } = useSalesDaily(dateFrom, dateTo, offer);
   const { data: campaigns, isLoading: loadingCampaigns } = useCampaigns(dateFrom, dateTo, offer);
+  const { data: ads, isLoading: loadingAds } = useAds(dateFrom, dateTo, offer);
 
   const periodDays = Math.round((new Date(dateTo).getTime() - new Date(dateFrom).getTime()) / (1000 * 60 * 60 * 24)) + 1;
   const sparklineData = periodDays > 30 ? trafficDaily : sparklineTraffic;
