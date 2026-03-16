@@ -8,6 +8,10 @@ interface SparklineTooltipProps {
   label: string;
   /** Optional: function that returns true if the raw data for this day is valid for the metric */
   isValidDay?: (d: TrafficDaily) => boolean;
+  /** If true, lower values are better (CPC, CPM). Swaps above/below color logic. */
+  inverted?: boolean;
+  /** Max value cap (e.g., 1.0 for percentages that can't exceed 100%) */
+  maxValue?: number;
 }
 
 function formatDayLabel(dia: string) {
