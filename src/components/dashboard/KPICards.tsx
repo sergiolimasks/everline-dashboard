@@ -226,7 +226,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
 
   // Order Bumps tooltip
   const bumpsTooltip = !isLoading && products.length > 0 ? (
-    <div className="w-64 p-3">
+    <div className="w-64 max-w-full p-3">
       <p className="text-xs font-semibold mb-2 text-foreground">Order Bumps</p>
       <div className="space-y-1.5 text-[11px]">
         {bumpProducts.length > 0 ? bumpProducts.map((p) => (
