@@ -135,7 +135,7 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: Funne
     <div className="chart-container">
       <h3 className="dashboard-section-title mb-4">Custo Total vs Receita Diária</h3>
       <ResponsiveContainer width="100%" height={300}>
-        <AreaChart data={chartData}>
+        <ComposedChart data={chartData}>
           <defs>
             <linearGradient id="colorCusto" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="hsl(0, 72%, 55%)" stopOpacity={0.3} />
@@ -148,17 +148,21 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: Funne
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 14%, 18%)" />
           <XAxis dataKey="dia" tick={{ fill: 'hsl(215, 12%, 55%)', fontSize: 11 }} />
-          <YAxis tick={{ fill: 'hsl(215, 12%, 55%)', fontSize: 11 }} />
+          <YAxis yAxisId="left" tick={{ fill: 'hsl(215, 12%, 55%)', fontSize: 11 }} />
+          <YAxis yAxisId="right" orientation="right" tick={{ fill: 'hsl(215, 12%, 55%)', fontSize: 10 }} tickFormatter={(v: number) => `R$${v.toFixed(0)}`} />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
-          <Area type="monotone" dataKey="Custo Total" stroke="hsl(0, 72%, 55%)" strokeWidth={2} fillOpacity={1} fill="url(#colorCusto)" />
-          <Area type="monotone" dataKey="Receita Líquida" stroke="hsl(160, 84%, 44%)" strokeWidth={2} fillOpacity={1} fill="url(#colorReceita)" />
-          <Line type="monotone" dataKey="Co-Produtor" stroke="hsl(210, 70%, 55%)" strokeWidth={1.5} dot={false} strokeDasharray="4 3" />
+          <Bar yAxisId="right" dataKey="CAC" fill="hsl(35, 90%, 55%)" opacity={0.5} barSize={8} radius={[2, 2, 0, 0]} />
+          <Bar yAxisId="right" dataKey="Receita/Venda" fill="hsl(270, 60%, 60%)" opacity={0.5} barSize={8} radius={[2, 2, 0, 0]} />
+          <Area yAxisId="left" type="monotone" dataKey="Custo Total" stroke="hsl(0, 72%, 55%)" strokeWidth={2} fillOpacity={1} fill="url(#colorCusto)" />
+          <Area yAxisId="left" type="monotone" dataKey="Receita Líquida" stroke="hsl(160, 84%, 44%)" strokeWidth={2} fillOpacity={1} fill="url(#colorReceita)" />
+          <Line yAxisId="left" type="monotone" dataKey="Co-Produtor" stroke="hsl(210, 70%, 55%)" strokeWidth={1.5} dot={false} strokeDasharray="4 3" />
           {peaks.map((p, i) => (
             <ReferenceDot
               key={i}
               x={chartData[p.index]?.dia}
               y={p.value}
+              yAxisId="left"
               r={5}
               fill={p.color}
               stroke="hsl(220, 18%, 12%)"
@@ -172,7 +176,7 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: Funne
               }}
             />
           ))}
-        </AreaChart>
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   );
