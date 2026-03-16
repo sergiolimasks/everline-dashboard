@@ -123,8 +123,13 @@ function KPICard({
   formatValue?: (v: number) => string;
   tooltipContent?: React.ReactNode;
 }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   const cardContent = (
-    <div className="kpi-card flex flex-col h-full">
+    <div
+      className={`kpi-card flex flex-col h-full ${tooltipContent ? 'cursor-pointer' : ''}`}
+      onClick={() => { if (tooltipContent) setMobileOpen(!mobileOpen); }}
+    >
       <div className="flex items-center justify-between mb-1">
         <span className="kpi-label">{label}</span>
         <Icon className={`h-4 w-4 ${color} shrink-0`} />
@@ -149,21 +154,36 @@ function KPICard({
           </>
         )}
       </div>
+      {/* Mobile inline detail */}
+      {mobileOpen && tooltipContent && (
+        <div className="mt-3 border-t border-border pt-3 md:hidden">
+          {tooltipContent}
+        </div>
+      )}
     </div>
   );
 
   if (tooltipContent) {
     return (
-      <TooltipProvider delayDuration={200}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div>{cardContent}</div>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="p-0">
-            {tooltipContent}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <>
+        {/* Desktop: tooltip on hover */}
+        <div className="hidden md:block">
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>{cardContent}</div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="p-0">
+                {tooltipContent}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        {/* Mobile: tap to expand */}
+        <div className="md:hidden">
+          {cardContent}
+        </div>
+      </>
     );
   }
 
