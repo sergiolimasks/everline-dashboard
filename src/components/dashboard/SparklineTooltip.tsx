@@ -212,8 +212,8 @@ export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isVa
         <span>{formatDayLabel(chartData[chartData.length - 1]?.dia)}</span>
       </div>
       <div className="flex items-center gap-3 mt-2 text-[9px]">
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary inline-block" /> Acima</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-destructive inline-block" /> Abaixo</span>
+        <span className="flex items-center gap-1"><span className={`w-2 h-2 rounded-full inline-block ${inverted ? 'bg-destructive' : 'bg-primary'}`} /> Acima</span>
+        <span className="flex items-center gap-1"><span className={`w-2 h-2 rounded-full inline-block ${inverted ? 'bg-primary' : 'bg-destructive'}`} /> Abaixo</span>
         {estimatedCount > 0 && (
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full inline-block" style={{ background: 'hsl(45, 93%, 47%)' }} /> Estimado</span>
         )}
