@@ -117,10 +117,12 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientV
             <span className="text-primary font-medium">Receita Líquida</span>
             <span className="font-semibold text-primary">{formatCurrency(data?.["Receita Líquida"] || 0)}</span>
           </div>
-          <div className="flex justify-between gap-4">
-            <span className="font-medium" style={{ color: 'hsl(210, 70%, 55%)' }}>Co-Produtor</span>
-            <span className="font-semibold" style={{ color: 'hsl(210, 70%, 55%)' }}>{formatCurrency(data?.["Co-Produtor"] || 0)}</span>
-          </div>
+          {!clientView && (
+            <div className="flex justify-between gap-4">
+              <span className="font-medium" style={{ color: 'hsl(210, 70%, 55%)' }}>Co-Produtor</span>
+              <span className="font-semibold" style={{ color: 'hsl(210, 70%, 55%)' }}>{formatCurrency(data?.["Co-Produtor"] || 0)}</span>
+            </div>
+          )}
           <div className="flex justify-between gap-4">
             <span className="font-medium" style={{ color: 'hsl(35, 90%, 55%)' }}>CAC</span>
             <span className="font-semibold" style={{ color: 'hsl(35, 90%, 55%)' }}>{formatCurrency(data?.["CAC"] || 0)}</span>
