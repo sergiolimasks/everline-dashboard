@@ -84,7 +84,7 @@ const Index = () => {
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TrafficChart data={trafficDaily} salesData={salesDaily} isLoading={loadingTraffic} />
+          <TrafficChart data={trafficDaily} salesData={salesDaily} isLoading={loadingTraffic} summaryData={summary} />
           <SalesChart data={salesDaily} isLoading={loadingSales} />
         </div>
 

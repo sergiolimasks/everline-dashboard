@@ -1,10 +1,10 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from "recharts";
-import type { TrafficDaily } from "@/lib/dashboard-api";
-import type { SalesDaily } from "@/lib/dashboard-api";
+import type { TrafficDaily, SalesDaily, SummaryData } from "@/lib/dashboard-api";
 
 interface TrafficChartProps {
   data: TrafficDaily[] | undefined;
   salesData?: SalesDaily[] | undefined;
+  summaryData?: SummaryData;
   isLoading: boolean;
 }
 
@@ -19,7 +19,7 @@ const FUNNEL_COLORS = [
   'hsl(160, 84%, 44%)',
 ];
 
-export function TrafficChart({ data, salesData, isLoading }: TrafficChartProps) {
+export function TrafficChart({ data, salesData, isLoading, summaryData }: TrafficChartProps) {
   if (isLoading) {
     return (
       <div className="chart-container">
@@ -29,14 +29,11 @@ export function TrafficChart({ data, salesData, isLoading }: TrafficChartProps) 
     );
   }
 
-  const trafficArr = [...(data || [])].sort((a, b) => String(a.dia).localeCompare(String(b.dia)));
-
-  const totalCliquesLink = trafficArr.reduce((s, d) => s + Number(d.cliques_link), 0);
-  const totalViews = trafficArr.reduce((s, d) => s + Number(d.views_pagina), 0);
-  const totalCheckouts = trafficArr.reduce((s, d) => s + Number(d.checkouts), 0);
-
-  const salesArr = salesData || [];
-  const totalVendas = salesArr.reduce((s, d) => s + Number(d.vendas_aprovadas), 0);
+  // Use summary data (exact date range) for funnel totals to stay consistent with KPI cards
+  const totalCliquesLink = Number(summaryData?.traffic?.total_cliques_link || 0);
+  const totalViews = Number(summaryData?.traffic?.total_views || 0);
+  const totalCheckouts = Number(summaryData?.traffic?.total_checkouts || 0);
+  const totalVendas = Number(summaryData?.sales?.vendas_aprovadas || 0);
 
   const funnelData = [
     { etapa: 'Cliques Link', valor: totalCliquesLink, taxaAnterior: '', pctTopo: '' },
@@ -58,8 +55,7 @@ export function TrafficChart({ data, salesData, isLoading }: TrafficChartProps) 
     );
   };
 
-  // Right-side label: "36.756 (78.4%)" — parentheses show conversion from previous step
-  const renderRightLabel = (props: any) => {
+  const CustomBarLabel = (props: any) => {
     const { x, y, width, height, index } = props;
     const entry = funnelData[index];
     if (!entry) return null;
@@ -73,11 +69,10 @@ export function TrafficChart({ data, salesData, isLoading }: TrafficChartProps) 
     );
   };
 
-  // Inside-bar label: shows % relative to top bar (Cliques Link)
-  const renderInsideLabel = (props: any) => {
+  const CustomInsideLabel = (props: any) => {
     const { x, y, width, height, index } = props;
     const entry = funnelData[index];
-    if (!entry || !entry.pctTopo || (width || 0) < 30) return null;
+    if (!entry || !entry.pctTopo || (width || 0) < 35) return null;
     return (
       <text x={(x || 0) + (width || 0) / 2} y={(y || 0) + (height || 0) / 2 + 4} fill="white" fontSize={11} fontWeight={600} textAnchor="middle">
         {entry.pctTopo}
@@ -98,8 +93,8 @@ export function TrafficChart({ data, salesData, isLoading }: TrafficChartProps) 
             {funnelData.map((_, i) => (
               <Cell key={i} fill={FUNNEL_COLORS[i]} fillOpacity={0.8} />
             ))}
-            <LabelList content={renderRightLabel} />
-            <LabelList content={renderInsideLabel} />
+            <LabelList content={CustomBarLabel} />
+            <LabelList content={CustomInsideLabel} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
