@@ -281,6 +281,14 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
   // Sparkline metric extractors for traffic daily
   const dailyData = trafficDaily || [];
 
+  // Build a map of salesDaily by date for merging with traffic data
+  const salesByDate = new Map<string, SalesDaily>();
+  if (salesDaily) {
+    for (const s of salesDaily) {
+      salesByDate.set(String(s.dia).slice(0, 10), s);
+    }
+  }
+
   const sparklineConfigs: Record<string, { metricFn: (d: TrafficDaily) => number; format: (v: number) => string; label: string; isValidDay?: (d: TrafficDaily) => boolean; inverted?: boolean; disableEstimation?: boolean; lowOutlierFactor?: number; highOutlierFactor?: number; maxValue?: number }> = {
     cpc: {
       metricFn: (d) => d.cliques > 0 ? (d.gasto * 1.125) / d.cliques : 0,
@@ -323,10 +331,24 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
       maxValue: 1.0,
     },
     taxaConversaoCheckout: {
-      metricFn: (d) => d.checkouts > 0 ? d.compras / d.checkouts : 0,
+      metricFn: (d) => {
+        if (d.checkouts <= 0) return 0;
+        // Use actual Greenn sales (vendas_aprovadas) when available, fallback to Meta compras
+        const dateKey = String(d.dia).slice(0, 10);
+        const sale = salesByDate.get(dateKey);
+        if (sale) {
+          return sale.vendas_aprovadas / d.checkouts;
+        }
+        return d.compras / d.checkouts;
+      },
       format: formatPercent,
       label: "Tx Conv. Checkout",
-      isValidDay: (d) => d.checkouts > 0 && d.compras > 0,
+      isValidDay: (d) => {
+        const dateKey = String(d.dia).slice(0, 10);
+        const sale = salesByDate.get(dateKey);
+        if (sale) return d.checkouts > 0 && sale.vendas_aprovadas > 0;
+        return d.checkouts > 0 && d.compras > 0;
+      },
       lowOutlierFactor: 0.6,
       highOutlierFactor: 1.55,
       maxValue: 1.0,
