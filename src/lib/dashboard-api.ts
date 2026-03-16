@@ -69,10 +69,11 @@ export interface CampaignData {
   status?: string;
 }
 
-async function fetchDashboard<T>(endpoint: string, dateFrom?: string, dateTo?: string): Promise<T[]> {
+async function fetchDashboard<T>(endpoint: string, dateFrom?: string, dateTo?: string, offer?: string): Promise<T[]> {
   const params = new URLSearchParams({ endpoint });
   if (dateFrom) params.set('date_from', dateFrom);
   if (dateTo) params.set('date_to', dateTo);
+  if (offer && offer !== 'all') params.set('offer', offer);
 
   const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-data?${params.toString()}`;
   const response = await fetch(url, {
@@ -90,19 +91,19 @@ async function fetchDashboard<T>(endpoint: string, dateFrom?: string, dateTo?: s
   return result.data;
 }
 
-export async function fetchSummary(dateFrom?: string, dateTo?: string): Promise<SummaryData> {
-  const data = await fetchDashboard<SummaryData>('summary', dateFrom, dateTo);
+export async function fetchSummary(dateFrom?: string, dateTo?: string, offer?: string): Promise<SummaryData> {
+  const data = await fetchDashboard<SummaryData>('summary', dateFrom, dateTo, offer);
   return data[0];
 }
 
-export async function fetchTrafficDaily(dateFrom?: string, dateTo?: string): Promise<TrafficDaily[]> {
-  return fetchDashboard<TrafficDaily>('traffic_daily', dateFrom, dateTo);
+export async function fetchTrafficDaily(dateFrom?: string, dateTo?: string, offer?: string): Promise<TrafficDaily[]> {
+  return fetchDashboard<TrafficDaily>('traffic_daily', dateFrom, dateTo, offer);
 }
 
-export async function fetchSalesDaily(dateFrom?: string, dateTo?: string): Promise<SalesDaily[]> {
-  return fetchDashboard<SalesDaily>('sales_daily', dateFrom, dateTo);
+export async function fetchSalesDaily(dateFrom?: string, dateTo?: string, offer?: string): Promise<SalesDaily[]> {
+  return fetchDashboard<SalesDaily>('sales_daily', dateFrom, dateTo, offer);
 }
 
-export async function fetchCampaigns(dateFrom?: string, dateTo?: string): Promise<CampaignData[]> {
-  return fetchDashboard<CampaignData>('campaigns', dateFrom, dateTo);
+export async function fetchCampaigns(dateFrom?: string, dateTo?: string, offer?: string): Promise<CampaignData[]> {
+  return fetchDashboard<CampaignData>('campaigns', dateFrom, dateTo, offer);
 }

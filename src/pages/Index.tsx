@@ -9,6 +9,7 @@ import { ProductsTable } from "@/components/dashboard/ProductsTable";
 import { CampaignsTable } from "@/components/dashboard/CampaignsTable";
 import { Insights } from "@/components/dashboard/Insights";
 import { DateFilter } from "@/components/dashboard/DateFilter";
+import { OfferFilter, type OfferType } from "@/components/dashboard/OfferFilter";
 import { BarChart3, RefreshCw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -17,20 +18,19 @@ const Index = () => {
 
   const [dateFrom, setDateFrom] = useState(formatDateString(today));
   const [dateTo, setDateTo] = useState(formatDateString(today));
+  const [offer, setOffer] = useState<OfferType>('all');
 
   const queryClient = useQueryClient();
 
-  const { data: summary, isLoading: loadingSummary } = useSummary(dateFrom, dateTo);
-  const { data: comparison7d } = useComparison7d(dateFrom, dateTo);
-  const { data: comparison14d } = useComparison14d(dateFrom, dateTo);
-  const { data: sparklineTraffic } = useSparklineTraffic(dateFrom);
-  const { data: trafficDaily, isLoading: loadingTraffic } = useTrafficDaily(dateFrom, dateTo);
-  const { data: salesDaily, isLoading: loadingSales } = useSalesDaily(dateFrom, dateTo);
-  const { data: campaigns, isLoading: loadingCampaigns } = useCampaigns(dateFrom, dateTo);
+  const { data: summary, isLoading: loadingSummary } = useSummary(dateFrom, dateTo, offer);
+  const { data: comparison7d } = useComparison7d(dateFrom, dateTo, offer);
+  const { data: comparison14d } = useComparison14d(dateFrom, dateTo, offer);
+  const { data: sparklineTraffic } = useSparklineTraffic(dateFrom, offer);
+  const { data: trafficDaily, isLoading: loadingTraffic } = useTrafficDaily(dateFrom, dateTo, offer);
+  const { data: salesDaily, isLoading: loadingSales } = useSalesDaily(dateFrom, dateTo, offer);
+  const { data: campaigns, isLoading: loadingCampaigns } = useCampaigns(dateFrom, dateTo, offer);
 
-  // Calculate selected period length in days
   const periodDays = Math.round((new Date(dateTo).getTime() - new Date(dateFrom).getTime()) / (1000 * 60 * 60 * 24)) + 1;
-  // For periods > 30 days, use the selected period's traffic data for sparklines
   const sparklineData = periodDays > 30 ? trafficDaily : sparklineTraffic;
 
   const handleDateChange = (from: string, to: string) => {
@@ -64,6 +64,9 @@ const Index = () => {
             Atualizar
           </button>
         </div>
+
+        {/* Offer Filter */}
+        <OfferFilter selected={offer} onChange={setOffer} />
 
         {/* Date Filter */}
         <DateFilter dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} />
