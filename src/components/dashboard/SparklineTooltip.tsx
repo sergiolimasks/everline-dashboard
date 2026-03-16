@@ -180,12 +180,18 @@ export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isVa
                 const isAbove = payload.value > avg * 1.05;
                 const isBelow = payload.value < avg * 0.95;
                 if (!isAbove && !isBelow) return <Dot cx={cx} cy={cy} r={0} fill="none" stroke="none" />;
+                // When inverted (CPC/CPM), above avg = bad (red), below avg = good (green)
+                const goodColor = "hsl(var(--primary))";
+                const badColor = "hsl(var(--destructive))";
+                const fillColor = inverted
+                  ? (isAbove ? badColor : goodColor)
+                  : (isAbove ? goodColor : badColor);
                 return (
                   <Dot
                     cx={cx}
                     cy={cy}
                     r={3}
-                    fill={isAbove ? "hsl(var(--primary))" : "hsl(var(--destructive))"}
+                    fill={fillColor}
                     stroke="hsl(var(--card))"
                     strokeWidth={1.5}
                   />
