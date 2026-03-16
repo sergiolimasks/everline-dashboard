@@ -156,7 +156,7 @@ function KPICard({
       </div>
       {/* Mobile inline detail */}
       {mobileOpen && tooltipContent && (
-        <div className="mt-3 border-t border-border pt-3 md:hidden">
+        <div className="mt-3 border-t border-border pt-3 md:hidden [&>div]:!w-full [&>div]:!max-w-full [&>div]:!p-0">
           {tooltipContent}
         </div>
       )}
@@ -207,7 +207,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
 
   // Vendas Aprovadas tooltip
   const vendasTooltip = !isLoading && products.length > 0 ? (
-    <div className="w-64 p-3">
+    <div className="w-64 max-w-full p-3">
       <p className="text-xs font-semibold mb-2 text-foreground">Produtos Vendidos</p>
       <div className="space-y-1.5 text-[11px]">
         {products.map((p) => (
@@ -226,7 +226,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
 
   // Order Bumps tooltip
   const bumpsTooltip = !isLoading && products.length > 0 ? (
-    <div className="w-64 p-3">
+    <div className="w-64 max-w-full p-3">
       <p className="text-xs font-semibold mb-2 text-foreground">Order Bumps</p>
       <div className="space-y-1.5 text-[11px]">
         {bumpProducts.length > 0 ? bumpProducts.map((p) => (
@@ -247,7 +247,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
 
   // ROI tooltip with formula
   const roiTooltip = !isLoading ? (
-    <div className="w-80 p-3">
+    <div className="w-80 max-w-full p-3">
       <p className="text-xs font-semibold mb-2 text-foreground">Fórmula do ROI</p>
       <div className="space-y-2 text-[11px]">
         <div className="bg-muted/50 rounded-md p-2 text-center font-mono text-xs text-foreground">
@@ -345,7 +345,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
           icon={DollarSign} color="text-chart-orange" isLoading={isLoading}
           metricKey="totalGasto" current={current} comp7d={null} comp14d={null}
           tooltipContent={!isLoading ? (
-            <div className="w-72 p-3">
+            <div className="w-72 max-w-full p-3">
               <p className="text-xs font-semibold mb-2 text-foreground">Composição do Investimento</p>
               <div className="space-y-1.5 text-[11px]">
                 <div className="flex justify-between"><span className="text-muted-foreground">Gasto Meta Ads</span><span className="font-medium text-foreground">{formatCurrency(current?.gastoMeta || 0)}</span></div>
@@ -379,7 +379,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
           isLoading={isLoading}
           metricKey="lucro" current={current} comp7d={null} comp14d={null}
           tooltipContent={!isLoading ? (
-            <div className="w-72 p-3">
+            <div className="w-72 max-w-full p-3">
               <p className="text-xs font-semibold mb-2 text-foreground">Composição do Lucro</p>
               <div className="space-y-1.5 text-[11px]">
                 <div className="flex justify-between"><span className="text-primary">Receita Líquida</span><span className="font-medium text-primary">+ {formatCurrency(current?.receitaLiquida || 0)}</span></div>
@@ -441,7 +441,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
             icon={MessageCircle} color="text-chart-orange" isLoading={isLoading}
             metricKey="custoManychat" current={current} comp7d={null} comp14d={null}
             tooltipContent={!isLoading ? (
-              <div className="w-64 p-3">
+              <div className="w-64 max-w-full p-3">
                 <p className="text-xs font-semibold mb-2 text-foreground">Custo ManyChat</p>
                 <div className="space-y-1.5 text-[11px]">
                   <div className="flex justify-between"><span className="text-muted-foreground">Vendas principal</span><span className="font-medium text-foreground">{current?.vendasAprovadas || 0}</span></div>
