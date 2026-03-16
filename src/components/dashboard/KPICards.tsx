@@ -315,7 +315,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
     taxaConversaoPagina: {
       metricFn: (d) => d.views_pagina > 0 ? d.checkouts / d.views_pagina : 0,
       format: formatPercent,
-      label: "Tx Conv. Página",
+      label: "Iniciou Checkout",
       isValidDay: (d) => d.views_pagina > 0 && d.checkouts > 0,
       lowOutlierFactor: 0.45,
       maxValue: 1.0,

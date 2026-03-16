@@ -38,7 +38,7 @@ export function TrafficChart({ data, salesData, isLoading, summaryData }: Traffi
   const funnelData = [
     { etapa: 'Cliques Link', valor: totalCliquesLink, taxaAnterior: '', pctTopo: '' },
     { etapa: 'Views Página', valor: totalViews, taxaAnterior: totalCliquesLink > 0 ? ((totalViews / totalCliquesLink) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalViews / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
-    { etapa: 'Checkouts', valor: totalCheckouts, taxaAnterior: totalViews > 0 ? ((totalCheckouts / totalViews) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalCheckouts / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
+    { etapa: 'Iniciou Checkout', valor: totalCheckouts, taxaAnterior: totalViews > 0 ? ((totalCheckouts / totalViews) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalCheckouts / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
     { etapa: 'Vendas', valor: totalVendas, taxaAnterior: totalCheckouts > 0 ? ((totalVendas / totalCheckouts) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalVendas / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
   ];
 
