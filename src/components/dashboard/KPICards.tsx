@@ -62,17 +62,19 @@ function calcMetrics(data: SummaryData | undefined) {
   const taxaConversaoPagina = totalViews > 0 ? totalCheckouts / totalViews : 0;
   const taxaConversaoCheckout = totalCheckouts > 0 ? vendasAprovadas / totalCheckouts : 0;
   const thumbStopRate = totalImpressoes > 0 ? totalViews3s / totalImpressoes : 0;
-  const receitaPorVenda = vendasAprovadas > 0 ? receitaBruta / vendasAprovadas : 0;
+    const receitaPorVenda = vendasAprovadas > 0 ? receitaBruta / vendasAprovadas : 0;
+    const receitaPorVendaLiquida = vendasAprovadas > 0 ? receitaLiquida / vendasAprovadas : 0;
+    const cacClient = vendasAprovadas > 0 ? (totalGasto + taxaFixa + custoManychat) / vendasAprovadas : 0;
 
   const vendasAprovDia = vendasAprovadas / diasAtivos;
   const vendasBumpDia = vendasBump / diasAtivos;
 
-  return {
-    gastoMeta, impostoMeta, totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
-    taxaFixa, custoManychat, coProdutor, taxaGreen, lucro, roi, diasAtivos,
-    cac, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
-    thumbStopRate, receitaPorVenda, vendasAprovDia, vendasBumpDia,
-  };
+    return {
+      gastoMeta, impostoMeta, totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
+      taxaFixa, custoManychat, coProdutor, taxaGreen, lucro, roi, diasAtivos,
+      cac, cacClient, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
+      thumbStopRate, receitaPorVenda, receitaPorVendaLiquida, vendasAprovDia, vendasBumpDia,
+    };
 }
 
 function ComparisonTag({ current, previous, label, invertColor = false }: { 
@@ -615,6 +617,79 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
             />
           </div>
         </>
+      )}
+
+      {clientView && (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <KPICard
+                    label="CAC" value={isLoading ? null : formatCurrency(current?.cacClient || 0)}
+                    icon={Target} color="text-chart-blue" isLoading={isLoading}
+                    metricKey="cacClient" current={current} comp7d={comp7d} comp14d={comp14d}
+                    formatValue={formatCurrency} invertComparison
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="w-72 p-3">
+                <p className="text-xs font-semibold mb-2 text-foreground">Composição do CAC</p>
+                <div className="space-y-1.5 text-[11px]">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Investimento em Tráfego</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.totalGasto || 0) / current!.vendasAprovadas : 0)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Custo das Consultas</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.taxaFixa || 0) / current!.vendasAprovadas : 0)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">ManyChat</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.custoManychat || 0) / current!.vendasAprovadas : 0)}</span></div>
+                  <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
+                    <span className="text-muted-foreground">CAC Total</span>
+                    <span className="text-foreground">{formatCurrency(current?.cacClient || 0)}</span>
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <KPICard
+                    label="Receita/Venda" value={isLoading ? null : formatCurrency(current?.receitaPorVendaLiquida || 0)}
+                    icon={DollarSign} color="text-chart-green" isLoading={isLoading}
+                    metricKey="receitaPorVendaLiquida" current={current} comp7d={comp7d} comp14d={comp14d}
+                    formatValue={formatCurrency}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="w-80 p-3">
+                <p className="text-xs font-semibold mb-1 text-foreground">Contribuição por Produto na Receita/Venda</p>
+                <p className="text-[10px] text-muted-foreground mb-2">Receita líquida de cada produto ÷ vendas do produto principal</p>
+                <div className="space-y-1.5 text-[11px]">
+                  {(() => {
+                    const vendasPrincipal = current?.vendasAprovadas || 0;
+                    return products.map((p) => {
+                      const contribuicao = vendasPrincipal > 0 ? p.receita_liquida / vendasPrincipal : 0;
+                      return (
+                        <div key={p.produto} className="flex justify-between gap-2">
+                          <span className="text-muted-foreground truncate">{p.produto}</span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-[10px] text-muted-foreground/60">{p.vendas_aprovadas}v</span>
+                            <span className="font-medium text-foreground">{formatCurrency(contribuicao)}</span>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                  {products.length === 0 && (
+                    <span className="text-muted-foreground">Sem dados de produtos</span>
+                  )}
+                  <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
+                    <span className="text-muted-foreground">Receita/Venda Total</span>
+                    <span className="text-foreground">{formatCurrency(current?.receitaPorVendaLiquida || 0)}</span>
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       )}
     </div>
   );
