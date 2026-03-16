@@ -53,6 +53,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
+        {/* Page Title */}
+        <h1 className="text-3xl md:text-4xl font-bold font-display text-center text-primary tracking-tight">
+          Checkup da Vida Financeira
+        </h1>
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -60,7 +65,7 @@ const Index = () => {
               <BarChart3 className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold font-display text-foreground">Dashboard de Performance</h1>
+              <h2 className="text-xl font-bold font-display text-foreground">Dashboard de Performance</h2>
               <p className="text-sm text-muted-foreground">Tráfego Meta Ads × Vendas Greenn</p>
             </div>
           </div>
