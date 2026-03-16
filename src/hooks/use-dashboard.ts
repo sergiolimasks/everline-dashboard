@@ -40,10 +40,9 @@ export function useComparison14d(dateFrom?: string, dateTo?: string, offer?: str
   });
 }
 
-export function useSparklineTraffic(dateFrom?: string, offer?: string) {
-  const enabled = !!dateFrom;
-  const end = new Date(dateFrom || '');
-  end.setDate(end.getDate() - 1);
+export function useSparklineTraffic(dateTo?: string, offer?: string) {
+  const enabled = !!dateTo;
+  const end = new Date(dateTo || '');
   const start = new Date(end);
   start.setDate(start.getDate() - 29);
 
