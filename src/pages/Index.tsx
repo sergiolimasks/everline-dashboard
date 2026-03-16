@@ -35,12 +35,14 @@ const Index = ({ clientView = false }: IndexProps) => {
   const { data: comparison7d } = useComparison7d(dateFrom, dateTo, offer);
   const { data: comparison14d } = useComparison14d(dateFrom, dateTo, offer);
   const { data: sparklineTraffic } = useSparklineTraffic(dateTo, offer);
+  const { data: sparklineSales } = useSparklineSales(dateTo, offer);
   const { data: trafficDaily, isLoading: loadingTraffic } = useTrafficDaily(chartDateFrom, dateTo, offer);
   const { data: salesDaily, isLoading: loadingSales } = useSalesDaily(chartDateFrom, dateTo, offer);
   const { data: campaigns, isLoading: loadingCampaigns } = useCampaigns(dateFrom, dateTo, offer);
   const { data: ads, isLoading: loadingAds } = useAds(dateFrom, dateTo, offer);
 
   const sparklineData = periodDays > 30 ? trafficDaily : sparklineTraffic;
+  const sparklineSalesData = periodDays > 30 ? salesDaily : sparklineSales;
 
   const handleDateChange = (from: string, to: string) => {
     setDateFrom(from);
