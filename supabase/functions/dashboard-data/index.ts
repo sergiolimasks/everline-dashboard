@@ -196,6 +196,11 @@ serve(async (req) => {
         },
         products,
       }];
+    } else if (endpoint === 'debug_columns') {
+      const cols = await queryExternalPG(`SELECT column_name FROM information_schema.columns WHERE table_schema = 'uelicon_database' AND table_name = 'controle_green' ORDER BY ordinal_position`);
+      const metaCols = await queryExternalPG(`SELECT column_name FROM information_schema.columns WHERE table_schema = 'bd_ads_clientes' AND table_name = 'meta_uelicon_venancio' ORDER BY ordinal_position`);
+      const products = await queryExternalPG(`SELECT DISTINCT "Nome do produto" FROM uelicon_database.controle_green WHERE LOWER("Nome do produto") LIKE '%check%' OR LOWER("Nome do produto") LIKE '%avalia%' OR LOWER("Nome do produto") LIKE '%cnpj%' OR LOWER("Nome do produto") LIKE '%vida financeira%' LIMIT 50`);
+      data = [{ green_columns: cols, meta_columns: metaCols, products }];
     } else if (endpoint === 'campaigns') {
       data = await queryExternalPG(`
         SELECT 
