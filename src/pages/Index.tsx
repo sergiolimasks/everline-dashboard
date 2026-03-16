@@ -13,7 +13,11 @@ import { OfferFilter, type OfferType } from "@/components/dashboard/OfferFilter"
 import { BarChart3, RefreshCw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
-const Index = () => {
+interface IndexProps {
+  clientView?: boolean;
+}
+
+const Index = ({ clientView = false }: IndexProps) => {
   const today = new Date();
 
   const [dateFrom, setDateFrom] = useState(formatDateString(today));
@@ -22,7 +26,6 @@ const Index = () => {
 
   const queryClient = useQueryClient();
 
-  // Calculate chart date range: if single day or short range, show 7 retroactive days
   const periodDays = Math.round((new Date(dateTo).getTime() - new Date(dateFrom).getTime()) / (1000 * 60 * 60 * 24)) + 1;
   const chartDateFrom = periodDays <= 3
     ? formatDateString(new Date(new Date(dateTo).getTime() - 6 * 24 * 60 * 60 * 1000))
@@ -32,13 +35,11 @@ const Index = () => {
   const { data: comparison7d } = useComparison7d(dateFrom, dateTo, offer);
   const { data: comparison14d } = useComparison14d(dateFrom, dateTo, offer);
   const { data: sparklineTraffic } = useSparklineTraffic(dateTo, offer);
-  // Charts use expanded date range
   const { data: trafficDaily, isLoading: loadingTraffic } = useTrafficDaily(chartDateFrom, dateTo, offer);
   const { data: salesDaily, isLoading: loadingSales } = useSalesDaily(chartDateFrom, dateTo, offer);
   const { data: campaigns, isLoading: loadingCampaigns } = useCampaigns(dateFrom, dateTo, offer);
   const { data: ads, isLoading: loadingAds } = useAds(dateFrom, dateTo, offer);
 
-  const sparklinePeriod = periodDays > 30 ? periodDays : 30;
   const sparklineData = periodDays > 30 ? trafficDaily : sparklineTraffic;
 
   const handleDateChange = (from: string, to: string) => {
@@ -85,29 +86,40 @@ const Index = () => {
         <DateFilter dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} />
 
         {/* KPIs */}
-        <KPICards data={summary} isLoading={loadingSummary} comparison7d={comparison7d} comparison14d={comparison14d} trafficDaily={sparklineData} />
-
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TrafficChart data={trafficDaily} salesData={salesDaily} isLoading={loadingTraffic} summaryData={summary} />
-          <SalesChart data={salesDaily} isLoading={loadingSales} />
-        </div>
-
-        {/* Revenue vs Spend */}
-        <RevenueVsSpendChart
-          trafficData={trafficDaily}
-          salesData={salesDaily}
-          isLoading={loadingTraffic || loadingSales}
+        <KPICards
+          data={summary}
+          isLoading={loadingSummary}
+          comparison7d={comparison7d}
+          comparison14d={comparison14d}
+          trafficDaily={sparklineData}
+          clientView={clientView}
         />
 
-        {/* Products Table */}
-        <ProductsTable data={summary} isLoading={loadingSummary} />
+        {!clientView && (
+          <>
+            {/* Charts Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <TrafficChart data={trafficDaily} salesData={salesDaily} isLoading={loadingTraffic} summaryData={summary} />
+              <SalesChart data={salesDaily} isLoading={loadingSales} />
+            </div>
 
-        {/* Campaigns Table */}
-        <CampaignsTable data={campaigns} isLoading={loadingCampaigns} />
+            {/* Revenue vs Spend */}
+            <RevenueVsSpendChart
+              trafficData={trafficDaily}
+              salesData={salesDaily}
+              isLoading={loadingTraffic || loadingSales}
+            />
 
-        {/* Creatives Table */}
-        <CreativesTable data={ads} isLoading={loadingAds} />
+            {/* Products Table */}
+            <ProductsTable data={summary} isLoading={loadingSummary} />
+
+            {/* Campaigns Table */}
+            <CampaignsTable data={campaigns} isLoading={loadingCampaigns} />
+
+            {/* Creatives Table */}
+            <CreativesTable data={ads} isLoading={loadingAds} />
+          </>
+        )}
       </div>
     </div>
   );
