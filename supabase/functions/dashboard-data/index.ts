@@ -217,12 +217,7 @@ serve(async (req) => {
         GROUP BY campanha
         ORDER BY SUM(gasto) DESC
       `, params);
-    } else if (endpoint === 'columns') {
-      data = await queryExternalPG(`
-        SELECT column_name FROM information_schema.columns 
-        WHERE table_schema = 'bd_ads_clientes' AND table_name = 'meta_uelicon_venancio'
-        ORDER BY ordinal_position
-      `, []);
+    }
     }
 
     return new Response(JSON.stringify({ data }, (_, v) => typeof v === 'bigint' ? Number(v) : v), {
