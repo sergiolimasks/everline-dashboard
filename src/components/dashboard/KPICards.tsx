@@ -307,7 +307,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
       disableEstimation: true,
     },
     taxaCarregamento: {
-      metricFn: (d) => d.cliques > 0 ? d.views_pagina / d.cliques : 0,
+      metricFn: (d) => d.cliques_link > 0 ? d.views_pagina / d.cliques_link : 0,
       format: formatPercent,
       label: "Tx Carreg. Página",
       isValidDay: (d) => d.cliques > 0 && d.views_pagina > 0,
