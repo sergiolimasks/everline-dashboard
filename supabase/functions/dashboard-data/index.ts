@@ -218,7 +218,6 @@ serve(async (req) => {
         ORDER BY SUM(gasto) DESC
       `, params);
     }
-    }
 
     return new Response(JSON.stringify({ data }, (_, v) => typeof v === 'bigint' ? Number(v) : v), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
