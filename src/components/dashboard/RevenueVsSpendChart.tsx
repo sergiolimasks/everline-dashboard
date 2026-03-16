@@ -120,6 +120,14 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: Funne
             <span className="font-medium" style={{ color: 'hsl(210, 70%, 55%)' }}>Co-Produtor</span>
             <span className="font-semibold" style={{ color: 'hsl(210, 70%, 55%)' }}>{formatCurrency(data?.["Co-Produtor"] || 0)}</span>
           </div>
+          <div className="flex justify-between gap-4">
+            <span className="font-medium" style={{ color: 'hsl(35, 90%, 55%)' }}>CAC</span>
+            <span className="font-semibold" style={{ color: 'hsl(35, 90%, 55%)' }}>{formatCurrency(data?.["CAC"] || 0)}</span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span className="font-medium" style={{ color: 'hsl(270, 60%, 60%)' }}>Receita/Venda</span>
+            <span className="font-semibold" style={{ color: 'hsl(270, 60%, 60%)' }}>{formatCurrency(data?.["Receita/Venda"] || 0)}</span>
+          </div>
           <div className="border-t border-border pt-1.5 flex justify-between gap-4">
             <span className="text-muted-foreground font-medium">Resultado</span>
             <span className={`font-semibold ${(data?.["Receita Líquida"] || 0) >= (data?.["Custo Total"] || 0) ? 'text-primary' : 'text-destructive'}`}>
