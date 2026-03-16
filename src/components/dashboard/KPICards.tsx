@@ -10,6 +10,7 @@ interface KPICardsProps {
   comparison7d?: SummaryData;
   comparison14d?: SummaryData;
   trafficDaily?: TrafficDaily[];
+  clientView?: boolean;
 }
 
 function formatCurrency(value: number) {
