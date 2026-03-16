@@ -7,6 +7,7 @@ import { SalesChart } from "@/components/dashboard/SalesChart";
 import { RevenueVsSpendChart } from "@/components/dashboard/RevenueVsSpendChart";
 import { ProductsTable } from "@/components/dashboard/ProductsTable";
 import { CampaignsTable } from "@/components/dashboard/CampaignsTable";
+import { CreativesTable } from "@/components/dashboard/CreativesTable";
 import { Insights } from "@/components/dashboard/Insights";
 import { DateFilter } from "@/components/dashboard/DateFilter";
 import { OfferFilter, type OfferType } from "@/components/dashboard/OfferFilter";
