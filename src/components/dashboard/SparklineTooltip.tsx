@@ -42,12 +42,15 @@ function interpolateGaps(
     median = sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
   }
 
-  // Step 2: mark invalid days AND outliers (>4x median) as needing interpolation
+  // Step 2: mark invalid days, outliers (>4x median), AND suspiciously low values (<0.15x median) as needing interpolation
   const needsInterp: Set<number> = new Set();
   for (let i = 0; i < result.length; i++) {
     if (!result[i].valid || result[i].value === 0) {
       needsInterp.add(i);
     } else if (median > 0 && result[i].value > median * 4) {
+      needsInterp.add(i);
+    } else if (median > 0 && result[i].value < median * 0.15) {
+      // Detect suspiciously low values (broken pixel data)
       needsInterp.add(i);
     }
   }
