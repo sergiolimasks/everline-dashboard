@@ -50,6 +50,7 @@ export interface SalesDaily {
   receita_bruta: number;
   receita_liquida: number;
   taxa_fixa: number;
+  co_produtor: number;
 }
 
 export interface CampaignData {
