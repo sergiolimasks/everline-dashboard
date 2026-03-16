@@ -325,10 +325,15 @@ serve(async (req) => {
       `, params);
 
       // Fetch links from the links table
-      const linksRows = await queryExternalPG(`
-        SELECT anuncio, link
-        FROM bd_ads_clientes.meta_uelicon_venancio_links
-      `, []);
+      let linksRows: unknown[] = [];
+      try {
+        linksRows = await queryExternalPG(`
+          SELECT anuncio, link_preview as link
+          FROM bd_ads_clientes.meta_uelicon_venancio_links
+        `, []);
+      } catch (e) {
+        console.error('Error fetching links table:', e);
+      }
 
       const linkMap = new Map<string, string>();
       for (const l of linksRows as any[]) {
