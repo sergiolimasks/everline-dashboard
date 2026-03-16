@@ -37,6 +37,7 @@ function calcMetrics(data: SummaryData | undefined) {
   const vendasAprovadas = Number(sales?.vendas_aprovadas || 0);
   const vendasBump = Number(sales?.vendas_bump || 0);
   const totalCliques = Number(traffic?.total_cliques || 0);
+  const totalCliquesLink = Number(traffic?.total_cliques_link || 0);
   const totalImpressoes = Number(traffic?.total_impressoes || 0);
   const totalCheckouts = Number(traffic?.total_checkouts || 0);
   const totalViews = Number(traffic?.total_views || 0);
