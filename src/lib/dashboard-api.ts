@@ -85,6 +85,7 @@ export interface AdData {
   cpc: number;
   cpm: number;
   link: string | null;
+  status?: string;
 }
 
 async function fetchDashboard<T>(endpoint: string, dateFrom?: string, dateTo?: string, offer?: string): Promise<T[]> {
