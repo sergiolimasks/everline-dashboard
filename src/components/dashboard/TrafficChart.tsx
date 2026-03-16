@@ -38,7 +38,7 @@ export function TrafficChart({ data, salesData, isLoading, summaryData }: Traffi
   const funnelData = [
     { etapa: 'Cliques Link', valor: totalCliquesLink, taxaAnterior: '', pctTopo: '' },
     { etapa: 'Views Página', valor: totalViews, taxaAnterior: totalCliquesLink > 0 ? ((totalViews / totalCliquesLink) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalViews / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
-    { etapa: 'Checkouts', valor: totalCheckouts, taxaAnterior: totalViews > 0 ? ((totalCheckouts / totalViews) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalCheckouts / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
+    { etapa: 'Iniciou Checkout', valor: totalCheckouts, taxaAnterior: totalViews > 0 ? ((totalCheckouts / totalViews) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalCheckouts / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
     { etapa: 'Vendas', valor: totalVendas, taxaAnterior: totalCheckouts > 0 ? ((totalVendas / totalCheckouts) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalVendas / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
   ];
 
@@ -72,10 +72,10 @@ export function TrafficChart({ data, salesData, isLoading, summaryData }: Traffi
   const CustomInsideLabel = (props: any) => {
     const { x, y, width, height, index } = props;
     const entry = funnelData[index];
-    if (!entry || !entry.pctTopo || (width || 0) < 35) return null;
+    if (!entry || !entry.taxaAnterior || (width || 0) < 35) return null;
     return (
       <text x={(x || 0) + (width || 0) / 2} y={(y || 0) + (height || 0) / 2 + 4} fill="white" fontSize={11} fontWeight={600} textAnchor="middle">
-        {entry.pctTopo}
+        {entry.taxaAnterior}
       </text>
     );
   };
