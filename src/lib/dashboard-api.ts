@@ -123,3 +123,7 @@ export async function fetchSalesDaily(dateFrom?: string, dateTo?: string, offer?
 export async function fetchCampaigns(dateFrom?: string, dateTo?: string, offer?: string): Promise<CampaignData[]> {
   return fetchDashboard<CampaignData>('campaigns', dateFrom, dateTo, offer);
 }
+
+export async function fetchAds(dateFrom?: string, dateTo?: string, offer?: string): Promise<AdData[]> {
+  return fetchDashboard<AdData>('ads', dateFrom, dateTo, offer);
+}
