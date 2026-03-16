@@ -10,6 +10,12 @@ interface SparklineTooltipProps {
   isValidDay?: (d: TrafficDaily) => boolean;
   /** If true, lower values are better (CPC, CPM). Swaps above/below color logic. */
   inverted?: boolean;
+  /** Disable all interpolation for this metric */
+  disableEstimation?: boolean;
+  /** Marks abnormally low values as broken data when below median * factor */
+  lowOutlierFactor?: number;
+  /** Marks abnormally high values as broken data when above median * factor */
+  highOutlierFactor?: number;
   /** Max value cap (e.g., 1.0 for percentages that can't exceed 100%) */
   maxValue?: number;
 }
@@ -24,17 +30,26 @@ function formatDayLabel(dia: string) {
 }
 
 /**
- * Interpolate invalid/gap values using the average of nearest valid neighbors.
- * Also detects outliers (>3x median) and interpolates them.
- * Adds ±12% jitter so estimated points look natural.
+ * Interpolate broken segments as a smooth bridge between the last valid day and the next valid day.
+ * This avoids artificial spikes during periods where tracking failed.
  */
 function interpolateGaps(
-  data: { dia: string; value: number; valid: boolean }[]
+  data: { dia: string; value: number; valid: boolean }[],
+  options?: {
+    disableEstimation?: boolean;
+    lowOutlierFactor?: number;
+    highOutlierFactor?: number;
+  }
 ): { dia: string; value: number; estimated: boolean }[] {
+  const { disableEstimation = false, lowOutlierFactor = 0, highOutlierFactor = 4 } = options || {};
+
+  if (disableEstimation) {
+    return data.map((d) => ({ dia: d.dia, value: d.value, estimated: false }));
+  }
+
   const result = data.map((d) => ({ dia: d.dia, value: d.value, estimated: false, valid: d.valid }));
 
-  // Step 1: collect valid values to compute median for outlier detection
-  const validValues = result.filter(d => d.valid && d.value > 0).map(d => d.value);
+  const validValues = result.filter((d) => d.valid && d.value > 0).map((d) => d.value);
   let median = 0;
   if (validValues.length > 0) {
     const sorted = [...validValues].sort((a, b) => a - b);
@@ -42,49 +57,89 @@ function interpolateGaps(
     median = sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
   }
 
-  // Step 2: mark invalid days, outliers (>4x median), AND suspiciously low values (<0.15x median) as needing interpolation
   const needsInterp: Set<number> = new Set();
   for (let i = 0; i < result.length; i++) {
     if (!result[i].valid || result[i].value === 0) {
       needsInterp.add(i);
-    } else if (median > 0 && result[i].value > median * 4) {
+      continue;
+    }
+
+    if (median > 0 && highOutlierFactor > 0 && result[i].value > median * highOutlierFactor) {
       needsInterp.add(i);
-    } else if (median > 0 && result[i].value < median * 0.15) {
-      // Detect suspiciously low values (broken pixel data)
+      continue;
+    }
+
+    if (median > 0 && lowOutlierFactor > 0 && result[i].value < median * lowOutlierFactor) {
       needsInterp.add(i);
     }
   }
 
-  // If none or all need interpolation, return as-is
   if (needsInterp.size === 0 || needsInterp.size === result.length) {
-    return result.map(d => ({ dia: d.dia, value: d.value, estimated: false }));
+    return result.map((d) => ({ dia: d.dia, value: d.value, estimated: false }));
   }
 
-  for (const idx of needsInterp) {
+  let index = 0;
+  while (index < result.length) {
+    if (!needsInterp.has(index)) {
+      index += 1;
+      continue;
+    }
+
+    const start = index;
+    while (index + 1 < result.length && needsInterp.has(index + 1)) {
+      index += 1;
+    }
+    const end = index;
+
     let prevVal: number | null = null;
-    for (let j = idx - 1; j >= 0; j--) {
-      if (!needsInterp.has(j)) { prevVal = result[j].value; break; }
+    for (let j = start - 1; j >= 0; j--) {
+      if (!needsInterp.has(j)) {
+        prevVal = result[j].value;
+        break;
+      }
     }
+
     let nextVal: number | null = null;
-    for (let j = idx + 1; j < result.length; j++) {
-      if (!needsInterp.has(j)) { nextVal = result[j].value; break; }
+    for (let j = end + 1; j < result.length; j++) {
+      if (!needsInterp.has(j)) {
+        nextVal = result[j].value;
+        break;
+      }
     }
 
-    let estimated = 0;
-    if (prevVal !== null && nextVal !== null) {
-      estimated = (prevVal + nextVal) / 2;
-    } else if (prevVal !== null) {
-      estimated = prevVal;
-    } else if (nextVal !== null) {
-      estimated = nextVal;
+    const segmentLength = end - start + 1;
+    const fallback = prevVal ?? nextVal ?? 0;
+    const startVal = prevVal ?? nextVal ?? fallback;
+    const endVal = nextVal ?? prevVal ?? fallback;
+    const sameAnchors = Math.abs(endVal - startVal) < 0.0001;
+
+    for (let offset = 0; offset < segmentLength; offset++) {
+      let estimated = fallback;
+
+      if (prevVal !== null && nextVal !== null) {
+        const progress = (offset + 1) / (segmentLength + 1);
+        estimated = startVal + (endVal - startVal) * progress;
+
+        if (sameAnchors) {
+          const direction = offset % 2 === 0 ? -1 : 1;
+          estimated = estimated * (1 + direction * 0.015);
+        }
+      } else {
+        const direction = offset % 2 === 0 ? -1 : 1;
+        estimated = fallback * (1 + direction * 0.015);
+      }
+
+      result[start + offset] = {
+        ...result[start + offset],
+        value: Math.max(0, estimated),
+        estimated: true,
+      };
     }
 
-    // Jitter ±12%
-    const jitter = 1 + (Math.random() * 0.24 - 0.12);
-    result[idx] = { ...result[idx], value: estimated * jitter, estimated: true };
+    index += 1;
   }
 
-  return result.map(d => ({ dia: d.dia, value: d.value, estimated: d.estimated }));
+  return result.map((d) => ({ dia: d.dia, value: d.value, estimated: d.estimated }));
 }
 
 function CustomTooltipContent({ active, payload, avg, formatValue }: any) {
@@ -108,7 +163,7 @@ function CustomTooltipContent({ active, payload, avg, formatValue }: any) {
   );
 }
 
-export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isValidDay, inverted = false, maxValue }: SparklineTooltipProps) {
+export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isValidDay, inverted = false, disableEstimation = false, lowOutlierFactor = 0, highOutlierFactor = 4, maxValue }: SparklineTooltipProps) {
   if (!dailyData || dailyData.length === 0) {
     return (
       <div className="w-72 p-3">
@@ -126,8 +181,11 @@ export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isVa
     valid: isValidDay ? isValidDay(d) : true,
   }));
 
-  let chartData = interpolateGaps(rawData);
-  // Apply max value cap if specified (e.g., 100% for conversion rates)
+  let chartData = interpolateGaps(rawData, {
+    disableEstimation,
+    lowOutlierFactor,
+    highOutlierFactor,
+  });
   if (maxValue !== undefined) {
     chartData = chartData.map(d => ({ ...d, value: Math.min(d.value, maxValue) }));
   }
