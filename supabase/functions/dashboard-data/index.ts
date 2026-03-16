@@ -325,10 +325,27 @@ serve(async (req) => {
       `, params);
 
       // Fetch links from the links table
-      const linksRows = await queryExternalPG(`
-        SELECT anuncio, link
-        FROM bd_ads_clientes.meta_uelicon_venancio_links
-      `, []);
+      let linksRows: unknown[] = [];
+      try {
+        linksRows = await queryExternalPG(`
+          SELECT * FROM bd_ads_clientes.meta_uelicon_venancio_links LIMIT 1
+        `, []);
+        // Log column names for debugging
+        if (linksRows.length > 0) {
+          console.log('Links table columns:', Object.keys(linksRows[0] as any));
+        }
+        // Re-fetch all with dynamic column detection
+        const cols = linksRows.length > 0 ? Object.keys(linksRows[0] as any) : [];
+        const anuncioCol = cols.find(c => c.toLowerCase().includes('anuncio') || c.toLowerCase().includes('anúncio')) || 'anuncio';
+        const linkCol = cols.find(c => c.toLowerCase().includes('link') || c.toLowerCase().includes('url') || c.toLowerCase().includes('href')) || cols.find(c => c !== anuncioCol) || 'link';
+        
+        linksRows = await queryExternalPG(`
+          SELECT "${anuncioCol}" as anuncio, "${linkCol}" as link
+          FROM bd_ads_clientes.meta_uelicon_venancio_links
+        `, []);
+      } catch (e) {
+        console.error('Error fetching links table:', e);
+      }
 
       const linkMap = new Map<string, string>();
       for (const l of linksRows as any[]) {
