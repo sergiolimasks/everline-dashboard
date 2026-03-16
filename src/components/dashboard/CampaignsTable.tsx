@@ -15,7 +15,7 @@ function formatNumber(value: number) {
 }
 
 function StatusIndicator({ status }: { status?: string }) {
-  const isActive = status?.toLowerCase() === 'active' || status?.toLowerCase() === 'ativo' || status?.toLowerCase() === 'ativa';
+  const isActive = status?.toUpperCase() === 'ACTIVE';
   return (
     <span
       className={`inline-block w-2.5 h-2.5 rounded-full shrink-0 ${isActive ? 'bg-primary' : 'bg-muted-foreground/40'}`}
