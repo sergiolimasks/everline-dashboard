@@ -31,7 +31,7 @@ const Index = () => {
   const { data: summary, isLoading: loadingSummary } = useSummary(dateFrom, dateTo, offer);
   const { data: comparison7d } = useComparison7d(dateFrom, dateTo, offer);
   const { data: comparison14d } = useComparison14d(dateFrom, dateTo, offer);
-  const { data: sparklineTraffic } = useSparklineTraffic(dateFrom, offer);
+  const { data: sparklineTraffic } = useSparklineTraffic(dateTo, offer);
   // Charts use expanded date range
   const { data: trafficDaily, isLoading: loadingTraffic } = useTrafficDaily(chartDateFrom, dateTo, offer);
   const { data: salesDaily, isLoading: loadingSales } = useSalesDaily(chartDateFrom, dateTo, offer);
