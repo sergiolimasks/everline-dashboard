@@ -10,6 +10,12 @@ interface SparklineTooltipProps {
   isValidDay?: (d: TrafficDaily) => boolean;
   /** If true, lower values are better (CPC, CPM). Swaps above/below color logic. */
   inverted?: boolean;
+  /** Disable all interpolation for this metric */
+  disableEstimation?: boolean;
+  /** Marks abnormally low values as broken data when below median * factor */
+  lowOutlierFactor?: number;
+  /** Marks abnormally high values as broken data when above median * factor */
+  highOutlierFactor?: number;
   /** Max value cap (e.g., 1.0 for percentages that can't exceed 100%) */
   maxValue?: number;
 }
