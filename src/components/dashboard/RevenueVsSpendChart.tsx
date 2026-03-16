@@ -28,11 +28,13 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: Funne
   });
 
   const receitaMap = new Map<string, number>();
+  const receitaBrutaMap = new Map<string, number>();
   const taxaFixaMap = new Map<string, number>();
   const vendasMap = new Map<string, number>();
   const coProdutorMap = new Map<string, number>();
   (salesData || []).forEach((d) => {
     receitaMap.set(d.dia, (receitaMap.get(d.dia) || 0) + Number(d.receita_liquida));
+    receitaBrutaMap.set(d.dia, (receitaBrutaMap.get(d.dia) || 0) + Number(d.receita_bruta || 0));
     taxaFixaMap.set(d.dia, (taxaFixaMap.get(d.dia) || 0) + Number(d.taxa_fixa));
     vendasMap.set(d.dia, (vendasMap.get(d.dia) || 0) + Number(d.vendas_aprovadas));
     coProdutorMap.set(d.dia, (coProdutorMap.get(d.dia) || 0) + Number(d.co_produtor || 0));
@@ -49,12 +51,19 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: Funne
       const coProdutor = coProdutorMap.get(dia) || 0;
       const custoTotal = gastoMeta + taxaFixa + custoManychat;
       const receita = receitaMap.get(dia) || 0;
+      const receitaBruta = receitaBrutaMap.get(dia) || 0;
+
+      const cacTotal = gastoMeta + taxaFixa + custoManychat + coProdutor;
+      const cac = vendas > 0 ? cacTotal / vendas : 0;
+      const receitaPorVenda = vendas > 0 ? receitaBruta / vendas : 0;
 
       return {
         dia: formatDayMonth(dia),
         "Custo Total": custoTotal,
         "Receita Líquida": receita,
         "Co-Produtor": coProdutor,
+        "CAC": cac,
+        "Receita/Venda": receitaPorVenda,
         gastoMeta,
         taxaFixa,
         custoManychat,
