@@ -66,6 +66,7 @@ export interface CampaignData {
   gasto: number;
   cpc: number;
   cpm: number;
+  status?: string;
 }
 
 async function fetchDashboard<T>(endpoint: string, dateFrom?: string, dateTo?: string): Promise<T[]> {
