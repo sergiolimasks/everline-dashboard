@@ -345,7 +345,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
           icon={DollarSign} color="text-chart-orange" isLoading={isLoading}
           metricKey="totalGasto" current={current} comp7d={null} comp14d={null}
           tooltipContent={!isLoading ? (
-            <div className="w-72 p-3">
+            <div className="w-72 max-w-full p-3">
               <p className="text-xs font-semibold mb-2 text-foreground">Composição do Investimento</p>
               <div className="space-y-1.5 text-[11px]">
                 <div className="flex justify-between"><span className="text-muted-foreground">Gasto Meta Ads</span><span className="font-medium text-foreground">{formatCurrency(current?.gastoMeta || 0)}</span></div>
