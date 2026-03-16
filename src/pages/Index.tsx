@@ -102,6 +102,9 @@ const Index = () => {
 
         {/* Campaigns Table */}
         <CampaignsTable data={campaigns} isLoading={loadingCampaigns} />
+
+        {/* Creatives Table */}
+        <CreativesTable data={ads} isLoading={loadingAds} />
       </div>
     </div>
   );
