@@ -28,6 +28,11 @@ const Index = () => {
   const { data: salesDaily, isLoading: loadingSales } = useSalesDaily(dateFrom, dateTo);
   const { data: campaigns, isLoading: loadingCampaigns } = useCampaigns(dateFrom, dateTo);
 
+  // Calculate selected period length in days
+  const periodDays = Math.round((new Date(dateTo).getTime() - new Date(dateFrom).getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  // For periods > 30 days, use the selected period's traffic data for sparklines
+  const sparklineData = periodDays > 30 ? trafficDaily : sparklineTraffic;
+
   const handleDateChange = (from: string, to: string) => {
     setDateFrom(from);
     setDateTo(to);
