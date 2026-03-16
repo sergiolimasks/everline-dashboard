@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchSummary, fetchTrafficDaily, fetchSalesDaily, fetchCampaigns, fetchAds } from "@/lib/dashboard-api";
-import { formatDateString } from "@/lib/date-utils";
+import { formatDateString, parseDateStringLocal } from "@/lib/date-utils";
 
 export function useSummary(dateFrom?: string, dateTo?: string, offer?: string) {
   return useQuery({
@@ -42,7 +42,7 @@ export function useComparison14d(dateFrom?: string, dateTo?: string, offer?: str
 
 export function useSparklineTraffic(dateTo?: string, offer?: string) {
   const enabled = !!dateTo;
-  const end = new Date(dateTo || '');
+  const end = dateTo ? parseDateStringLocal(dateTo) : new Date();
   const start = new Date(end);
   start.setDate(start.getDate() - 29);
 
