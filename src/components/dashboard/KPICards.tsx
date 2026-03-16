@@ -310,7 +310,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
   function getSparkline(key: string) {
     const cfg = sparklineConfigs[key];
     if (!cfg) return undefined;
-    return <SparklineTooltip dailyData={dailyData} metricFn={cfg.metricFn} formatValue={cfg.format} label={cfg.label} isValidDay={cfg.isValidDay} />;
+    return <SparklineTooltip dailyData={dailyData} metricFn={cfg.metricFn} formatValue={cfg.format} label={cfg.label} isValidDay={cfg.isValidDay} inverted={cfg.inverted} maxValue={cfg.maxValue} />;
   }
 
   return (
