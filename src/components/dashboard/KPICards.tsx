@@ -566,7 +566,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
           tooltipContent={getSparkline("taxaCarregamento")}
         />
         <KPICard
-          label="Tx Conv. Página" value={isLoading ? null : formatPercent(current?.taxaConversaoPagina || 0)}
+          label="Iniciou Checkout" value={isLoading ? null : formatPercent(current?.taxaConversaoPagina || 0)}
           icon={CheckCircle} color="text-chart-blue" isLoading={isLoading}
           metricKey="taxaConversaoPagina" current={current} comp7d={comp7d} comp14d={comp14d}
           formatValue={formatPercent}

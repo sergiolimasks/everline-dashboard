@@ -72,10 +72,10 @@ export function TrafficChart({ data, salesData, isLoading, summaryData }: Traffi
   const CustomInsideLabel = (props: any) => {
     const { x, y, width, height, index } = props;
     const entry = funnelData[index];
-    if (!entry || !entry.pctTopo || (width || 0) < 35) return null;
+    if (!entry || !entry.taxaAnterior || (width || 0) < 35) return null;
     return (
       <text x={(x || 0) + (width || 0) / 2} y={(y || 0) + (height || 0) / 2 + 4} fill="white" fontSize={11} fontWeight={600} textAnchor="middle">
-        {entry.pctTopo}
+        {entry.taxaAnterior}
       </text>
     );
   };
