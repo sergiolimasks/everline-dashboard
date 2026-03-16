@@ -111,7 +111,9 @@ export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isVa
     );
   }
 
-  const rawData = dailyData.map((d) => ({
+  // Reverse so oldest date is on the LEFT, newest on the RIGHT
+  const sorted = [...dailyData].sort((a, b) => new Date(a.dia).getTime() - new Date(b.dia).getTime());
+  const rawData = sorted.map((d) => ({
     dia: d.dia,
     value: metricFn(d),
     valid: isValidDay ? isValidDay(d) : true,
