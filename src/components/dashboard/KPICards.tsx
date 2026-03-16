@@ -379,7 +379,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
           isLoading={isLoading}
           metricKey="lucro" current={current} comp7d={null} comp14d={null}
           tooltipContent={!isLoading ? (
-            <div className="w-72 p-3">
+            <div className="w-72 max-w-full p-3">
               <p className="text-xs font-semibold mb-2 text-foreground">Composição do Lucro</p>
               <div className="space-y-1.5 text-[11px]">
                 <div className="flex justify-between"><span className="text-primary">Receita Líquida</span><span className="font-medium text-primary">+ {formatCurrency(current?.receitaLiquida || 0)}</span></div>
