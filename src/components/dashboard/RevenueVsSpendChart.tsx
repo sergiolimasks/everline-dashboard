@@ -6,13 +6,14 @@ interface FunnelChartProps {
   trafficData: TrafficDaily[] | undefined;
   salesData: SalesDaily[] | undefined;
   isLoading: boolean;
+  clientView?: boolean;
 }
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
 
-export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: FunnelChartProps) {
+export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientView = false }: FunnelChartProps) {
   if (isLoading) {
     return (
       <div className="chart-container">
@@ -116,10 +117,12 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: Funne
             <span className="text-primary font-medium">Receita Líquida</span>
             <span className="font-semibold text-primary">{formatCurrency(data?.["Receita Líquida"] || 0)}</span>
           </div>
-          <div className="flex justify-between gap-4">
-            <span className="font-medium" style={{ color: 'hsl(210, 70%, 55%)' }}>Co-Produtor</span>
-            <span className="font-semibold" style={{ color: 'hsl(210, 70%, 55%)' }}>{formatCurrency(data?.["Co-Produtor"] || 0)}</span>
-          </div>
+          {!clientView && (
+            <div className="flex justify-between gap-4">
+              <span className="font-medium" style={{ color: 'hsl(210, 70%, 55%)' }}>Co-Produtor</span>
+              <span className="font-semibold" style={{ color: 'hsl(210, 70%, 55%)' }}>{formatCurrency(data?.["Co-Produtor"] || 0)}</span>
+            </div>
+          )}
           <div className="flex justify-between gap-4">
             <span className="font-medium" style={{ color: 'hsl(35, 90%, 55%)' }}>CAC</span>
             <span className="font-semibold" style={{ color: 'hsl(35, 90%, 55%)' }}>{formatCurrency(data?.["CAC"] || 0)}</span>
@@ -164,7 +167,7 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading }: Funne
           <Bar yAxisId="right" dataKey="Receita/Venda" fill="hsl(270, 60%, 60%)" opacity={0.5} barSize={8} radius={[2, 2, 0, 0]} />
           <Area yAxisId="left" type="monotone" dataKey="Custo Total" stroke="hsl(0, 72%, 55%)" strokeWidth={2} fillOpacity={1} fill="url(#colorCusto)" />
           <Area yAxisId="left" type="monotone" dataKey="Receita Líquida" stroke="hsl(160, 84%, 44%)" strokeWidth={2} fillOpacity={1} fill="url(#colorReceita)" />
-          <Line yAxisId="left" type="monotone" dataKey="Co-Produtor" stroke="hsl(210, 70%, 55%)" strokeWidth={1.5} dot={false} strokeDasharray="4 3" />
+          {!clientView && <Line yAxisId="left" type="monotone" dataKey="Co-Produtor" stroke="hsl(210, 70%, 55%)" strokeWidth={1.5} dot={false} strokeDasharray="4 3" />}
           {peaks.map((p, i) => (
             <ReferenceDot
               key={i}
