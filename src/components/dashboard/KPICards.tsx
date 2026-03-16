@@ -247,7 +247,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
 
   // ROI tooltip with formula
   const roiTooltip = !isLoading ? (
-    <div className="w-80 p-3">
+    <div className="w-80 max-w-full p-3">
       <p className="text-xs font-semibold mb-2 text-foreground">Fórmula do ROI</p>
       <div className="space-y-2 text-[11px]">
         <div className="bg-muted/50 rounded-md p-2 text-center font-mono text-xs text-foreground">
