@@ -207,7 +207,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
 
   // Vendas Aprovadas tooltip
   const vendasTooltip = !isLoading && products.length > 0 ? (
-    <div className="w-64 p-3">
+    <div className="w-64 max-w-full p-3">
       <p className="text-xs font-semibold mb-2 text-foreground">Produtos Vendidos</p>
       <div className="space-y-1.5 text-[11px]">
         {products.map((p) => (
