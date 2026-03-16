@@ -11,6 +11,7 @@ interface KPICardsProps {
   comparison14d?: SummaryData;
   trafficDaily?: TrafficDaily[];
   salesDaily?: SalesDaily[];
+  isSingleDay?: boolean;
   clientView?: boolean;
 }
 
