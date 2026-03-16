@@ -50,6 +50,7 @@ export interface SalesDaily {
   receita_bruta: number;
   receita_liquida: number;
   taxa_fixa: number;
+  co_produtor: number;
 }
 
 export interface CampaignData {
@@ -65,6 +66,7 @@ export interface CampaignData {
   gasto: number;
   cpc: number;
   cpm: number;
+  status?: string;
 }
 
 async function fetchDashboard<T>(endpoint: string, dateFrom?: string, dateTo?: string): Promise<T[]> {

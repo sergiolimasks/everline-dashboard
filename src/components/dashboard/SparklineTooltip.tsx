@@ -8,6 +8,10 @@ interface SparklineTooltipProps {
   label: string;
   /** Optional: function that returns true if the raw data for this day is valid for the metric */
   isValidDay?: (d: TrafficDaily) => boolean;
+  /** If true, lower values are better (CPC, CPM). Swaps above/below color logic. */
+  inverted?: boolean;
+  /** Max value cap (e.g., 1.0 for percentages that can't exceed 100%) */
+  maxValue?: number;
 }
 
 function formatDayLabel(dia: string) {
@@ -38,12 +42,15 @@ function interpolateGaps(
     median = sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
   }
 
-  // Step 2: mark invalid days AND outliers (>4x median) as needing interpolation
+  // Step 2: mark invalid days, outliers (>4x median), AND suspiciously low values (<0.15x median) as needing interpolation
   const needsInterp: Set<number> = new Set();
   for (let i = 0; i < result.length; i++) {
     if (!result[i].valid || result[i].value === 0) {
       needsInterp.add(i);
     } else if (median > 0 && result[i].value > median * 4) {
+      needsInterp.add(i);
+    } else if (median > 0 && result[i].value < median * 0.15) {
+      // Detect suspiciously low values (broken pixel data)
       needsInterp.add(i);
     }
   }
@@ -101,7 +108,7 @@ function CustomTooltipContent({ active, payload, avg, formatValue }: any) {
   );
 }
 
-export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isValidDay }: SparklineTooltipProps) {
+export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isValidDay, inverted = false, maxValue }: SparklineTooltipProps) {
   if (!dailyData || dailyData.length === 0) {
     return (
       <div className="w-72 p-3">
@@ -119,7 +126,11 @@ export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isVa
     valid: isValidDay ? isValidDay(d) : true,
   }));
 
-  const chartData = interpolateGaps(rawData);
+  let chartData = interpolateGaps(rawData);
+  // Apply max value cap if specified (e.g., 100% for conversion rates)
+  if (maxValue !== undefined) {
+    chartData = chartData.map(d => ({ ...d, value: Math.min(d.value, maxValue) }));
+  }
   const realValues = chartData.filter(d => !d.estimated).map(d => d.value);
   const avg = realValues.length > 0
     ? realValues.reduce((s, v) => s + v, 0) / realValues.length
@@ -169,12 +180,18 @@ export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isVa
                 const isAbove = payload.value > avg * 1.05;
                 const isBelow = payload.value < avg * 0.95;
                 if (!isAbove && !isBelow) return <Dot cx={cx} cy={cy} r={0} fill="none" stroke="none" />;
+                // When inverted (CPC/CPM), above avg = bad (red), below avg = good (green)
+                const goodColor = "hsl(var(--primary))";
+                const badColor = "hsl(var(--destructive))";
+                const fillColor = inverted
+                  ? (isAbove ? badColor : goodColor)
+                  : (isAbove ? goodColor : badColor);
                 return (
                   <Dot
                     cx={cx}
                     cy={cy}
                     r={3}
-                    fill={isAbove ? "hsl(var(--primary))" : "hsl(var(--destructive))"}
+                    fill={fillColor}
                     stroke="hsl(var(--card))"
                     strokeWidth={1.5}
                   />
@@ -195,8 +212,8 @@ export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isVa
         <span>{formatDayLabel(chartData[chartData.length - 1]?.dia)}</span>
       </div>
       <div className="flex items-center gap-3 mt-2 text-[9px]">
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary inline-block" /> Acima</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-destructive inline-block" /> Abaixo</span>
+        <span className="flex items-center gap-1"><span className={`w-2 h-2 rounded-full inline-block ${inverted ? 'bg-destructive' : 'bg-primary'}`} /> Acima</span>
+        <span className="flex items-center gap-1"><span className={`w-2 h-2 rounded-full inline-block ${inverted ? 'bg-primary' : 'bg-destructive'}`} /> Abaixo</span>
         {estimatedCount > 0 && (
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full inline-block" style={{ background: 'hsl(45, 93%, 47%)' }} /> Estimado</span>
         )}
