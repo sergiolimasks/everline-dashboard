@@ -16,7 +16,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/interno/uelicon/checkup-performance" element={<Index />} />
-          <Route path="/cliente/uelicon/checkup-performance" element={<Index />} />
+          <Route path="/cliente/uelicon/checkup-performance" element={<Index clientView />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
