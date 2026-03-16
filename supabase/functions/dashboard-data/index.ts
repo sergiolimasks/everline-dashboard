@@ -85,7 +85,8 @@ serve(async (req) => {
           "Data"::date as dia,
           COUNT(*) FILTER (WHERE "Status da venda" IN ${APPROVED_STATUSES}) as vendas_aprovadas,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_bruta,
-          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_liquida
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_liquida,
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor
         FROM uelicon_database.controle_green
         WHERE ${PRINCIPAL_PRODUCT_FILTER} ${salesDateFilter}
         GROUP BY "Data"::date
@@ -96,7 +97,8 @@ serve(async (req) => {
         SELECT 
           "Data"::date as dia,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_bruta_bump,
-          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_liquida_bump
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_liquida_bump,
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor_bump
         FROM uelicon_database.controle_green
         WHERE ${ORDERBUMP_PRODUCT_FILTER} ${salesDateFilter}
         GROUP BY "Data"::date
@@ -108,7 +110,7 @@ serve(async (req) => {
       }
 
       data = (principalRows as any[]).map(p => {
-        const bump = bumpMap.get(String(p.dia)) || { receita_bruta_bump: 0, receita_liquida_bump: 0 };
+        const bump = bumpMap.get(String(p.dia)) || { receita_bruta_bump: 0, receita_liquida_bump: 0, co_produtor_bump: 0 };
         const vendas = Number(p.vendas_aprovadas || 0);
         const taxaFixa = vendas * TAXA_FIXA_POR_VENDA;
         return {
@@ -117,6 +119,7 @@ serve(async (req) => {
           receita_bruta: Number(p.receita_bruta || 0) + Number(bump.receita_bruta_bump || 0),
           receita_liquida: Number(p.receita_liquida || 0) + Number(bump.receita_liquida_bump || 0),
           taxa_fixa: taxaFixa,
+          co_produtor: Number(p.co_produtor || 0) + Number(bump.co_produtor_bump || 0),
         };
       });
     } else if (endpoint === 'summary') {
