@@ -106,7 +106,7 @@ export function TrafficChart({ data, salesData, isLoading, summaryData, showLead
   return (
     <div className="chart-container">
       <h3 className="dashboard-section-title mb-4">Funil de Tráfego</h3>
-      <ResponsiveContainer width="100%" height={showLeads && totalLeads > 0 ? 350 : 300}>
+      <ResponsiveContainer width="100%" height={300}>
         <BarChart data={funnelData} layout="vertical" margin={{ left: 0, right: 90 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 14%, 18%)" horizontal={false} />
           <XAxis type="number" tick={{ fill: 'hsl(215, 12%, 55%)', fontSize: 11 }} tickFormatter={(v) => formatNumber(v)} />
