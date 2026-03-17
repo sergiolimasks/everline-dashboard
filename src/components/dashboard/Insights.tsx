@@ -43,7 +43,7 @@ export function Insights({ summary, trafficDaily, salesDaily, isLoading }: Insig
   }
 
   if (taxaFixa > 0) {
-    insights.push({ text: `Taxa fixa total: ${formatCurrency(taxaFixa)} (R$18 × ${vendasAprovadas} vendas do produto principal).`, type: 'info' });
+    insights.push({ text: `Custo Consultas total: ${formatCurrency(taxaFixa)} (R$18 × vendas aprovadas do Check-up + CNPJ).`, type: 'info' });
   }
 
   // Order bump rate
