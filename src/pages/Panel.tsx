@@ -84,9 +84,9 @@ function ClientCard({ client, isAdmin }: { client: ClientWithOffers; isAdmin: bo
   const custoManychat = vendasAprovadas * 0.35;
   const coProdutor = Number(summary?.sales?.co_produtor || 0);
   const gastoTotal = gastoMeta + imposto + custoConsultas + custoManychat;
-  const receitaBruta = Number(summary?.sales?.receita_bruta || 0);
+  const receitaLiquida = Number(summary?.sales?.receita_liquida || 0);
   const faturamentoAgencia = coProdutor;
-  const faturamentoCliente = receitaBruta - faturamentoAgencia;
+  const faturamentoCliente = receitaLiquida;
   const lucroCliente = faturamentoCliente - gastoTotal;
   const cac = vendasAprovadas > 0 ? gastoTotal / vendasAprovadas : 0;
   const products = summary?.products || [];
