@@ -263,7 +263,8 @@ serve(async (req) => {
       `, params);
 
       const vendasPrincipal = Number((principalSales[0] as any)?.vendas_aprovadas || 0);
-      const taxaFixaTotal = vendasPrincipal * TAXA_FIXA_POR_VENDA;
+      const vendasCnpj = Number((bumpSales[0] as any)?.vendas_cnpj || 0);
+      const taxaFixaTotal = (vendasPrincipal + vendasCnpj) * TAXA_FIXA_POR_VENDA;
       const receitaBrutaTotal = Number((principalSales[0] as any)?.receita_bruta || 0) + Number((bumpSales[0] as any)?.receita_bruta_bump || 0);
       const receitaLiquidaTotal = Number((principalSales[0] as any)?.receita_liquida || 0) + Number((bumpSales[0] as any)?.receita_liquida_bump || 0);
       const coProdutorTotal = Number((principalSales[0] as any)?.co_produtor || 0) + Number((bumpSales[0] as any)?.co_produtor_bump || 0);
