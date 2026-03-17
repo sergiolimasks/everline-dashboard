@@ -30,43 +30,67 @@ serve(async (req) => {
   }
 
   try {
-    const { searchParams } = new URL(req.url);
-    const day = searchParams.get("day") || "2026-03-17";
-
-    const [aplicacao, lancamento] = await Promise.all([
+    const [aplicacaoDaily, lancamentoDaily, aplicacaoMetrics, lancamentoMetrics] = await Promise.all([
       queryExternalPG(`
         SELECT
-          COUNT(*) FILTER (WHERE "Data"::date = $1::date) AS utc_rows,
-          COUNT(*) FILTER (WHERE timezone('America/Sao_Paulo', "Data")::date = $1::date) AS sp_rows,
-          COUNT(DISTINCT NULLIF(TRIM(COALESCE("telefone", '')), '')) FILTER (WHERE "Data"::date = $1::date) AS utc_unique_phone,
-          COUNT(DISTINCT NULLIF(TRIM(COALESCE("telefone", '')), '')) FILTER (WHERE timezone('America/Sao_Paulo', "Data")::date = $1::date) AS sp_unique_phone,
-          MIN("Data") FILTER (WHERE timezone('America/Sao_Paulo', "Data")::date = $1::date) AS sp_min,
-          MAX("Data") FILTER (WHERE timezone('America/Sao_Paulo', "Data")::date = $1::date) AS sp_max
+          "Data"::date AS utc_day,
+          timezone('America/Sao_Paulo', "Data")::date AS sp_day,
+          COUNT(*) AS rows_count,
+          COUNT(DISTINCT NULLIF(TRIM(COALESCE("telefone", '')), '')) AS unique_phone,
+          COUNT(DISTINCT NULLIF(TRIM(COALESCE("nome", '')), '')) AS unique_name
         FROM bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac
-      `, [day]),
+        WHERE "Data"::date BETWEEN '2026-03-15'::date AND '2026-03-18'::date
+        GROUP BY 1,2
+        ORDER BY 1,2
+      `),
       queryExternalPG(`
         SELECT
-          COUNT(*) FILTER (WHERE "Data"::date = $1::date) AS utc_rows,
-          COUNT(*) FILTER (WHERE timezone('America/Sao_Paulo', "Data")::date = $1::date) AS sp_rows,
-          COUNT(DISTINCT NULLIF(TRIM(COALESCE("email", '')), '')) FILTER (WHERE "Data"::date = $1::date) AS utc_unique_email,
-          COUNT(DISTINCT NULLIF(TRIM(COALESCE("email", '')), '')) FILTER (WHERE timezone('America/Sao_Paulo', "Data")::date = $1::date) AS sp_unique_email,
-          MIN("Data") FILTER (WHERE timezone('America/Sao_Paulo', "Data")::date = $1::date) AS sp_min,
-          MAX("Data") FILTER (WHERE timezone('America/Sao_Paulo', "Data")::date = $1::date) AS sp_max
+          "Data"::date AS utc_day,
+          timezone('America/Sao_Paulo', "Data")::date AS sp_day,
+          COUNT(*) AS rows_count,
+          COUNT(DISTINCT NULLIF(TRIM(COALESCE("email", '')), '')) AS unique_email,
+          COUNT(DISTINCT NULLIF(TRIM(COALESCE("telefone", '')), '')) AS unique_phone,
+          COUNT(DISTINCT NULLIF(TRIM(COALESCE("nome", '')), '')) AS unique_name
         FROM bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter
-      `, [day]),
+        WHERE "Data"::date BETWEEN '2026-03-15'::date AND '2026-03-18'::date
+        GROUP BY 1,2
+        ORDER BY 1,2
+      `),
+      queryExternalPG(`
+        SELECT
+          COUNT(*) AS rows_count,
+          COUNT(DISTINCT NULLIF(TRIM(COALESCE("telefone", '')), '')) AS unique_phone,
+          COUNT(DISTINCT NULLIF(TRIM(COALESCE("nome", '')), '')) AS unique_name,
+          COUNT(DISTINCT CONCAT(COALESCE("nome", ''), '|', COALESCE("telefone", ''))) AS unique_name_phone
+        FROM bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac
+        WHERE "Data"::date = '2026-03-17'::date
+      `),
+      queryExternalPG(`
+        SELECT
+          COUNT(*) AS rows_count,
+          COUNT(*) FILTER (WHERE NULLIF(TRIM(COALESCE("email", '')), '') IS NOT NULL) AS with_email,
+          COUNT(DISTINCT NULLIF(TRIM(COALESCE("email", '')), '')) AS unique_email,
+          COUNT(DISTINCT NULLIF(TRIM(COALESCE("telefone", '')), '')) AS unique_phone,
+          COUNT(DISTINCT NULLIF(TRIM(COALESCE("nome", '')), '')) AS unique_name,
+          COUNT(DISTINCT CONCAT(COALESCE("nome", ''), '|', COALESCE("email", ''))) AS unique_name_email,
+          COUNT(DISTINCT CONCAT(COALESCE("nome", ''), '|', COALESCE("telefone", ''))) AS unique_name_phone
+        FROM bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter
+        WHERE "Data"::date = '2026-03-17'::date
+      `),
     ]);
 
     return new Response(JSON.stringify({
-      day,
-      aplicacao: aplicacao[0] ?? null,
-      lancamento: lancamento[0] ?? null,
-    }, (_, value) => typeof value === "bigint" ? Number(value) : value), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      aplicacaoDaily,
+      lancamentoDaily,
+      aplicacaoMetrics: aplicacaoMetrics[0] ?? null,
+      lancamentoMetrics: lancamentoMetrics[0] ?? null,
+    }, (_, value) => typeof value === 'bigint' ? Number(value) : value), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
