@@ -7,6 +7,7 @@ interface FunnelChartProps {
   salesData: SalesDaily[] | undefined;
   isLoading: boolean;
   clientView?: boolean;
+  showLeads?: boolean;
 }
 
 function formatCurrency(value: number) {
