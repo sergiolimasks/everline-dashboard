@@ -251,36 +251,6 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
     </div>
   ) : undefined;
 
-  // ROI tooltip with formula
-  const roiTooltip = !isLoading ? (
-    <div className="w-80 max-w-full p-3">
-      <p className="text-xs font-semibold mb-2 text-foreground">Fórmula do ROI</p>
-      <div className="space-y-2 text-[11px]">
-        <div className="bg-muted/50 rounded-md p-2 text-center font-mono text-xs text-foreground">
-          ROI = Receita Líquida ÷ (Investimento + Consultas + ManyChat)
-        </div>
-        <div className="space-y-1.5">
-          <div className="flex justify-between"><span className="text-primary">Receita Líquida</span><span className="font-medium text-primary">{formatCurrency(current?.receitaLiquida || 0)}</span></div>
-          <div className="flex justify-between"><span className="text-destructive">Investimento</span><span className="font-medium text-destructive">{formatCurrency(current?.totalGasto || 0)}</span></div>
-          <div className="flex justify-between"><span className="text-destructive">Custo Consultas</span><span className="font-medium text-destructive">{formatCurrency(current?.taxaFixa || 0)}</span></div>
-          <div className="flex justify-between"><span className="text-destructive">ManyChat</span><span className="font-medium text-destructive">{formatCurrency(current?.custoManychat || 0)}</span></div>
-          <div className="border-t border-border pt-1.5">
-            <div className="flex justify-between font-semibold">
-              <span className="text-muted-foreground">Custo Total</span>
-              <span className="text-foreground">{formatCurrency((current?.totalGasto || 0) + (current?.taxaFixa || 0) + (current?.custoManychat || 0))}</span>
-            </div>
-            <div className="flex justify-between font-semibold mt-1">
-              <span className="text-muted-foreground">ROI</span>
-              <span className={`${(current?.roi || 0) >= 1 ? 'text-primary' : 'text-destructive'}`}>
-                {formatCurrency(current?.receitaLiquida || 0)} ÷ {formatCurrency((current?.totalGasto || 0) + (current?.taxaFixa || 0) + (current?.custoManychat || 0))} = {(current?.roi || 0).toFixed(2)}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  ) : undefined;
-
   // Sparkline metric extractors for traffic daily
   const dailyData = trafficDaily || [];
 
@@ -429,15 +399,34 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
             </div>
           ) : undefined}
         />
-        <KPICard
-          label="ROI" value={isLoading ? null : (current?.roi || 0).toFixed(2)}
-          icon={BarChart3}
-          color={(current?.roi || 0) >= 1 ? "kpi-trend-up" : "kpi-trend-down"}
-          isLoading={isLoading}
-          metricKey="roi" current={current} comp7d={comp7d} comp14d={comp14d}
-          inlineComparison
-          tooltipContent={roiTooltip}
-        />
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <KPICard
+                  label="CAC" value={isLoading ? null : formatCurrency(current?.cacClient || 0)}
+                  icon={Target}
+                  color="text-chart-blue"
+                  isLoading={isLoading}
+                  metricKey="cacClient" current={current} comp7d={comp7d} comp14d={comp14d}
+                  formatValue={formatCurrency} invertComparison
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="w-72 p-3">
+              <p className="text-xs font-semibold mb-2 text-foreground">Composição do CAC</p>
+              <div className="space-y-1.5 text-[11px]">
+                <div className="flex justify-between"><span className="text-muted-foreground">Investimento em Tráfego</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.totalGasto || 0) / current!.vendasAprovadas : 0)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Custo das Consultas</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.taxaFixa || 0) / current!.vendasAprovadas : 0)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">ManyChat</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.custoManychat || 0) / current!.vendasAprovadas : 0)}</span></div>
+                <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
+                  <span className="text-muted-foreground">CAC Total</span>
+                  <span className="text-foreground">{formatCurrency(current?.cacClient || 0)}</span>
+                </div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {!clientView && (
@@ -467,11 +456,6 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                 label="Co-Produtor" value={isLoading ? null : formatCurrency(current?.coProdutor || 0)}
                 icon={Users} color="text-chart-blue" isLoading={isLoading}
                 metricKey="coProdutor" current={current} comp7d={null} comp14d={null}
-              />
-              <KPICard
-                label="Taxa Greenn" value={isLoading ? null : formatCurrency(current?.taxaGreen || 0)}
-                icon={CreditCard} color="text-chart-yellow" isLoading={isLoading}
-                metricKey="taxaGreen" current={current} comp7d={null} comp14d={null}
               />
               <KPICard
                 label="ManyChat" value={isLoading ? null : formatCurrency(current?.custoManychat || 0)}
@@ -515,7 +499,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                     <div className="flex justify-between"><span className="text-muted-foreground">Custo das Consultas</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.taxaFixa || 0) / current.vendasAprovadas : 0)}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">ManyChat</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.custoManychat || 0) / current.vendasAprovadas : 0)}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Taxa Co-Produtor</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.coProdutor || 0) / current.vendasAprovadas : 0)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Taxa Greenn</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.taxaGreen || 0) / current.vendasAprovadas : 0)}</span></div>
+                    
                     <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
                       <span className="text-muted-foreground">CAC Total</span>
                       <span className="text-foreground">{formatCurrency(current?.cac || 0)}</span>
@@ -620,33 +604,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
       )}
 
       {clientView && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <TooltipProvider delayDuration={200}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div>
-                  <KPICard
-                    label="CAC" value={isLoading ? null : formatCurrency(current?.cacClient || 0)}
-                    icon={Target} color="text-chart-blue" isLoading={isLoading}
-                    metricKey="cacClient" current={current} comp7d={comp7d} comp14d={comp14d}
-                    formatValue={formatCurrency} invertComparison
-                  />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="w-72 p-3">
-                <p className="text-xs font-semibold mb-2 text-foreground">Composição do CAC</p>
-                <div className="space-y-1.5 text-[11px]">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Investimento em Tráfego</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.totalGasto || 0) / current!.vendasAprovadas : 0)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Custo das Consultas</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.taxaFixa || 0) / current!.vendasAprovadas : 0)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">ManyChat</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.custoManychat || 0) / current!.vendasAprovadas : 0)}</span></div>
-                  <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
-                    <span className="text-muted-foreground">CAC Total</span>
-                    <span className="text-foreground">{formatCurrency(current?.cacClient || 0)}</span>
-                  </div>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <TooltipProvider delayDuration={200}>
             <Tooltip>
               <TooltipTrigger asChild>
