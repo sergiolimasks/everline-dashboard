@@ -69,7 +69,7 @@ const Index = ({ clientView = false }: IndexProps) => {
             </div>
             <div>
               <h2 className="text-xl font-bold font-display text-foreground">Dashboard de Performance</h2>
-              <p className="text-sm text-muted-foreground">Tráfego Meta Ads × Vendas</p>
+              <p className="text-sm text-muted-foreground">Tráfego Meta Ads × Vendas Greenn</p>
             </div>
           </div>
           <button
