@@ -179,9 +179,13 @@ function ClientCard({ client, isAdmin, clientView }: { client: ClientWithOffers;
         <p className="text-sm font-medium text-muted-foreground">Relatórios</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {client.offers.map((offer) => {
+            // Map offer_slug to dashboard route
+            const dashboardPath = offer.offer_slug === 'formacao-consultor'
+              ? 'formacao-consultor'
+              : 'checkup-performance';
             const reportHref = clientView
-              ? `/cliente/${client.slug}/checkup-performance`
-              : `/interno/${client.slug}/checkup-performance`;
+              ? `/cliente/${client.slug}/${dashboardPath}`
+              : `/interno/${client.slug}/${dashboardPath}`;
             return (
               <a
                 key={offer.offer_slug}
