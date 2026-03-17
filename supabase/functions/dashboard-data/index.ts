@@ -178,7 +178,7 @@ async function queryLeadsTotal(config: ProjectConfig, params: string[]): Promise
       ? ` WHERE ${lc.dateColumn}::date >= $1 AND ${lc.dateColumn}::date <= $2`
       : '';
     const rows = await queryExternalPG(
-      `SELECT COUNT(DISTINCT ${lc.countColumn}) as total FROM ${lc.table}${dateFilter}`,
+      `SELECT COUNT(*) as total FROM ${lc.table}${dateFilter}`,
       params
     );
     total += Number((rows[0] as any)?.total || 0);
@@ -195,7 +195,7 @@ async function queryLeadsDaily(config: ProjectConfig, params: string[]): Promise
       ? ` WHERE ${lc.dateColumn}::date >= $1 AND ${lc.dateColumn}::date <= $2`
       : '';
     const rows = await queryExternalPG(
-      `SELECT ${lc.dateColumn}::date as dia, COUNT(DISTINCT ${lc.countColumn}) as total FROM ${lc.table}${dateFilter} GROUP BY ${lc.dateColumn}::date`,
+      `SELECT ${lc.dateColumn}::date as dia, COUNT(*) as total FROM ${lc.table}${dateFilter} GROUP BY ${lc.dateColumn}::date`,
       params
     );
     for (const r of rows as any[]) {
