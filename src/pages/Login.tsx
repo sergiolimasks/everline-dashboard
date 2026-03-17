@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogIn, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -17,11 +18,40 @@ export default function Login() {
     setError("");
     setLoading(true);
 
-    const { error } = await signIn(email, password);
+    const { error, data } = await signIn(email, password);
     if (error) {
       setError("E-mail ou senha inválidos.");
-    } else {
-      navigate("/painel");
+      setLoading(false);
+      return;
+    }
+
+    // Check if user is admin
+    const userId = data?.user?.id;
+    if (userId) {
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (roleData) {
+        navigate("/painel");
+      } else {
+        // Regular user - redirect to their client dashboard
+        const { data: access } = await supabase
+          .from("user_campaign_access")
+          .select("offer_slug")
+          .eq("user_id", userId)
+          .limit(1)
+          .maybeSingle();
+
+        if (access?.offer_slug) {
+          navigate(`/cliente/${access.offer_slug}/checkup-performance`);
+        } else {
+          navigate("/");
+        }
+      }
     }
     setLoading(false);
   };
