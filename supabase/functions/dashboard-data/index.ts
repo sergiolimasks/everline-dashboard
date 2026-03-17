@@ -233,15 +233,8 @@ serve(async (req) => {
 
     let data: unknown[] = [];
 
-    if (endpoint === 'leads_schema') {
-      const sample1 = await queryExternalPG(`SELECT * FROM bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac LIMIT 3`, []);
-      const sample2 = await queryExternalPG(`SELECT * FROM bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter LIMIT 3`, []);
-      data = [{
-        aplicacao_formac: { columns: Object.keys((sample1[0] as any) || {}), sample: sample1 },
-        acao_50k_ter: { columns: Object.keys((sample2[0] as any) || {}), sample: sample2 }
-      }];
-    } else if (endpoint === 'traffic_daily') {
-      data = await queryExternalPG(`
+    if (endpoint === 'traffic_daily') {
+      const trafficRows = await queryExternalPG(`
         SELECT 
           data::date as dia,
           SUM(impressoes) as impressoes,
