@@ -71,16 +71,18 @@ function calcMetrics(data: SummaryData | undefined) {
   // Leads-based metrics
   const taxaConvPaginaLeads = totalViews > 0 ? totalLeads / totalViews : 0;  // leads / views_pagina
   const taxaInicioCheckoutLeads = totalLeads > 0 ? totalCheckouts / totalLeads : 0;  // checkouts / leads
+  const taxaConvLeads = totalLeads > 0 ? vendasAprovadas / totalLeads : 0; // vendas / leads
 
   const vendasAprovDia = vendasAprovadas / diasAtivos;
   const vendasBumpDia = vendasBump / diasAtivos;
+  const leadsDia = totalLeads / diasAtivos;
 
     return {
       gastoMeta, impostoMeta, totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
       taxaFixa, custoManychat, coProdutor, taxaGreen, lucro, roi, diasAtivos,
       cac, cacClient, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
       thumbStopRate, receitaPorVenda, receitaPorVendaLiquida, vendasAprovDia, vendasBumpDia,
-      totalLeads, taxaConvPaginaLeads, taxaInicioCheckoutLeads,
+      totalLeads, taxaConvPaginaLeads, taxaInicioCheckoutLeads, taxaConvLeads, leadsDia,
     };
 }
 
