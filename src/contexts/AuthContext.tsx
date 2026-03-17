@@ -31,11 +31,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          await checkAdmin(session.user.id);
+          // Don't await inside onAuthStateChange to avoid deadlocks
+          checkAdmin(session.user.id);
         } else {
           setIsAdmin(false);
         }
