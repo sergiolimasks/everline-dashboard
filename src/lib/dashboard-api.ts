@@ -88,11 +88,12 @@ export interface AdData {
   status?: string;
 }
 
-async function fetchDashboard<T>(endpoint: string, dateFrom?: string, dateTo?: string, offer?: string): Promise<T[]> {
+async function fetchDashboard<T>(endpoint: string, dateFrom?: string, dateTo?: string, offer?: string, project?: string): Promise<T[]> {
   const params = new URLSearchParams({ endpoint });
   if (dateFrom) params.set('date_from', dateFrom);
   if (dateTo) params.set('date_to', dateTo);
   if (offer && offer !== 'all') params.set('offer', offer);
+  if (project && project !== 'checkup') params.set('project', project);
 
   const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-data?${params.toString()}`;
   const response = await fetch(url, {
@@ -110,23 +111,23 @@ async function fetchDashboard<T>(endpoint: string, dateFrom?: string, dateTo?: s
   return result.data;
 }
 
-export async function fetchSummary(dateFrom?: string, dateTo?: string, offer?: string): Promise<SummaryData> {
-  const data = await fetchDashboard<SummaryData>('summary', dateFrom, dateTo, offer);
+export async function fetchSummary(dateFrom?: string, dateTo?: string, offer?: string, project?: string): Promise<SummaryData> {
+  const data = await fetchDashboard<SummaryData>('summary', dateFrom, dateTo, offer, project);
   return data[0];
 }
 
-export async function fetchTrafficDaily(dateFrom?: string, dateTo?: string, offer?: string): Promise<TrafficDaily[]> {
-  return fetchDashboard<TrafficDaily>('traffic_daily', dateFrom, dateTo, offer);
+export async function fetchTrafficDaily(dateFrom?: string, dateTo?: string, offer?: string, project?: string): Promise<TrafficDaily[]> {
+  return fetchDashboard<TrafficDaily>('traffic_daily', dateFrom, dateTo, offer, project);
 }
 
-export async function fetchSalesDaily(dateFrom?: string, dateTo?: string, offer?: string): Promise<SalesDaily[]> {
-  return fetchDashboard<SalesDaily>('sales_daily', dateFrom, dateTo, offer);
+export async function fetchSalesDaily(dateFrom?: string, dateTo?: string, offer?: string, project?: string): Promise<SalesDaily[]> {
+  return fetchDashboard<SalesDaily>('sales_daily', dateFrom, dateTo, offer, project);
 }
 
-export async function fetchCampaigns(dateFrom?: string, dateTo?: string, offer?: string): Promise<CampaignData[]> {
-  return fetchDashboard<CampaignData>('campaigns', dateFrom, dateTo, offer);
+export async function fetchCampaigns(dateFrom?: string, dateTo?: string, offer?: string, project?: string): Promise<CampaignData[]> {
+  return fetchDashboard<CampaignData>('campaigns', dateFrom, dateTo, offer, project);
 }
 
-export async function fetchAds(dateFrom?: string, dateTo?: string, offer?: string): Promise<AdData[]> {
-  return fetchDashboard<AdData>('ads', dateFrom, dateTo, offer);
+export async function fetchAds(dateFrom?: string, dateTo?: string, offer?: string, project?: string): Promise<AdData[]> {
+  return fetchDashboard<AdData>('ads', dateFrom, dateTo, offer, project);
 }

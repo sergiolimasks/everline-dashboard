@@ -13,11 +13,38 @@ import { OfferFilter, type OfferType } from "@/components/dashboard/OfferFilter"
 import { BarChart3, RefreshCw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
-interface IndexProps {
-  clientView?: boolean;
+export interface ProjectDashboardConfig {
+  project: string;
+  title: string;
+  showOfferFilter: boolean;
+  showCustoConsultas: boolean;
+  showManychat: boolean;
 }
 
-const Index = ({ clientView = false }: IndexProps) => {
+const PROJECT_CONFIGS: Record<string, ProjectDashboardConfig> = {
+  checkup: {
+    project: 'checkup',
+    title: 'Checkup da Vida Financeira',
+    showOfferFilter: true,
+    showCustoConsultas: true,
+    showManychat: true,
+  },
+  'formacao-consultor': {
+    project: 'formacao-consultor',
+    title: 'Formação Consultor 360',
+    showOfferFilter: false,
+    showCustoConsultas: false,
+    showManychat: false,
+  },
+};
+
+interface IndexProps {
+  clientView?: boolean;
+  projectKey?: string;
+}
+
+const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
+  const config = PROJECT_CONFIGS[projectKey] || PROJECT_CONFIGS['checkup'];
   const today = new Date();
 
   const [dateFrom, setDateFrom] = useState(formatDateString(today));
@@ -31,15 +58,17 @@ const Index = ({ clientView = false }: IndexProps) => {
     ? formatDateString(new Date(new Date(dateTo).getTime() - 6 * 24 * 60 * 60 * 1000))
     : dateFrom;
 
-  const { data: summary, isLoading: loadingSummary } = useSummary(dateFrom, dateTo, offer);
-  const { data: comparison7d } = useComparison7d(dateFrom, dateTo, offer);
-  const { data: comparison14d } = useComparison14d(dateFrom, dateTo, offer);
-  const { data: sparklineTraffic } = useSparklineTraffic(dateTo, offer);
-  const { data: sparklineSales } = useSparklineSales(dateTo, offer);
-  const { data: trafficDaily, isLoading: loadingTraffic } = useTrafficDaily(chartDateFrom, dateTo, offer);
-  const { data: salesDaily, isLoading: loadingSales } = useSalesDaily(chartDateFrom, dateTo, offer);
-  const { data: campaigns, isLoading: loadingCampaigns } = useCampaigns(dateFrom, dateTo, offer);
-  const { data: ads, isLoading: loadingAds } = useAds(dateFrom, dateTo, offer);
+  const offerParam = config.showOfferFilter ? offer : undefined;
+
+  const { data: summary, isLoading: loadingSummary } = useSummary(dateFrom, dateTo, offerParam, config.project);
+  const { data: comparison7d } = useComparison7d(dateFrom, dateTo, offerParam, config.project);
+  const { data: comparison14d } = useComparison14d(dateFrom, dateTo, offerParam, config.project);
+  const { data: sparklineTraffic } = useSparklineTraffic(dateTo, offerParam, config.project);
+  const { data: sparklineSales } = useSparklineSales(dateTo, offerParam, config.project);
+  const { data: trafficDaily, isLoading: loadingTraffic } = useTrafficDaily(chartDateFrom, dateTo, offerParam, config.project);
+  const { data: salesDaily, isLoading: loadingSales } = useSalesDaily(chartDateFrom, dateTo, offerParam, config.project);
+  const { data: campaigns, isLoading: loadingCampaigns } = useCampaigns(dateFrom, dateTo, offerParam, config.project);
+  const { data: ads, isLoading: loadingAds } = useAds(dateFrom, dateTo, offerParam, config.project);
 
   const sparklineData = periodDays > 30 ? trafficDaily : sparklineTraffic;
   const sparklineSalesData = periodDays > 30 ? salesDaily : sparklineSales;
@@ -58,7 +87,7 @@ const Index = ({ clientView = false }: IndexProps) => {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Page Title */}
         <h1 className="text-3xl md:text-4xl font-bold font-display text-center text-primary tracking-tight">
-          Checkup da Vida Financeira
+          {config.title}
         </h1>
 
         {/* Header */}
@@ -82,7 +111,9 @@ const Index = ({ clientView = false }: IndexProps) => {
         </div>
 
         {/* Offer Filter */}
-        <OfferFilter selected={offer} onChange={setOffer} />
+        {config.showOfferFilter && (
+          <OfferFilter selected={offer} onChange={setOffer} />
+        )}
 
         {/* Date Filter */}
         <DateFilter dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} />
