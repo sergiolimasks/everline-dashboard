@@ -1,4 +1,4 @@
-// Dashboard data edge function v8 — multi-project support
+// Dashboard data edge function v9 — multi-project + leads support
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
