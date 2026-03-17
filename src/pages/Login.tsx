@@ -18,39 +18,43 @@ export default function Login() {
     setError("");
     setLoading(true);
 
-    const { error, data } = await signIn(email, password);
+    const { error } = await signIn(email, password);
     if (error) {
       setError("E-mail ou senha inválidos.");
       setLoading(false);
       return;
     }
 
-    // Check if user is admin
-    const userId = data?.user?.id;
-    if (userId) {
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin")
+    // Get current user after sign in
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) {
+      navigate("/");
+      setLoading(false);
+      return;
+    }
+
+    // Check if admin
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", currentUser.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (roleData) {
+      navigate("/painel");
+    } else {
+      const { data: access } = await supabase
+        .from("user_campaign_access")
+        .select("offer_slug")
+        .eq("user_id", currentUser.id)
+        .limit(1)
         .maybeSingle();
 
-      if (roleData) {
-        navigate("/painel");
+      if (access?.offer_slug) {
+        navigate(`/cliente/${access.offer_slug}/checkup-performance`);
       } else {
-        // Regular user - redirect to their client dashboard
-        const { data: access } = await supabase
-          .from("user_campaign_access")
-          .select("offer_slug")
-          .eq("user_id", userId)
-          .limit(1)
-          .maybeSingle();
-
-        if (access?.offer_slug) {
-          navigate(`/cliente/${access.offer_slug}/checkup-performance`);
-        } else {
-          navigate("/");
-        }
+        navigate("/");
       }
     }
     setLoading(false);
