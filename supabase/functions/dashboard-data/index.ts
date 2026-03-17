@@ -118,7 +118,7 @@ const PROJECTS: Record<string, ProjectConfig> = {
       'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter',
     ],
     leadCountColumn: '*',
-    leadDateColumn: 'data',
+    leadDateColumn: '"Data"',
   },
 };
 
