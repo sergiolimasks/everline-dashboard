@@ -99,7 +99,7 @@ function ClientCard({ client, isAdmin, clientView }: { client: ClientWithOffers;
   const gastoMeta = Number(summary?.traffic?.total_gasto || 0);
   const imposto = gastoMeta * 0.125;
   const vendasAprovadas = Number(summary?.sales?.vendas_aprovadas || 0);
-  const custoConsultas = vendasAprovadas * 18;
+  const custoConsultas = Number(summary?.sales?.taxa_fixa || 0);
   const custoManychat = vendasAprovadas * 0.35;
   const coProdutor = Number(summary?.sales?.co_produtor || 0);
   const gastoTotal = gastoMeta + imposto + custoConsultas + custoManychat;

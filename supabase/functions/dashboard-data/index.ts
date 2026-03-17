@@ -176,7 +176,8 @@ serve(async (req) => {
           "Data"::date as dia,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_bruta_bump,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_liquida_bump,
-          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor_bump
+          SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor_bump,
+          COUNT(*) FILTER (WHERE "Status da venda" IN ${APPROVED_STATUSES} AND "Nome do produto" = 'Check-up do CNPJ') as vendas_cnpj
         FROM uelicon_database.controle_green
         WHERE ${bFilter} ${salesDateFilter}
         GROUP BY "Data"::date
@@ -188,9 +189,10 @@ serve(async (req) => {
       }
 
       data = (principalRows as any[]).map(p => {
-        const bump = bumpMap.get(String(p.dia)) || { receita_bruta_bump: 0, receita_liquida_bump: 0, co_produtor_bump: 0 };
+        const bump = bumpMap.get(String(p.dia)) || { receita_bruta_bump: 0, receita_liquida_bump: 0, co_produtor_bump: 0, vendas_cnpj: 0 };
         const vendas = Number(p.vendas_aprovadas || 0);
-        const taxaFixa = vendas * TAXA_FIXA_POR_VENDA;
+        const vendasCnpj = Number(bump.vendas_cnpj || 0);
+        const taxaFixa = (vendas + vendasCnpj) * TAXA_FIXA_POR_VENDA;
         return {
           dia: p.dia,
           vendas_aprovadas: vendas,
@@ -240,6 +242,7 @@ serve(async (req) => {
       const bumpSales = await queryExternalPG(`
         SELECT 
           COUNT(*) FILTER (WHERE "Status da venda" IN ${APPROVED_STATUSES}) as vendas_bump,
+          COUNT(*) FILTER (WHERE "Status da venda" IN ${APPROVED_STATUSES} AND "Nome do produto" = 'Check-up do CNPJ') as vendas_cnpj,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_bruta_bump,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_liquida_bump,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor_bump,
@@ -260,7 +263,8 @@ serve(async (req) => {
       `, params);
 
       const vendasPrincipal = Number((principalSales[0] as any)?.vendas_aprovadas || 0);
-      const taxaFixaTotal = vendasPrincipal * TAXA_FIXA_POR_VENDA;
+      const vendasCnpj = Number((bumpSales[0] as any)?.vendas_cnpj || 0);
+      const taxaFixaTotal = (vendasPrincipal + vendasCnpj) * TAXA_FIXA_POR_VENDA;
       const receitaBrutaTotal = Number((principalSales[0] as any)?.receita_bruta || 0) + Number((bumpSales[0] as any)?.receita_bruta_bump || 0);
       const receitaLiquidaTotal = Number((principalSales[0] as any)?.receita_liquida || 0) + Number((bumpSales[0] as any)?.receita_liquida_bump || 0);
       const coProdutorTotal = Number((principalSales[0] as any)?.co_produtor || 0) + Number((bumpSales[0] as any)?.co_produtor_bump || 0);
