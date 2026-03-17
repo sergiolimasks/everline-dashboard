@@ -100,9 +100,7 @@ const PROJECTS: Record<string, ProjectConfig> = {
         useEmailLinkedBumps: true,
       },
     },
-    leadTables: [],
-    leadCountColumn: '',
-    leadDateColumn: '',
+    leadConfigs: [],
   },
   'formacao-consultor': {
     metaTable: 'bd_ads_clientes.meta_uelicon_venancio',
