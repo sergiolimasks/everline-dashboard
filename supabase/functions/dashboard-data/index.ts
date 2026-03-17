@@ -189,9 +189,10 @@ serve(async (req) => {
       }
 
       data = (principalRows as any[]).map(p => {
-        const bump = bumpMap.get(String(p.dia)) || { receita_bruta_bump: 0, receita_liquida_bump: 0, co_produtor_bump: 0 };
+        const bump = bumpMap.get(String(p.dia)) || { receita_bruta_bump: 0, receita_liquida_bump: 0, co_produtor_bump: 0, vendas_cnpj: 0 };
         const vendas = Number(p.vendas_aprovadas || 0);
-        const taxaFixa = vendas * TAXA_FIXA_POR_VENDA;
+        const vendasCnpj = Number(bump.vendas_cnpj || 0);
+        const taxaFixa = (vendas + vendasCnpj) * TAXA_FIXA_POR_VENDA;
         return {
           dia: p.dia,
           vendas_aprovadas: vendas,
