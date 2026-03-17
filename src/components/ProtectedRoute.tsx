@@ -14,10 +14,15 @@ export function ProtectedRoute({ children, adminOnly = false }: ProtectedRoutePr
   const [checkingRole, setCheckingRole] = useState(adminOnly);
 
   useEffect(() => {
-    if (!adminOnly || !user) {
+    if (!adminOnly) {
       setCheckingRole(false);
       return;
     }
+    if (!user) {
+      // Still waiting for auth to load, keep checking
+      return;
+    }
+    setCheckingRole(true);
     supabase
       .from("user_roles")
       .select("role")
