@@ -37,6 +37,7 @@ const PROJECT_CONFIGS: Record<string, ProjectDashboardConfig> = {
     showOfferFilter: false,
     showCustoConsultas: false,
     showManychat: false,
+    showLeads: true,
   },
 };
 
