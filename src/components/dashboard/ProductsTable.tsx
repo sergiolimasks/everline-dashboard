@@ -3,6 +3,7 @@ import type { SummaryData } from "@/lib/dashboard-api";
 interface ProductsTableProps {
   data: SummaryData | undefined;
   isLoading: boolean;
+  allPrincipal?: boolean;
 }
 
 function formatCurrency(value: number) {
