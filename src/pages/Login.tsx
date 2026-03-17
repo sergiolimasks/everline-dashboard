@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogIn, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -20,8 +21,41 @@ export default function Login() {
     const { error } = await signIn(email, password);
     if (error) {
       setError("E-mail ou senha inválidos.");
-    } else {
+      setLoading(false);
+      return;
+    }
+
+    // Get current user after sign in
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) {
+      navigate("/");
+      setLoading(false);
+      return;
+    }
+
+    // Check if admin
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", currentUser.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (roleData) {
       navigate("/painel");
+    } else {
+      const { data: access } = await supabase
+        .from("user_campaign_access")
+        .select("offer_slug")
+        .eq("user_id", currentUser.id)
+        .limit(1)
+        .maybeSingle();
+
+      if (access?.offer_slug) {
+        navigate(`/cliente/${access.offer_slug}/checkup-performance`);
+      } else {
+        navigate("/");
+      }
     }
     setLoading(false);
   };
