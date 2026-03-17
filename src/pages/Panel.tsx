@@ -117,16 +117,17 @@ export default function Panel() {
 
     async function loadClients() {
       // Fetch clients and their offers
-      const { data: clientsData } = await supabase
+      const { data: clientsData, error: clientsError } = await (supabase as any)
         .from("clients")
         .select("id, name, slug");
 
-      if (!clientsData) {
+      if (clientsError || !clientsData) {
+        console.error("Error loading clients:", clientsError);
         setLoading(false);
         return;
       }
 
-      const { data: offersData } = await supabase
+      const { data: offersData } = await (supabase as any)
         .from("client_offers")
         .select("client_id, offer_slug, label");
 
