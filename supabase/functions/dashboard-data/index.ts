@@ -171,14 +171,14 @@ function allProductsFilter(config: ProjectConfig, productName: string): string {
 
 // Query total leads from all lead tables
 async function queryLeadsTotal(config: ProjectConfig, params: string[]): Promise<number> {
-  if (config.leadTables.length === 0) return 0;
+  if (config.leadConfigs.length === 0) return 0;
   let total = 0;
-  for (const table of config.leadTables) {
+  for (const lc of config.leadConfigs) {
     const dateFilter = params.length >= 2
-      ? ` WHERE ${config.leadDateColumn}::date >= $1 AND ${config.leadDateColumn}::date <= $2`
+      ? ` WHERE ${lc.dateColumn}::date >= $1 AND ${lc.dateColumn}::date <= $2`
       : '';
     const rows = await queryExternalPG(
-      `SELECT COUNT(${config.leadCountColumn}) as total FROM ${table}${dateFilter}`,
+      `SELECT COUNT(DISTINCT ${lc.countColumn}) as total FROM ${lc.table}${dateFilter}`,
       params
     );
     total += Number((rows[0] as any)?.total || 0);
@@ -189,13 +189,13 @@ async function queryLeadsTotal(config: ProjectConfig, params: string[]): Promise
 // Query daily leads from all lead tables
 async function queryLeadsDaily(config: ProjectConfig, params: string[]): Promise<Map<string, number>> {
   const map = new Map<string, number>();
-  if (config.leadTables.length === 0) return map;
-  for (const table of config.leadTables) {
+  if (config.leadConfigs.length === 0) return map;
+  for (const lc of config.leadConfigs) {
     const dateFilter = params.length >= 2
-      ? ` WHERE ${config.leadDateColumn}::date >= $1 AND ${config.leadDateColumn}::date <= $2`
+      ? ` WHERE ${lc.dateColumn}::date >= $1 AND ${lc.dateColumn}::date <= $2`
       : '';
     const rows = await queryExternalPG(
-      `SELECT ${config.leadDateColumn}::date as dia, COUNT(${config.leadCountColumn}) as total FROM ${table}${dateFilter} GROUP BY ${config.leadDateColumn}::date`,
+      `SELECT ${lc.dateColumn}::date as dia, COUNT(DISTINCT ${lc.countColumn}) as total FROM ${lc.table}${dateFilter} GROUP BY ${lc.dateColumn}::date`,
       params
     );
     for (const r of rows as any[]) {
