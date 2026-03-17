@@ -469,11 +469,6 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                 metricKey="coProdutor" current={current} comp7d={null} comp14d={null}
               />
               <KPICard
-                label="Taxa Greenn" value={isLoading ? null : formatCurrency(current?.taxaGreen || 0)}
-                icon={CreditCard} color="text-chart-yellow" isLoading={isLoading}
-                metricKey="taxaGreen" current={current} comp7d={null} comp14d={null}
-              />
-              <KPICard
                 label="ManyChat" value={isLoading ? null : formatCurrency(current?.custoManychat || 0)}
                 icon={MessageCircle} color="text-chart-orange" isLoading={isLoading}
                 metricKey="custoManychat" current={current} comp7d={null} comp14d={null}
