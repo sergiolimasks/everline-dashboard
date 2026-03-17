@@ -47,9 +47,9 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientV
     .sort()
     .map((dia) => {
       const gastoMeta = gastoMetaMap.get(dia) || 0;
-      const taxaFixa = taxaFixaMap.get(dia) || 0;
+      const taxaFixa = showLeads ? 0 : (taxaFixaMap.get(dia) || 0);
       const vendas = vendasMap.get(dia) || 0;
-      const custoManychat = vendas * 0.35;
+      const custoManychat = showLeads ? 0 : vendas * 0.35;
       const coProdutor = coProdutorMap.get(dia) || 0;
       const custoTotal = gastoMeta + taxaFixa + custoManychat;
       const receita = receitaMap.get(dia) || 0;
