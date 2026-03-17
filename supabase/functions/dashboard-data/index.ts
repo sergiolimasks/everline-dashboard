@@ -96,6 +96,9 @@ const PROJECTS: Record<string, ProjectConfig> = {
         useEmailLinkedBumps: true,
       },
     },
+    leadTables: [],
+    leadCountColumn: '',
+    leadDateColumn: '',
   },
   'formacao-consultor': {
     metaTable: 'bd_ads_clientes.meta_uelicon_venancio',
@@ -110,6 +113,12 @@ const PROJECTS: Record<string, ProjectConfig> = {
     custoManychat: 0,
     defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%50K-DEZ25%' OR UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%')`,
     offerFilters: {},
+    leadTables: [
+      'bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac',
+      'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter',
+    ],
+    leadCountColumn: '*',
+    leadDateColumn: 'data',
   },
 };
 
