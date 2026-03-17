@@ -387,8 +387,11 @@ serve(async (req) => {
       const coProdutorTotal = Number((principalSales[0] as any)?.co_produtor || 0) + Number(bumpSalesRow?.co_produtor_bump || 0);
       const taxaGreenTotal = Number((principalSales[0] as any)?.taxa_green || 0) + Number(bumpSalesRow?.taxa_green_bump || 0);
 
+      // Query leads total
+      const totalLeads = await queryLeadsTotal(config, params);
+
       data = [{
-        traffic: traffic[0],
+        traffic: { ...(traffic[0] as any), total_leads: totalLeads },
         sales: {
           vendas_aprovadas: vendasPrincipal,
           vendas_bump: Number(bumpSalesRow?.vendas_bump || 0),
