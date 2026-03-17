@@ -619,12 +619,23 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
               formatValue={formatPercent}
               tooltipContent={getSparkline("taxaCarregamento")}
             />
+            {showLeads && (
+              <KPICard
+                label="Tx Conv. Página" value={isLoading ? null : formatPercent(current?.taxaConvPaginaLeads || 0)}
+                icon={Users} color="text-chart-orange" isLoading={isLoading}
+                metricKey="taxaConvPaginaLeads" current={current} comp7d={comp7d} comp14d={comp14d}
+                formatValue={formatPercent}
+                tooltipContent={getSparkline("taxaConvPaginaLeads")}
+              />
+            )}
             <KPICard
-              label="Iniciou Checkout" value={isLoading ? null : formatPercent(current?.taxaConversaoPagina || 0)}
+              label={showLeads ? "Iniciou Checkout" : "Iniciou Checkout"}
+              value={isLoading ? null : formatPercent(showLeads ? (current?.taxaInicioCheckoutLeads || 0) : (current?.taxaConversaoPagina || 0))}
               icon={CheckCircle} color="text-chart-blue" isLoading={isLoading}
-              metricKey="taxaConversaoPagina" current={current} comp7d={comp7d} comp14d={comp14d}
+              metricKey={showLeads ? "taxaInicioCheckoutLeads" : "taxaConversaoPagina"}
+              current={current} comp7d={comp7d} comp14d={comp14d}
               formatValue={formatPercent}
-              tooltipContent={getSparkline("taxaConversaoPagina")}
+              tooltipContent={getSparkline(showLeads ? "taxaInicioCheckoutLeads" : "taxaConversaoPagina")}
             />
             <KPICard
               label="Tx Conv. Checkout" value={isLoading ? null : formatPercent(current?.taxaConversaoCheckout || 0)}
