@@ -13,6 +13,7 @@ interface KPICardsProps {
   salesDaily?: SalesDaily[];
   isSingleDay?: boolean;
   clientView?: boolean;
+  showLeads?: boolean;
 }
 
 function formatCurrency(value: number) {
