@@ -6,6 +6,7 @@ interface TrafficChartProps {
   salesData?: SalesDaily[] | undefined;
   summaryData?: SummaryData;
   isLoading: boolean;
+  showLeads?: boolean;
 }
 
 function formatNumber(value: number) {
@@ -13,13 +14,21 @@ function formatNumber(value: number) {
 }
 
 const FUNNEL_COLORS = [
+  'hsl(200, 80%, 50%)',   // Cliques Link
+  'hsl(270, 60%, 60%)',   // Views Página
+  'hsl(30, 90%, 55%)',    // Leads (orange)
+  'hsl(45, 90%, 55%)',    // Iniciou Checkout
+  'hsl(160, 84%, 44%)',   // Vendas
+];
+
+const FUNNEL_COLORS_NO_LEADS = [
   'hsl(200, 80%, 50%)',
   'hsl(270, 60%, 60%)',
   'hsl(45, 90%, 55%)',
   'hsl(160, 84%, 44%)',
 ];
 
-export function TrafficChart({ data, salesData, isLoading, summaryData }: TrafficChartProps) {
+export function TrafficChart({ data, salesData, isLoading, summaryData, showLeads = false }: TrafficChartProps) {
   if (isLoading) {
     return (
       <div className="chart-container">
@@ -29,18 +38,34 @@ export function TrafficChart({ data, salesData, isLoading, summaryData }: Traffi
     );
   }
 
-  // Use summary data (exact date range) for funnel totals to stay consistent with KPI cards
   const totalCliquesLink = Number(summaryData?.traffic?.total_cliques_link || 0);
   const totalViews = Number(summaryData?.traffic?.total_views || 0);
   const totalCheckouts = Number(summaryData?.traffic?.total_checkouts || 0);
   const totalVendas = Number(summaryData?.sales?.vendas_aprovadas || 0);
+  const totalLeads = Number(summaryData?.traffic?.total_leads || 0);
 
-  const funnelData = [
-    { etapa: 'Cliques Link', valor: totalCliquesLink, taxaAnterior: '', pctTopo: '' },
-    { etapa: 'Views Página', valor: totalViews, taxaAnterior: totalCliquesLink > 0 ? ((totalViews / totalCliquesLink) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalViews / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
-    { etapa: 'Iniciou Checkout', valor: totalCheckouts, taxaAnterior: totalViews > 0 ? ((totalCheckouts / totalViews) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalCheckouts / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
-    { etapa: 'Vendas', valor: totalVendas, taxaAnterior: totalCheckouts > 0 ? ((totalVendas / totalCheckouts) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalVendas / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
-  ];
+  let funnelData: Array<{ etapa: string; valor: number; taxaAnterior: string; pctTopo: string }>;
+
+  if (showLeads && totalLeads > 0) {
+    // Funnel with Leads: Cliques Link → Views Página → Leads → Iniciou Checkout → Vendas
+    funnelData = [
+      { etapa: 'Cliques Link', valor: totalCliquesLink, taxaAnterior: '', pctTopo: '' },
+      { etapa: 'Views Página', valor: totalViews, taxaAnterior: totalCliquesLink > 0 ? ((totalViews / totalCliquesLink) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalViews / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
+      { etapa: 'Leads', valor: totalLeads, taxaAnterior: totalViews > 0 ? ((totalLeads / totalViews) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalLeads / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
+      { etapa: 'Iniciou Checkout', valor: totalCheckouts, taxaAnterior: totalLeads > 0 ? ((totalCheckouts / totalLeads) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalCheckouts / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
+      { etapa: 'Vendas', valor: totalVendas, taxaAnterior: totalCheckouts > 0 ? ((totalVendas / totalCheckouts) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalVendas / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
+    ];
+  } else {
+    // Original funnel without leads
+    funnelData = [
+      { etapa: 'Cliques Link', valor: totalCliquesLink, taxaAnterior: '', pctTopo: '' },
+      { etapa: 'Views Página', valor: totalViews, taxaAnterior: totalCliquesLink > 0 ? ((totalViews / totalCliquesLink) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalViews / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
+      { etapa: 'Iniciou Checkout', valor: totalCheckouts, taxaAnterior: totalViews > 0 ? ((totalCheckouts / totalViews) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalCheckouts / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
+      { etapa: 'Vendas', valor: totalVendas, taxaAnterior: totalCheckouts > 0 ? ((totalVendas / totalCheckouts) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalVendas / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
+    ];
+  }
+
+  const colors = showLeads && totalLeads > 0 ? FUNNEL_COLORS : FUNNEL_COLORS_NO_LEADS;
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (!active || !payload?.length) return null;
@@ -83,15 +108,15 @@ export function TrafficChart({ data, salesData, isLoading, summaryData }: Traffi
   return (
     <div className="chart-container">
       <h3 className="dashboard-section-title mb-4">Funil de Tráfego</h3>
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={showLeads && totalLeads > 0 ? 350 : 300}>
         <BarChart data={funnelData} layout="vertical" margin={{ left: 0, right: 90 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 14%, 18%)" horizontal={false} />
           <XAxis type="number" tick={{ fill: 'hsl(215, 12%, 55%)', fontSize: 11 }} tickFormatter={(v) => formatNumber(v)} />
-          <YAxis type="category" dataKey="etapa" tick={{ fill: 'hsl(215, 12%, 55%)', fontSize: 11 }} width={90} />
+          <YAxis type="category" dataKey="etapa" tick={{ fill: 'hsl(215, 12%, 55%)', fontSize: 11 }} width={100} />
           <Tooltip content={<CustomTooltip />} />
           <Bar dataKey="valor" radius={[0, 6, 6, 0]}>
             {funnelData.map((_, i) => (
-              <Cell key={i} fill={FUNNEL_COLORS[i]} fillOpacity={0.8} />
+              <Cell key={i} fill={colors[i]} fillOpacity={0.8} />
             ))}
             <LabelList content={CustomBarLabel} />
             <LabelList content={CustomInsideLabel} />

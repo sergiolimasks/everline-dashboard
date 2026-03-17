@@ -43,6 +43,7 @@ export interface TrafficDaily {
   valor_compras: number;
   gasto: number;
   views_3s: number;
+  leads: number;
 }
 
 export interface SalesDaily {
