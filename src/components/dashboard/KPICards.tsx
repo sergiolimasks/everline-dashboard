@@ -28,7 +28,7 @@ function SkeletonBlock() {
   return <div className="h-8 w-24 bg-muted rounded animate-pulse" />;
 }
 
-function calcMetrics(data: SummaryData | undefined) {
+function calcMetrics(data: SummaryData | undefined, showLeads = false) {
   if (!data) return null;
   const traffic = data.traffic;
   const sales = data.sales;
@@ -47,8 +47,8 @@ function calcMetrics(data: SummaryData | undefined) {
   const totalViews = Number(traffic?.total_views || 0);
   const totalViews3s = Number(traffic?.total_views_3s || 0);
   const totalLeads = Number(traffic?.total_leads || 0);
-  const taxaFixa = Number(sales?.taxa_fixa || 0);
-  const custoManychat = vendasAprovadas * 0.35;
+  const taxaFixa = showLeads ? 0 : Number(sales?.taxa_fixa || 0);
+  const custoManychat = showLeads ? 0 : vendasAprovadas * 0.35;
   const coProdutor = Number(sales?.co_produtor || 0);
   const taxaGreen = Number(sales?.taxa_green || 0);
   const diasAtivos = Number(traffic?.dias_ativos || 1);
