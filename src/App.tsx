@@ -26,7 +26,9 @@ const App = () => (
             <Route path="/painel" element={<ProtectedRoute adminOnly><Panel /></ProtectedRoute>} />
             <Route path="/cliente/:slug/painel" element={<ProtectedRoute><Panel clientView /></ProtectedRoute>} />
             <Route path="/interno/uelicon/checkup-performance" element={<ProtectedRoute adminOnly><Index /></ProtectedRoute>} />
+            <Route path="/interno/uelicon/formacao-consultor" element={<ProtectedRoute adminOnly><Index projectKey="formacao-consultor" /></ProtectedRoute>} />
             <Route path="/cliente/:slug/checkup-performance" element={<ProtectedRoute><Index clientView /></ProtectedRoute>} />
+            <Route path="/cliente/:slug/formacao-consultor" element={<ProtectedRoute><Index clientView projectKey="formacao-consultor" /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
