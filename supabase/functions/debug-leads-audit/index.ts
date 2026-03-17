@@ -33,35 +33,40 @@ serve(async (req) => {
     const { searchParams } = new URL(req.url);
     const day = searchParams.get("day") || "2026-03-17";
 
-    const [aplicacao, lancamento] = await Promise.all([
+    const [types, aplicacao, lancamento] = await Promise.all([
+      queryExternalPG(`
+        SELECT table_name, column_name, data_type
+        FROM information_schema.columns
+        WHERE table_schema = 'bd_ads_clientes'
+          AND table_name IN ('leads_uelicon_venancio_aplicacao_formac', 'leads_uelicon_venancio_acao_50k_ter')
+          AND column_name = 'Data'
+        ORDER BY table_name
+      `),
       queryExternalPG(`
         SELECT
-          COUNT(*) FILTER (WHERE "Data"::date = $1::date) AS utc_rows,
-          COUNT(DISTINCT NULLIF(TRIM(COALESCE("telefone", '')), '')) FILTER (WHERE "Data"::date = $1::date) AS utc_unique_phone,
-          COUNT(*) FILTER (
-            WHERE (("Data" AT TIME ZONE 'America/Sao_Paulo')::date = $1::date)
-          ) AS sp_rows,
-          COUNT(DISTINCT NULLIF(TRIM(COALESCE("telefone", '')), '')) FILTER (
-            WHERE (("Data" AT TIME ZONE 'America/Sao_Paulo')::date = $1::date)
-          ) AS sp_unique_phone
+          COUNT(*) FILTER (WHERE "Data"::date = $1::date) AS utc_date_rows,
+          COUNT(DISTINCT "telefone") FILTER (WHERE "Data"::date = $1::date) AS utc_date_unique_phone,
+          COUNT(*) FILTER (WHERE (("Data" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Sao_Paulo')::date = $1::date) AS sp_from_utc_rows,
+          COUNT(DISTINCT "telefone") FILTER (WHERE (("Data" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Sao_Paulo')::date = $1::date) AS sp_from_utc_unique_phone,
+          MIN("Data") FILTER (WHERE (("Data" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Sao_Paulo')::date = $1::date) AS sp_min,
+          MAX("Data") FILTER (WHERE (("Data" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Sao_Paulo')::date = $1::date) AS sp_max
         FROM bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac
       `, [day]),
       queryExternalPG(`
         SELECT
-          COUNT(*) FILTER (WHERE "Data"::date = $1::date) AS utc_rows,
-          COUNT(DISTINCT NULLIF(TRIM(COALESCE("email", '')), '')) FILTER (WHERE "Data"::date = $1::date) AS utc_unique_email,
-          COUNT(*) FILTER (
-            WHERE (("Data" AT TIME ZONE 'America/Sao_Paulo')::date = $1::date)
-          ) AS sp_rows,
-          COUNT(DISTINCT NULLIF(TRIM(COALESCE("email", '')), '')) FILTER (
-            WHERE (("Data" AT TIME ZONE 'America/Sao_Paulo')::date = $1::date)
-          ) AS sp_unique_email
+          COUNT(*) FILTER (WHERE "Data"::date = $1::date) AS utc_date_rows,
+          COUNT(DISTINCT "email") FILTER (WHERE "Data"::date = $1::date) AS utc_date_unique_email,
+          COUNT(*) FILTER (WHERE (("Data" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Sao_Paulo')::date = $1::date) AS sp_from_utc_rows,
+          COUNT(DISTINCT "email") FILTER (WHERE (("Data" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Sao_Paulo')::date = $1::date) AS sp_from_utc_unique_email,
+          MIN("Data") FILTER (WHERE (("Data" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Sao_Paulo')::date = $1::date) AS sp_min,
+          MAX("Data") FILTER (WHERE (("Data" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Sao_Paulo')::date = $1::date) AS sp_max
         FROM bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter
       `, [day]),
     ]);
 
     return new Response(JSON.stringify({
       day,
+      data_types: types,
       aplicacao: aplicacao[0] ?? null,
       lancamento: lancamento[0] ?? null,
     }, (_, value) => typeof value === "bigint" ? Number(value) : value), {
