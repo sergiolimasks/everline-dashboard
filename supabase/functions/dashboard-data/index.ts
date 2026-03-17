@@ -1,4 +1,4 @@
-// Dashboard data edge function v8 — multi-project support
+// Dashboard data edge function v9 — multi-project + leads support
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
@@ -36,12 +36,15 @@ interface ProjectConfig {
   metaTable: string;
   linksTable: string;
   greenSchema: string;
-  principalProducts: string[];      // all main product names
-  bumpProducts: string[];            // order bump product names
-  taxaFixaPorVenda: number;          // 0 = no consultation cost
-  custoManychat: number;             // 0 = no manychat cost
-  defaultMetaWhere: string;          // base campaign filter
+  principalProducts: string[];
+  bumpProducts: string[];
+  taxaFixaPorVenda: number;
+  custoManychat: number;
+  defaultMetaWhere: string;
   offerFilters: Record<string, OfferFilters>;
+  leadTables: string[];              // lead tables to query (empty = no leads)
+  leadCountColumn: string;           // column to COUNT for leads (e.g. 'telefone' or 'email')
+  leadDateColumn: string;            // date column in lead tables
 }
 
 interface OfferFilters {
@@ -93,6 +96,9 @@ const PROJECTS: Record<string, ProjectConfig> = {
         useEmailLinkedBumps: true,
       },
     },
+    leadTables: [],
+    leadCountColumn: '',
+    leadDateColumn: '',
   },
   'formacao-consultor': {
     metaTable: 'bd_ads_clientes.meta_uelicon_venancio',
@@ -107,6 +113,12 @@ const PROJECTS: Record<string, ProjectConfig> = {
     custoManychat: 0,
     defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%50K-DEZ25%' OR UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%')`,
     offerFilters: {},
+    leadTables: [
+      'bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac',
+      'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter',
+    ],
+    leadCountColumn: '*',
+    leadDateColumn: 'data',
   },
 };
 
@@ -157,6 +169,43 @@ function allProductsFilter(config: ProjectConfig, productName: string): string {
   return `("Nome do produto" = '${productName}' OR ${bumpFilter(config, productName)})`;
 }
 
+// Query total leads from all lead tables
+async function queryLeadsTotal(config: ProjectConfig, params: string[]): Promise<number> {
+  if (config.leadTables.length === 0) return 0;
+  let total = 0;
+  for (const table of config.leadTables) {
+    const dateFilter = params.length >= 2
+      ? ` WHERE ${config.leadDateColumn}::date >= $1 AND ${config.leadDateColumn}::date <= $2`
+      : '';
+    const rows = await queryExternalPG(
+      `SELECT COUNT(${config.leadCountColumn}) as total FROM ${table}${dateFilter}`,
+      params
+    );
+    total += Number((rows[0] as any)?.total || 0);
+  }
+  return total;
+}
+
+// Query daily leads from all lead tables
+async function queryLeadsDaily(config: ProjectConfig, params: string[]): Promise<Map<string, number>> {
+  const map = new Map<string, number>();
+  if (config.leadTables.length === 0) return map;
+  for (const table of config.leadTables) {
+    const dateFilter = params.length >= 2
+      ? ` WHERE ${config.leadDateColumn}::date >= $1 AND ${config.leadDateColumn}::date <= $2`
+      : '';
+    const rows = await queryExternalPG(
+      `SELECT ${config.leadDateColumn}::date as dia, COUNT(${config.leadCountColumn}) as total FROM ${table}${dateFilter} GROUP BY ${config.leadDateColumn}::date`,
+      params
+    );
+    for (const r of rows as any[]) {
+      const key = String(r.dia).slice(0, 10);
+      map.set(key, (map.get(key) || 0) + Number(r.total || 0));
+    }
+  }
+  return map;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -184,15 +233,8 @@ serve(async (req) => {
 
     let data: unknown[] = [];
 
-    if (endpoint === 'leads_schema') {
-      const sample1 = await queryExternalPG(`SELECT * FROM bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac LIMIT 3`, []);
-      const sample2 = await queryExternalPG(`SELECT * FROM bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter LIMIT 3`, []);
-      data = [{
-        aplicacao_formac: { columns: Object.keys((sample1[0] as any) || {}), sample: sample1 },
-        acao_50k_ter: { columns: Object.keys((sample2[0] as any) || {}), sample: sample2 }
-      }];
-    } else if (endpoint === 'traffic_daily') {
-      data = await queryExternalPG(`
+    if (endpoint === 'traffic_daily') {
+      const trafficRows = await queryExternalPG(`
         SELECT 
           data::date as dia,
           SUM(impressoes) as impressoes,
@@ -210,6 +252,13 @@ serve(async (req) => {
         GROUP BY data::date
         ORDER BY data::date DESC
       `, params);
+
+      // Merge leads data if project has lead tables
+      const leadsMap = await queryLeadsDaily(config, params);
+      data = (trafficRows as any[]).map(row => ({
+        ...row,
+        leads: leadsMap.get(String(row.dia).slice(0, 10)) || 0,
+      }));
 
     } else if (endpoint === 'sales_daily') {
       const salesDateFilter = dateFrom && dateTo
@@ -338,8 +387,11 @@ serve(async (req) => {
       const coProdutorTotal = Number((principalSales[0] as any)?.co_produtor || 0) + Number(bumpSalesRow?.co_produtor_bump || 0);
       const taxaGreenTotal = Number((principalSales[0] as any)?.taxa_green || 0) + Number(bumpSalesRow?.taxa_green_bump || 0);
 
+      // Query leads total
+      const totalLeads = await queryLeadsTotal(config, params);
+
       data = [{
-        traffic: traffic[0],
+        traffic: { ...(traffic[0] as any), total_leads: totalLeads },
         sales: {
           vendas_aprovadas: vendasPrincipal,
           vendas_bump: Number(bumpSalesRow?.vendas_bump || 0),

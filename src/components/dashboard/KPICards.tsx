@@ -13,6 +13,7 @@ interface KPICardsProps {
   salesDaily?: SalesDaily[];
   isSingleDay?: boolean;
   clientView?: boolean;
+  showLeads?: boolean;
 }
 
 function formatCurrency(value: number) {
@@ -45,6 +46,7 @@ function calcMetrics(data: SummaryData | undefined) {
   const totalCheckouts = Number(traffic?.total_checkouts || 0);
   const totalViews = Number(traffic?.total_views || 0);
   const totalViews3s = Number(traffic?.total_views_3s || 0);
+  const totalLeads = Number(traffic?.total_leads || 0);
   const taxaFixa = Number(sales?.taxa_fixa || 0);
   const custoManychat = vendasAprovadas * 0.35;
   const coProdutor = Number(sales?.co_produtor || 0);
@@ -62,9 +64,13 @@ function calcMetrics(data: SummaryData | undefined) {
   const taxaConversaoPagina = totalViews > 0 ? totalCheckouts / totalViews : 0;
   const taxaConversaoCheckout = totalCheckouts > 0 ? vendasAprovadas / totalCheckouts : 0;
   const thumbStopRate = totalImpressoes > 0 ? totalViews3s / totalImpressoes : 0;
-    const receitaPorVenda = vendasAprovadas > 0 ? receitaBruta / vendasAprovadas : 0;
-    const receitaPorVendaLiquida = vendasAprovadas > 0 ? receitaLiquida / vendasAprovadas : 0;
-    const cacClient = vendasAprovadas > 0 ? (totalGasto + taxaFixa + custoManychat) / vendasAprovadas : 0;
+  const receitaPorVenda = vendasAprovadas > 0 ? receitaBruta / vendasAprovadas : 0;
+  const receitaPorVendaLiquida = vendasAprovadas > 0 ? receitaLiquida / vendasAprovadas : 0;
+  const cacClient = vendasAprovadas > 0 ? (totalGasto + taxaFixa + custoManychat) / vendasAprovadas : 0;
+
+  // Leads-based metrics
+  const taxaConvPaginaLeads = totalViews > 0 ? totalLeads / totalViews : 0;  // leads / views_pagina
+  const taxaInicioCheckoutLeads = totalLeads > 0 ? totalCheckouts / totalLeads : 0;  // checkouts / leads
 
   const vendasAprovDia = vendasAprovadas / diasAtivos;
   const vendasBumpDia = vendasBump / diasAtivos;
@@ -74,6 +80,7 @@ function calcMetrics(data: SummaryData | undefined) {
       taxaFixa, custoManychat, coProdutor, taxaGreen, lucro, roi, diasAtivos,
       cac, cacClient, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
       thumbStopRate, receitaPorVenda, receitaPorVendaLiquida, vendasAprovDia, vendasBumpDia,
+      totalLeads, taxaConvPaginaLeads, taxaInicioCheckoutLeads,
     };
 }
 
@@ -196,7 +203,7 @@ function KPICard({
   return cardContent;
 }
 
-export function KPICards({ data, isLoading, comparison7d, comparison14d, trafficDaily, salesDaily, isSingleDay = false, clientView = false }: KPICardsProps) {
+export function KPICards({ data, isLoading, comparison7d, comparison14d, trafficDaily, salesDaily, isSingleDay = false, clientView = false, showLeads = false }: KPICardsProps) {
   const [showDetails, setShowDetails] = useState(false);
 
   const current = calcMetrics(data);
@@ -325,11 +332,27 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
       label: "Tx Carreg. Página",
       isValidDay: (d) => d.cliques > 0 && d.views_pagina > 0,
     },
+    taxaConvPaginaLeads: {
+      metricFn: (d) => d.views_pagina > 0 && (d.leads || 0) > 0 ? (d.leads || 0) / d.views_pagina : 0,
+      format: formatPercent,
+      label: "Tx Conv. Página (Leads)",
+      isValidDay: (d) => d.views_pagina > 0 && (d.leads || 0) > 0,
+      lowOutlierFactor: 0.45,
+      maxValue: 1.0,
+    },
     taxaConversaoPagina: {
       metricFn: (d) => d.views_pagina > 0 ? d.checkouts / d.views_pagina : 0,
       format: formatPercent,
       label: "Iniciou Checkout",
       isValidDay: (d) => d.views_pagina > 0 && d.checkouts > 0,
+      lowOutlierFactor: 0.45,
+      maxValue: 1.0,
+    },
+    taxaInicioCheckoutLeads: {
+      metricFn: (d) => (d.leads || 0) > 0 ? d.checkouts / (d.leads || 1) : 0,
+      format: formatPercent,
+      label: "Iniciou Checkout (de Leads)",
+      isValidDay: (d) => (d.leads || 0) > 0 && d.checkouts > 0,
       lowOutlierFactor: 0.45,
       maxValue: 1.0,
     },
@@ -596,12 +619,23 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
               formatValue={formatPercent}
               tooltipContent={getSparkline("taxaCarregamento")}
             />
+            {showLeads && (
+              <KPICard
+                label="Tx Conv. Página" value={isLoading ? null : formatPercent(current?.taxaConvPaginaLeads || 0)}
+                icon={Users} color="text-chart-orange" isLoading={isLoading}
+                metricKey="taxaConvPaginaLeads" current={current} comp7d={comp7d} comp14d={comp14d}
+                formatValue={formatPercent}
+                tooltipContent={getSparkline("taxaConvPaginaLeads")}
+              />
+            )}
             <KPICard
-              label="Iniciou Checkout" value={isLoading ? null : formatPercent(current?.taxaConversaoPagina || 0)}
+              label={showLeads ? "Iniciou Checkout" : "Iniciou Checkout"}
+              value={isLoading ? null : formatPercent(showLeads ? (current?.taxaInicioCheckoutLeads || 0) : (current?.taxaConversaoPagina || 0))}
               icon={CheckCircle} color="text-chart-blue" isLoading={isLoading}
-              metricKey="taxaConversaoPagina" current={current} comp7d={comp7d} comp14d={comp14d}
+              metricKey={showLeads ? "taxaInicioCheckoutLeads" : "taxaConversaoPagina"}
+              current={current} comp7d={comp7d} comp14d={comp14d}
               formatValue={formatPercent}
-              tooltipContent={getSparkline("taxaConversaoPagina")}
+              tooltipContent={getSparkline(showLeads ? "taxaInicioCheckoutLeads" : "taxaConversaoPagina")}
             />
             <KPICard
               label="Tx Conv. Checkout" value={isLoading ? null : formatPercent(current?.taxaConversaoCheckout || 0)}

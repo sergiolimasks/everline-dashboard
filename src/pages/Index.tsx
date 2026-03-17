@@ -19,6 +19,7 @@ export interface ProjectDashboardConfig {
   showOfferFilter: boolean;
   showCustoConsultas: boolean;
   showManychat: boolean;
+  showLeads: boolean;
 }
 
 const PROJECT_CONFIGS: Record<string, ProjectDashboardConfig> = {
@@ -28,6 +29,7 @@ const PROJECT_CONFIGS: Record<string, ProjectDashboardConfig> = {
     showOfferFilter: true,
     showCustoConsultas: true,
     showManychat: true,
+    showLeads: false,
   },
   'formacao-consultor': {
     project: 'formacao-consultor',
@@ -35,6 +37,7 @@ const PROJECT_CONFIGS: Record<string, ProjectDashboardConfig> = {
     showOfferFilter: false,
     showCustoConsultas: false,
     showManychat: false,
+    showLeads: true,
   },
 };
 
@@ -128,12 +131,13 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
           salesDaily={sparklineSalesData}
           isSingleDay={periodDays === 1}
           clientView={clientView}
+          showLeads={config.showLeads}
         />
 
         {/* Charts Row */}
         {!clientView && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <TrafficChart data={trafficDaily} salesData={salesDaily} isLoading={loadingTraffic} summaryData={summary} />
+            <TrafficChart data={trafficDaily} salesData={salesDaily} isLoading={loadingTraffic} summaryData={summary} showLeads={config.showLeads} />
             <SalesChart data={salesDaily} isLoading={loadingSales} />
           </div>
         )}

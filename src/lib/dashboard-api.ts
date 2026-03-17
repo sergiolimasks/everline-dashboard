@@ -12,6 +12,7 @@ export interface SummaryData {
     total_gasto: number;
     total_views_3s: number;
     dias_ativos: number;
+    total_leads: number;
   };
   sales: {
     vendas_aprovadas: number;
@@ -42,6 +43,7 @@ export interface TrafficDaily {
   valor_compras: number;
   gasto: number;
   views_3s: number;
+  leads: number;
 }
 
 export interface SalesDaily {
