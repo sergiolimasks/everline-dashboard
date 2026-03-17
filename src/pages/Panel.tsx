@@ -79,10 +79,14 @@ function ClientCard({ client, isAdmin }: { client: ClientWithOffers; isAdmin: bo
   const custoManychat = vendasAprovadas * 0.35;
   const coProdutor = Number(summary?.sales?.co_produtor || 0);
   const gastoTotal = gastoMeta + imposto + custoConsultas + custoManychat;
-  const faturamento = Number(summary?.sales?.receita_bruta || 0);
-  const lucroCliente = faturamento - coProdutor;
-  const roi = gastoTotal > 0 ? (faturamento - gastoTotal) / gastoTotal : 0;
+  const receitaBruta = Number(summary?.sales?.receita_bruta || 0);
+  const taxaGreenn = Number(summary?.sales?.taxa_green || 0);
   const faturamentoAgencia = coProdutor;
+  // Faturamento do Cliente = receita bruta - co-produtor (agência)
+  const faturamentoCliente = receitaBruta - faturamentoAgencia;
+  // Lucro do Cliente = faturamento do cliente - gastos totais - taxa Greenn
+  const lucroCliente = faturamentoCliente - gastoTotal - taxaGreenn;
+  const roi = gastoTotal > 0 ? (faturamentoCliente - gastoTotal) / gastoTotal : 0;
   const products = summary?.products || [];
 
   const kpis = [
@@ -95,7 +99,7 @@ function ClientCard({ client, isAdmin }: { client: ClientWithOffers; isAdmin: bo
       tooltip: <VendasTooltip products={products} />,
     },
     {
-      label: "Faturamento do Projeto", value: formatCurrency(faturamento), icon: DollarSign, color: "text-emerald-400",
+      label: "Faturamento do Cliente", value: formatCurrency(faturamentoCliente), icon: DollarSign, color: "text-emerald-400",
       tooltip: null,
     },
     {
