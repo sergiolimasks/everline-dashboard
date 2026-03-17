@@ -169,6 +169,43 @@ function allProductsFilter(config: ProjectConfig, productName: string): string {
   return `("Nome do produto" = '${productName}' OR ${bumpFilter(config, productName)})`;
 }
 
+// Query total leads from all lead tables
+async function queryLeadsTotal(config: ProjectConfig, params: string[]): Promise<number> {
+  if (config.leadTables.length === 0) return 0;
+  let total = 0;
+  for (const table of config.leadTables) {
+    const dateFilter = params.length >= 2
+      ? ` WHERE ${config.leadDateColumn}::date >= $1 AND ${config.leadDateColumn}::date <= $2`
+      : '';
+    const rows = await queryExternalPG(
+      `SELECT COUNT(${config.leadCountColumn}) as total FROM ${table}${dateFilter}`,
+      params
+    );
+    total += Number((rows[0] as any)?.total || 0);
+  }
+  return total;
+}
+
+// Query daily leads from all lead tables
+async function queryLeadsDaily(config: ProjectConfig, params: string[]): Promise<Map<string, number>> {
+  const map = new Map<string, number>();
+  if (config.leadTables.length === 0) return map;
+  for (const table of config.leadTables) {
+    const dateFilter = params.length >= 2
+      ? ` WHERE ${config.leadDateColumn}::date >= $1 AND ${config.leadDateColumn}::date <= $2`
+      : '';
+    const rows = await queryExternalPG(
+      `SELECT ${config.leadDateColumn}::date as dia, COUNT(${config.leadCountColumn}) as total FROM ${table}${dateFilter} GROUP BY ${config.leadDateColumn}::date`,
+      params
+    );
+    for (const r of rows as any[]) {
+      const key = String(r.dia).slice(0, 10);
+      map.set(key, (map.get(key) || 0) + Number(r.total || 0));
+    }
+  }
+  return map;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
