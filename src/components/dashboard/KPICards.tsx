@@ -266,13 +266,13 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
       <p className="text-xs font-semibold mb-2 text-foreground">Fórmula do ROI</p>
       <div className="space-y-2 text-[11px]">
         <div className="bg-muted/50 rounded-md p-2 text-center font-mono text-xs text-foreground">
-          ROI = Receita Líquida ÷ (Investimento + Consultas + ManyChat)
+          ROI = Receita Líquida ÷ {showLeads ? 'Investimento' : '(Investimento + Consultas + ManyChat)'}
         </div>
         <div className="space-y-1.5">
           <div className="flex justify-between"><span className="text-primary">Receita Líquida</span><span className="font-medium text-primary">{formatCurrency(current?.receitaLiquida || 0)}</span></div>
           <div className="flex justify-between"><span className="text-destructive">Investimento</span><span className="font-medium text-destructive">{formatCurrency(current?.totalGasto || 0)}</span></div>
-          <div className="flex justify-between"><span className="text-destructive">Custo Consultas</span><span className="font-medium text-destructive">{formatCurrency(current?.taxaFixa || 0)}</span></div>
-          <div className="flex justify-between"><span className="text-destructive">ManyChat</span><span className="font-medium text-destructive">{formatCurrency(current?.custoManychat || 0)}</span></div>
+          {!showLeads && <div className="flex justify-between"><span className="text-destructive">Custo Consultas</span><span className="font-medium text-destructive">{formatCurrency(current?.taxaFixa || 0)}</span></div>}
+          {!showLeads && <div className="flex justify-between"><span className="text-destructive">ManyChat</span><span className="font-medium text-destructive">{formatCurrency(current?.custoManychat || 0)}</span></div>}
           <div className="border-t border-border pt-1.5">
             <div className="flex justify-between font-semibold">
               <span className="text-muted-foreground">Custo Total</span>
