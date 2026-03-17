@@ -453,8 +453,8 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
               <div className="space-y-1.5 text-[11px]">
                 <div className="flex justify-between"><span className="text-primary">Receita Líquida</span><span className="font-medium text-primary">+ {formatCurrency(current?.receitaLiquida || 0)}</span></div>
                 <div className="flex justify-between"><span className="text-destructive">Investimento</span><span className="font-medium text-destructive">- {formatCurrency(current?.totalGasto || 0)}</span></div>
-                <div className="flex justify-between"><span className="text-destructive">Custo Consultas</span><span className="font-medium text-destructive">- {formatCurrency(current?.taxaFixa || 0)}</span></div>
-                <div className="flex justify-between"><span className="text-destructive">ManyChat</span><span className="font-medium text-destructive">- {formatCurrency(current?.custoManychat || 0)}</span></div>
+                {!showLeads && <div className="flex justify-between"><span className="text-destructive">Custo Consultas</span><span className="font-medium text-destructive">- {formatCurrency(current?.taxaFixa || 0)}</span></div>}
+                {!showLeads && <div className="flex justify-between"><span className="text-destructive">ManyChat</span><span className="font-medium text-destructive">- {formatCurrency(current?.custoManychat || 0)}</span></div>}
                 <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
                   <span className="text-muted-foreground">Lucro</span>
                   <span className={`${(current?.lucro || 0) >= 0 ? 'text-primary' : 'text-destructive'}`}>{formatCurrency(current?.lucro || 0)}</span>
