@@ -12,6 +12,7 @@ export interface SummaryData {
     total_gasto: number;
     total_views_3s: number;
     dias_ativos: number;
+    total_leads: number;
   };
   sales: {
     vendas_aprovadas: number;
