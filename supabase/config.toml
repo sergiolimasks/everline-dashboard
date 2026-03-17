@@ -2,3 +2,6 @@ project_id = "gkdywgdrjdepzimsrvbv"
 
 [functions.dashboard-data]
 verify_jwt = false
+
+[functions.check-leads-schema]
+verify_jwt = false
