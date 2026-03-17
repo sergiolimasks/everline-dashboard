@@ -157,7 +157,7 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
         {!clientView && (
           <>
             {/* Products Table */}
-            <ProductsTable data={summary} isLoading={loadingSummary} />
+            <ProductsTable data={summary} isLoading={loadingSummary} allPrincipal={config.showLeads} />
 
             {/* Campaigns Table */}
             <CampaignsTable data={campaigns} isLoading={loadingCampaigns} />

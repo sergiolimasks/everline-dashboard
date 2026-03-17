@@ -3,13 +3,14 @@ import type { SummaryData } from "@/lib/dashboard-api";
 interface ProductsTableProps {
   data: SummaryData | undefined;
   isLoading: boolean;
+  allPrincipal?: boolean;
 }
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
 
-export function ProductsTable({ data, isLoading }: ProductsTableProps) {
+export function ProductsTable({ data, isLoading, allPrincipal = false }: ProductsTableProps) {
   if (isLoading) {
     return (
       <div className="chart-container">
@@ -51,7 +52,7 @@ export function ProductsTable({ data, isLoading }: ProductsTableProps) {
           </thead>
           <tbody>
             {products.map((p, i) => {
-              const isCheckup = (p.produto || '').toLowerCase().includes('checkup') || (p.produto || '').toLowerCase().includes('vida financeira');
+              const isCheckup = allPrincipal || (p.produto || '').toLowerCase().includes('checkup') || (p.produto || '').toLowerCase().includes('vida financeira');
               const ticketMedio = Number(p.vendas_aprovadas) > 0 ? Number(p.receita_bruta) / Number(p.vendas_aprovadas) : 0;
               return (
                 <tr key={i}>
