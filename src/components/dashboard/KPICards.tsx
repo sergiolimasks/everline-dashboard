@@ -46,6 +46,7 @@ function calcMetrics(data: SummaryData | undefined) {
   const totalCheckouts = Number(traffic?.total_checkouts || 0);
   const totalViews = Number(traffic?.total_views || 0);
   const totalViews3s = Number(traffic?.total_views_3s || 0);
+  const totalLeads = Number(traffic?.total_leads || 0);
   const taxaFixa = Number(sales?.taxa_fixa || 0);
   const custoManychat = vendasAprovadas * 0.35;
   const coProdutor = Number(sales?.co_produtor || 0);
@@ -63,9 +64,13 @@ function calcMetrics(data: SummaryData | undefined) {
   const taxaConversaoPagina = totalViews > 0 ? totalCheckouts / totalViews : 0;
   const taxaConversaoCheckout = totalCheckouts > 0 ? vendasAprovadas / totalCheckouts : 0;
   const thumbStopRate = totalImpressoes > 0 ? totalViews3s / totalImpressoes : 0;
-    const receitaPorVenda = vendasAprovadas > 0 ? receitaBruta / vendasAprovadas : 0;
-    const receitaPorVendaLiquida = vendasAprovadas > 0 ? receitaLiquida / vendasAprovadas : 0;
-    const cacClient = vendasAprovadas > 0 ? (totalGasto + taxaFixa + custoManychat) / vendasAprovadas : 0;
+  const receitaPorVenda = vendasAprovadas > 0 ? receitaBruta / vendasAprovadas : 0;
+  const receitaPorVendaLiquida = vendasAprovadas > 0 ? receitaLiquida / vendasAprovadas : 0;
+  const cacClient = vendasAprovadas > 0 ? (totalGasto + taxaFixa + custoManychat) / vendasAprovadas : 0;
+
+  // Leads-based metrics
+  const taxaConvPaginaLeads = totalViews > 0 ? totalLeads / totalViews : 0;  // leads / views_pagina
+  const taxaInicioCheckoutLeads = totalLeads > 0 ? totalCheckouts / totalLeads : 0;  // checkouts / leads
 
   const vendasAprovDia = vendasAprovadas / diasAtivos;
   const vendasBumpDia = vendasBump / diasAtivos;
@@ -75,6 +80,7 @@ function calcMetrics(data: SummaryData | undefined) {
       taxaFixa, custoManychat, coProdutor, taxaGreen, lucro, roi, diasAtivos,
       cac, cacClient, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
       thumbStopRate, receitaPorVenda, receitaPorVendaLiquida, vendasAprovDia, vendasBumpDia,
+      totalLeads, taxaConvPaginaLeads, taxaInicioCheckoutLeads,
     };
 }
 
