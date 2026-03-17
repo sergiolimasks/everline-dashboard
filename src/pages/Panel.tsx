@@ -73,6 +73,25 @@ function LucroTooltip({ faturamentoCliente, gastoMeta, imposto, custoConsultas, 
   );
 }
 
+function CacTooltip({ gastoMeta, imposto, custoConsultas, custoManychat, gastoTotal, vendasAprovadas, cac }: {
+  gastoMeta: number; imposto: number; custoConsultas: number; custoManychat: number; gastoTotal: number; vendasAprovadas: number; cac: number;
+}) {
+  const pctMeta = gastoTotal > 0 ? (gastoMeta / gastoTotal) * 100 : 0;
+  const pctImposto = gastoTotal > 0 ? (imposto / gastoTotal) * 100 : 0;
+  const pctConsultas = gastoTotal > 0 ? (custoConsultas / gastoTotal) * 100 : 0;
+  const pctManychat = gastoTotal > 0 ? (custoManychat / gastoTotal) * 100 : 0;
+  return (
+    <div className="space-y-1.5 text-xs">
+      <p className="font-semibold text-foreground mb-2">Composição do CAC</p>
+      <div className="flex justify-between"><span className="text-muted-foreground">Meta Ads ({pctMeta.toFixed(1)}%)</span><span className="text-foreground font-medium">{formatCurrency(vendasAprovadas > 0 ? gastoMeta / vendasAprovadas : 0)}</span></div>
+      <div className="flex justify-between"><span className="text-muted-foreground">Imposto ({pctImposto.toFixed(1)}%)</span><span className="text-foreground font-medium">{formatCurrency(vendasAprovadas > 0 ? imposto / vendasAprovadas : 0)}</span></div>
+      <div className="flex justify-between"><span className="text-muted-foreground">Consultas ({pctConsultas.toFixed(1)}%)</span><span className="text-foreground font-medium">{formatCurrency(vendasAprovadas > 0 ? custoConsultas / vendasAprovadas : 0)}</span></div>
+      <div className="flex justify-between"><span className="text-muted-foreground">ManyChat ({pctManychat.toFixed(1)}%)</span><span className="text-foreground font-medium">{formatCurrency(vendasAprovadas > 0 ? custoManychat / vendasAprovadas : 0)}</span></div>
+      <div className="border-t border-border pt-1.5 flex justify-between font-semibold"><span className="text-foreground">CAC Total ({vendasAprovadas} vendas)</span><span className="text-foreground">{formatCurrency(cac)}</span></div>
+    </div>
+  );
+}
+
 function ClientCard({ client, isAdmin }: { client: ClientWithOffers; isAdmin: boolean }) {
   const today = formatDateString(new Date());
   const { data: summary, isLoading } = useSummary(today, today, client.slug !== "all" ? client.slug : undefined);
@@ -84,9 +103,9 @@ function ClientCard({ client, isAdmin }: { client: ClientWithOffers; isAdmin: bo
   const custoManychat = vendasAprovadas * 0.35;
   const coProdutor = Number(summary?.sales?.co_produtor || 0);
   const gastoTotal = gastoMeta + imposto + custoConsultas + custoManychat;
-  const receitaBruta = Number(summary?.sales?.receita_bruta || 0);
+  const receitaLiquida = Number(summary?.sales?.receita_liquida || 0);
   const faturamentoAgencia = coProdutor;
-  const faturamentoCliente = receitaBruta - faturamentoAgencia;
+  const faturamentoCliente = receitaLiquida;
   const lucroCliente = faturamentoCliente - gastoTotal;
   const cac = vendasAprovadas > 0 ? gastoTotal / vendasAprovadas : 0;
   const products = summary?.products || [];
@@ -112,7 +131,7 @@ function ClientCard({ client, isAdmin }: { client: ClientWithOffers; isAdmin: bo
     {
       label: "CAC", value: formatCurrency(cac), icon: Target,
       color: "text-blue-400",
-      tooltip: null,
+      tooltip: <CacTooltip gastoMeta={gastoMeta} imposto={imposto} custoConsultas={custoConsultas} custoManychat={custoManychat} gastoTotal={gastoTotal} vendasAprovadas={vendasAprovadas} cac={cac} />,
     },
     ...(isAdmin ? [{
       label: "Faturamento Agência", value: formatCurrency(faturamentoAgencia), icon: Building2, color: "text-primary",
