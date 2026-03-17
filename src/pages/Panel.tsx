@@ -92,7 +92,7 @@ function CacTooltip({ gastoMeta, imposto, custoConsultas, custoManychat, gastoTo
   );
 }
 
-function ClientCard({ client, isAdmin }: { client: ClientWithOffers; isAdmin: boolean }) {
+function ClientCard({ client, isAdmin, clientView }: { client: ClientWithOffers; isAdmin: boolean; clientView?: boolean }) {
   const today = formatDateString(new Date());
   const { data: summary, isLoading } = useSummary(today, today, client.slug !== "all" ? client.slug : undefined);
 
