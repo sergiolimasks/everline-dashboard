@@ -131,7 +131,7 @@ function ClientCard({ client, isAdmin }: { client: ClientWithOffers; isAdmin: bo
     {
       label: "CAC", value: formatCurrency(cac), icon: Target,
       color: "text-blue-400",
-      tooltip: null,
+      tooltip: <CacTooltip gastoMeta={gastoMeta} imposto={imposto} custoConsultas={custoConsultas} custoManychat={custoManychat} gastoTotal={gastoTotal} vendasAprovadas={vendasAprovadas} cac={cac} />,
     },
     ...(isAdmin ? [{
       label: "Faturamento Agência", value: formatCurrency(faturamentoAgencia), icon: Building2, color: "text-primary",
