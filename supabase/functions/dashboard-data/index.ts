@@ -36,12 +36,15 @@ interface ProjectConfig {
   metaTable: string;
   linksTable: string;
   greenSchema: string;
-  principalProducts: string[];      // all main product names
-  bumpProducts: string[];            // order bump product names
-  taxaFixaPorVenda: number;          // 0 = no consultation cost
-  custoManychat: number;             // 0 = no manychat cost
-  defaultMetaWhere: string;          // base campaign filter
+  principalProducts: string[];
+  bumpProducts: string[];
+  taxaFixaPorVenda: number;
+  custoManychat: number;
+  defaultMetaWhere: string;
   offerFilters: Record<string, OfferFilters>;
+  leadTables: string[];              // lead tables to query (empty = no leads)
+  leadCountColumn: string;           // column to COUNT for leads (e.g. 'telefone' or 'email')
+  leadDateColumn: string;            // date column in lead tables
 }
 
 interface OfferFilters {
