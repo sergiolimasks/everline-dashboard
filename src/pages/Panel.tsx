@@ -111,7 +111,7 @@ function ClientCard({ client, isAdmin }: { client: ClientWithOffers; isAdmin: bo
     {
       label: "Lucro do Cliente", value: formatCurrency(lucroCliente), icon: PiggyBank,
       color: lucroCliente >= 0 ? "text-emerald-400" : "text-red-400",
-      tooltip: <LucroTooltip faturamentoCliente={faturamentoCliente} gastoTotal={gastoTotal} taxaGreenn={taxaGreenn} lucro={lucroCliente} />,
+      tooltip: <LucroTooltip faturamentoCliente={faturamentoCliente} gastoMeta={gastoMeta} imposto={imposto} custoConsultas={custoConsultas} custoManychat={custoManychat} taxaGreenn={taxaGreenn} lucro={lucroCliente} />,
     },
     {
       label: "ROI do Projeto", value: roi.toFixed(2), icon: roi >= 0 ? TrendingUp : TrendingDown,
