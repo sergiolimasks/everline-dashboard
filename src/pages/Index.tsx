@@ -151,6 +151,7 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
           salesData={salesDaily}
           isLoading={loadingTraffic || loadingSales}
           clientView={clientView}
+          showLeads={config.showLeads}
         />
 
         {!clientView && (

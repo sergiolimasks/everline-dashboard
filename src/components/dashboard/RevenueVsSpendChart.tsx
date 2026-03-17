@@ -7,13 +7,14 @@ interface FunnelChartProps {
   salesData: SalesDaily[] | undefined;
   isLoading: boolean;
   clientView?: boolean;
+  showLeads?: boolean;
 }
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
 
-export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientView = false }: FunnelChartProps) {
+export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientView = false, showLeads = false }: FunnelChartProps) {
   if (isLoading) {
     return (
       <div className="chart-container">
@@ -46,9 +47,9 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientV
     .sort()
     .map((dia) => {
       const gastoMeta = gastoMetaMap.get(dia) || 0;
-      const taxaFixa = taxaFixaMap.get(dia) || 0;
+      const taxaFixa = showLeads ? 0 : (taxaFixaMap.get(dia) || 0);
       const vendas = vendasMap.get(dia) || 0;
-      const custoManychat = vendas * 0.35;
+      const custoManychat = showLeads ? 0 : vendas * 0.35;
       const coProdutor = coProdutorMap.get(dia) || 0;
       const custoTotal = gastoMeta + taxaFixa + custoManychat;
       const receita = receitaMap.get(dia) || 0;
@@ -104,14 +105,18 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientV
               <span>Meta Ads + Imposto</span>
               <span>{formatCurrency(data?.gastoMeta || 0)}</span>
             </div>
-            <div className="flex justify-between gap-3">
-              <span>Consultas</span>
-              <span>{formatCurrency(data?.taxaFixa || 0)}</span>
-            </div>
-            <div className="flex justify-between gap-3">
-              <span>ManyChat</span>
-              <span>{formatCurrency(data?.custoManychat || 0)}</span>
-            </div>
+            {!showLeads && (
+              <div className="flex justify-between gap-3">
+                <span>Consultas</span>
+                <span>{formatCurrency(data?.taxaFixa || 0)}</span>
+              </div>
+            )}
+            {!showLeads && (
+              <div className="flex justify-between gap-3">
+                <span>ManyChat</span>
+                <span>{formatCurrency(data?.custoManychat || 0)}</span>
+              </div>
+            )}
           </div>
           <div className="flex justify-between gap-4">
             <span className="text-primary font-medium">Receita Líquida</span>
