@@ -35,7 +35,7 @@ async function queryExternalPG(sql: string, params: unknown[] = []) {
 interface LeadTableConfig {
   table: string;
   dateColumn: string;
-  countColumn: string;  // column for DISTINCT count (e.g. '"telefone"', '"email"')
+  countExpression: string;
 }
 
 interface ProjectConfig {
@@ -116,8 +116,8 @@ const PROJECTS: Record<string, ProjectConfig> = {
     defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%50K-DEZ25%' OR UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%')`,
     offerFilters: {},
     leadConfigs: [
-      { table: 'bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac', dateColumn: '"Data"', countColumn: '"telefone"' },
-      { table: 'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter', dateColumn: '"Data"', countColumn: '"email"' },
+      { table: 'bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"' },
+      { table: 'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter', dateColumn: '"Data"', countExpression: '*' },
     ],
   },
 };
@@ -178,7 +178,7 @@ async function queryLeadsTotal(config: ProjectConfig, params: string[]): Promise
       ? ` WHERE ${lc.dateColumn}::date >= $1 AND ${lc.dateColumn}::date <= $2`
       : '';
     const rows = await queryExternalPG(
-      `SELECT COUNT(*) as total FROM ${lc.table}${dateFilter}`,
+      `SELECT COUNT(${lc.countExpression}) as total FROM ${lc.table}${dateFilter}`,
       params
     );
     total += Number((rows[0] as any)?.total || 0);
@@ -195,7 +195,7 @@ async function queryLeadsDaily(config: ProjectConfig, params: string[]): Promise
       ? ` WHERE ${lc.dateColumn}::date >= $1 AND ${lc.dateColumn}::date <= $2`
       : '';
     const rows = await queryExternalPG(
-      `SELECT ${lc.dateColumn}::date as dia, COUNT(*) as total FROM ${lc.table}${dateFilter} GROUP BY ${lc.dateColumn}::date`,
+      `SELECT ${lc.dateColumn}::date as dia, COUNT(${lc.countExpression}) as total FROM ${lc.table}${dateFilter} GROUP BY ${lc.dateColumn}::date`,
       params
     );
     for (const r of rows as any[]) {
