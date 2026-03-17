@@ -54,12 +54,17 @@ function VendasTooltip({ products }: { products: { produto: string; vendas_aprov
   );
 }
 
-function LucroTooltip({ faturamentoCliente, gastoTotal, taxaGreenn, lucro }: { faturamentoCliente: number; gastoTotal: number; taxaGreenn: number; lucro: number }) {
+function LucroTooltip({ faturamentoCliente, gastoMeta, imposto, custoConsultas, custoManychat, taxaGreenn, lucro }: {
+  faturamentoCliente: number; gastoMeta: number; imposto: number; custoConsultas: number; custoManychat: number; taxaGreenn: number; lucro: number;
+}) {
   return (
     <div className="space-y-1.5 text-xs">
       <p className="font-semibold text-foreground mb-2">Composição do Lucro do Cliente</p>
       <div className="flex justify-between"><span className="text-muted-foreground">Faturamento do Cliente</span><span className="text-emerald-400 font-medium">+ {formatCurrency(faturamentoCliente)}</span></div>
-      <div className="flex justify-between"><span className="text-muted-foreground">Gasto Total</span><span className="text-red-400 font-medium">- {formatCurrency(gastoTotal)}</span></div>
+      <div className="flex justify-between"><span className="text-muted-foreground">Gasto Meta Ads</span><span className="text-red-400 font-medium">- {formatCurrency(gastoMeta)}</span></div>
+      <div className="flex justify-between"><span className="text-muted-foreground">Imposto (12,5%)</span><span className="text-red-400 font-medium">- {formatCurrency(imposto)}</span></div>
+      <div className="flex justify-between"><span className="text-muted-foreground">Custo Consultas</span><span className="text-red-400 font-medium">- {formatCurrency(custoConsultas)}</span></div>
+      <div className="flex justify-between"><span className="text-muted-foreground">ManyChat</span><span className="text-red-400 font-medium">- {formatCurrency(custoManychat)}</span></div>
       <div className="flex justify-between"><span className="text-muted-foreground">Taxa Greenn</span><span className="text-red-400 font-medium">- {formatCurrency(taxaGreenn)}</span></div>
       <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
         <span className="text-foreground">Lucro do Cliente</span>
