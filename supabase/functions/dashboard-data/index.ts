@@ -35,7 +35,7 @@ async function queryExternalPG(sql: string, params: unknown[] = []) {
 interface LeadTableConfig {
   table: string;
   dateColumn: string;
-  countColumn: string;  // column for DISTINCT count (e.g. '"telefone"', '"email"')
+  countExpression: string;
 }
 
 interface ProjectConfig {
