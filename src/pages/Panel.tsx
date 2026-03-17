@@ -178,18 +178,23 @@ function ClientCard({ client, isAdmin, clientView }: { client: ClientWithOffers;
       <div className="space-y-2">
         <p className="text-sm font-medium text-muted-foreground">Relatórios</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {client.offers.map((offer) => (
-            <a
-              key={offer.offer_slug}
-              href={`/interno/${client.slug}/checkup-performance`}
-              className="flex items-center justify-between px-4 py-3 rounded-lg border border-border bg-card hover:border-primary/50 transition-colors group"
-            >
-              <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
-                {offer.label}
-              </p>
-              <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            </a>
-          ))}
+          {client.offers.map((offer) => {
+            const reportHref = clientView
+              ? `/cliente/${client.slug}/checkup-performance`
+              : `/interno/${client.slug}/checkup-performance`;
+            return (
+              <a
+                key={offer.offer_slug}
+                href={reportHref}
+                className="flex items-center justify-between px-4 py-3 rounded-lg border border-border bg-card hover:border-primary/50 transition-colors group"
+              >
+                <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                  {offer.label}
+                </p>
+                <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+              </a>
+            );
+          })}
         </div>
       </div>
     </div>
