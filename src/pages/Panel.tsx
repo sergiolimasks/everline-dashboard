@@ -92,7 +92,7 @@ function ClientCard({ client, isAdmin }: { client: ClientWithOffers; isAdmin: bo
 
   const kpis = [
     {
-      label: "Gasto Total Hoje", value: formatCurrency(gastoTotal), icon: Wallet, color: "text-red-400",
+      label: "Investimento Hoje", value: formatCurrency(gastoTotal), icon: Wallet, color: "text-red-400",
       tooltip: <GastoTooltip gastoMeta={gastoMeta} imposto={imposto} custoConsultas={custoConsultas} custoManychat={custoManychat} gastoTotal={gastoTotal} />,
     },
     {
