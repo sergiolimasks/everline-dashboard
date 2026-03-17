@@ -33,54 +33,37 @@ serve(async (req) => {
     const { searchParams } = new URL(req.url);
     const day = searchParams.get("day") || "2026-03-17";
 
-    const [schema, aplicacaoStats, lancamentoStats, aplicacaoRawDates, lancamentoRawDates] = await Promise.all([
-      queryExternalPG(`
-        SELECT table_name, column_name, data_type
-        FROM information_schema.columns
-        WHERE table_schema = 'bd_ads_clientes'
-          AND table_name IN ('leads_uelicon_venancio_aplicacao_formac', 'leads_uelicon_venancio_acao_50k_ter')
-        ORDER BY table_name, ordinal_position
-      `),
+    const [aplicacao, lancamento] = await Promise.all([
       queryExternalPG(`
         SELECT
-          COUNT(*) FILTER (WHERE "Data"::date = $1::date) AS total_rows,
-          COUNT(*) FILTER (WHERE "Data"::date = $1::date AND NULLIF(TRIM(COALESCE("telefone", '')), '') IS NOT NULL) AS with_phone,
-          COUNT(DISTINCT NULLIF(TRIM(COALESCE("telefone", '')), '')) FILTER (WHERE "Data"::date = $1::date) AS unique_phone,
-          COUNT(*) FILTER (WHERE "Data"::date = $1::date AND NULLIF(TRIM(COALESCE("nome", '')), '') IS NOT NULL) AS with_name
+          COUNT(*) FILTER (WHERE "Data"::date = $1::date) AS utc_rows,
+          COUNT(DISTINCT NULLIF(TRIM(COALESCE("telefone", '')), '')) FILTER (WHERE "Data"::date = $1::date) AS utc_unique_phone,
+          COUNT(*) FILTER (
+            WHERE (("Data" AT TIME ZONE 'America/Sao_Paulo')::date = $1::date)
+          ) AS sp_rows,
+          COUNT(DISTINCT NULLIF(TRIM(COALESCE("telefone", '')), '')) FILTER (
+            WHERE (("Data" AT TIME ZONE 'America/Sao_Paulo')::date = $1::date)
+          ) AS sp_unique_phone
         FROM bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac
       `, [day]),
       queryExternalPG(`
         SELECT
-          COUNT(*) FILTER (WHERE "Data"::date = $1::date) AS total_rows,
-          COUNT(*) FILTER (WHERE "Data"::date = $1::date AND NULLIF(TRIM(COALESCE("email", '')), '') IS NOT NULL) AS with_email,
-          COUNT(DISTINCT NULLIF(TRIM(COALESCE("email", '')), '')) FILTER (WHERE "Data"::date = $1::date) AS unique_email,
-          COUNT(*) FILTER (WHERE "Data"::date = $1::date AND NULLIF(TRIM(COALESCE("telefone", '')), '') IS NOT NULL) AS with_phone,
-          COUNT(DISTINCT NULLIF(TRIM(COALESCE("telefone", '')), '')) FILTER (WHERE "Data"::date = $1::date) AS unique_phone
+          COUNT(*) FILTER (WHERE "Data"::date = $1::date) AS utc_rows,
+          COUNT(DISTINCT NULLIF(TRIM(COALESCE("email", '')), '')) FILTER (WHERE "Data"::date = $1::date) AS utc_unique_email,
+          COUNT(*) FILTER (
+            WHERE (("Data" AT TIME ZONE 'America/Sao_Paulo')::date = $1::date)
+          ) AS sp_rows,
+          COUNT(DISTINCT NULLIF(TRIM(COALESCE("email", '')), '')) FILTER (
+            WHERE (("Data" AT TIME ZONE 'America/Sao_Paulo')::date = $1::date)
+          ) AS sp_unique_email
         FROM bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter
-      `, [day]),
-      queryExternalPG(`
-        SELECT "Data", COUNT(*) AS total
-        FROM bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac
-        WHERE "Data"::date BETWEEN ($1::date - INTERVAL '1 day') AND ($1::date + INTERVAL '1 day')
-        GROUP BY "Data"
-        ORDER BY "Data"
-      `, [day]),
-      queryExternalPG(`
-        SELECT "Data", COUNT(*) AS total
-        FROM bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter
-        WHERE "Data"::date BETWEEN ($1::date - INTERVAL '1 day') AND ($1::date + INTERVAL '1 day')
-        GROUP BY "Data"
-        ORDER BY "Data"
       `, [day]),
     ]);
 
     return new Response(JSON.stringify({
       day,
-      schema,
-      aplicacao: aplicacaoStats[0] ?? null,
-      lancamento: lancamentoStats[0] ?? null,
-      aplicacao_raw_dates: aplicacaoRawDates,
-      lancamento_raw_dates: lancamentoRawDates,
+      aplicacao: aplicacao[0] ?? null,
+      lancamento: lancamento[0] ?? null,
     }, (_, value) => typeof value === "bigint" ? Number(value) : value), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
