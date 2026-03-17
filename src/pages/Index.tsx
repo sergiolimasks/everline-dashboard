@@ -29,6 +29,7 @@ const PROJECT_CONFIGS: Record<string, ProjectDashboardConfig> = {
     showOfferFilter: true,
     showCustoConsultas: true,
     showManychat: true,
+    showLeads: false,
   },
   'formacao-consultor': {
     project: 'formacao-consultor',
