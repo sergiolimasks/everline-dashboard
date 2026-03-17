@@ -208,9 +208,9 @@ function KPICard({
 export function KPICards({ data, isLoading, comparison7d, comparison14d, trafficDaily, salesDaily, isSingleDay = false, clientView = false, showLeads = false }: KPICardsProps) {
   const [showDetails, setShowDetails] = useState(false);
 
-  const current = calcMetrics(data);
-  const comp7d = calcMetrics(comparison7d);
-  const comp14d = calcMetrics(comparison14d);
+  const current = calcMetrics(data, showLeads);
+  const comp7d = calcMetrics(comparison7d, showLeads);
+  const comp14d = calcMetrics(comparison14d, showLeads);
 
   const products = data?.products || [];
   const mainProducts = products.filter(p => {
