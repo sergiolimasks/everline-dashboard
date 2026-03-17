@@ -32,6 +32,12 @@ async function queryExternalPG(sql: string, params: unknown[] = []) {
 
 // ========== PROJECT CONFIGS ==========
 
+interface LeadTableConfig {
+  table: string;
+  dateColumn: string;
+  countColumn: string;  // column for DISTINCT count (e.g. '"telefone"', '"email"')
+}
+
 interface ProjectConfig {
   metaTable: string;
   linksTable: string;
@@ -42,9 +48,7 @@ interface ProjectConfig {
   custoManychat: number;
   defaultMetaWhere: string;
   offerFilters: Record<string, OfferFilters>;
-  leadTables: string[];              // lead tables to query (empty = no leads)
-  leadCountColumn: string;           // column to COUNT for leads (e.g. 'telefone' or 'email')
-  leadDateColumn: string;            // date column in lead tables
+  leadConfigs: LeadTableConfig[];
 }
 
 interface OfferFilters {
