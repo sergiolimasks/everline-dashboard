@@ -423,13 +423,22 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
           inlineComparison formatValue={(v) => `${v.toFixed(0)}/d`}
           tooltipContent={vendasTooltip}
         />
-        <KPICard
-          label="Order Bumps" value={isLoading ? null : String(current?.vendasBump || 0)}
-          icon={Target} color="text-chart-purple" isLoading={isLoading}
-          metricKey="vendasBumpDia" current={current} comp7d={comp7d} comp14d={comp14d}
-          inlineComparison formatValue={(v) => `${v.toFixed(0)}/d`}
-          tooltipContent={bumpsTooltip}
-        />
+        {showLeads ? (
+          <KPICard
+            label="Leads" value={isLoading ? null : String(current?.totalLeads || 0)}
+            icon={Target} color="text-chart-purple" isLoading={isLoading}
+            metricKey="totalLeads" current={current} comp7d={comp7d} comp14d={comp14d}
+            inlineComparison formatValue={(v) => `${v.toFixed(0)}/d`}
+          />
+        ) : (
+          <KPICard
+            label="Order Bumps" value={isLoading ? null : String(current?.vendasBump || 0)}
+            icon={Target} color="text-chart-purple" isLoading={isLoading}
+            metricKey="vendasBumpDia" current={current} comp7d={comp7d} comp14d={comp14d}
+            inlineComparison formatValue={(v) => `${v.toFixed(0)}/d`}
+            tooltipContent={bumpsTooltip}
+          />
+        )}
         <KPICard
           label="Lucro" value={isLoading ? null : formatCurrency(current?.lucro || 0)}
           icon={(current?.lucro || 0) >= 0 ? TrendingUp : TrendingDown}
