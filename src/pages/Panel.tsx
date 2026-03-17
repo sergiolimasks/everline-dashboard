@@ -85,13 +85,10 @@ function ClientCard({ client, isAdmin }: { client: ClientWithOffers; isAdmin: bo
   const coProdutor = Number(summary?.sales?.co_produtor || 0);
   const gastoTotal = gastoMeta + imposto + custoConsultas + custoManychat;
   const receitaBruta = Number(summary?.sales?.receita_bruta || 0);
-  const taxaGreenn = Number(summary?.sales?.taxa_green || 0);
   const faturamentoAgencia = coProdutor;
-  // Faturamento do Cliente = receita bruta - co-produtor (agência)
   const faturamentoCliente = receitaBruta - faturamentoAgencia;
-  // Lucro do Cliente = faturamento do cliente - gastos totais - taxa Greenn
-  const lucroCliente = faturamentoCliente - gastoTotal - taxaGreenn;
-  const roi = gastoTotal > 0 ? (faturamentoCliente - gastoTotal) / gastoTotal : 0;
+  const lucroCliente = faturamentoCliente - gastoTotal;
+  const cac = vendasAprovadas > 0 ? gastoTotal / vendasAprovadas : 0;
   const products = summary?.products || [];
 
   const kpis = [
