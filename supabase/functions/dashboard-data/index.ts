@@ -32,6 +32,12 @@ async function queryExternalPG(sql: string, params: unknown[] = []) {
 
 // ========== PROJECT CONFIGS ==========
 
+interface LeadTableConfig {
+  table: string;
+  dateColumn: string;
+  countColumn: string;  // column for DISTINCT count (e.g. '"telefone"', '"email"')
+}
+
 interface ProjectConfig {
   metaTable: string;
   linksTable: string;
@@ -42,9 +48,7 @@ interface ProjectConfig {
   custoManychat: number;
   defaultMetaWhere: string;
   offerFilters: Record<string, OfferFilters>;
-  leadTables: string[];              // lead tables to query (empty = no leads)
-  leadCountColumn: string;           // column to COUNT for leads (e.g. 'telefone' or 'email')
-  leadDateColumn: string;            // date column in lead tables
+  leadConfigs: LeadTableConfig[];
 }
 
 interface OfferFilters {
@@ -96,9 +100,7 @@ const PROJECTS: Record<string, ProjectConfig> = {
         useEmailLinkedBumps: true,
       },
     },
-    leadTables: [],
-    leadCountColumn: '',
-    leadDateColumn: '',
+    leadConfigs: [],
   },
   'formacao-consultor': {
     metaTable: 'bd_ads_clientes.meta_uelicon_venancio',
@@ -113,12 +115,10 @@ const PROJECTS: Record<string, ProjectConfig> = {
     custoManychat: 0,
     defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%50K-DEZ25%' OR UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%')`,
     offerFilters: {},
-    leadTables: [
-      'bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac',
-      'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter',
+    leadConfigs: [
+      { table: 'bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac', dateColumn: '"Data"', countColumn: '"telefone"' },
+      { table: 'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter', dateColumn: '"Data"', countColumn: '"email"' },
     ],
-    leadCountColumn: '*',
-    leadDateColumn: '"Data"',
   },
 };
 
@@ -171,14 +171,14 @@ function allProductsFilter(config: ProjectConfig, productName: string): string {
 
 // Query total leads from all lead tables
 async function queryLeadsTotal(config: ProjectConfig, params: string[]): Promise<number> {
-  if (config.leadTables.length === 0) return 0;
+  if (config.leadConfigs.length === 0) return 0;
   let total = 0;
-  for (const table of config.leadTables) {
+  for (const lc of config.leadConfigs) {
     const dateFilter = params.length >= 2
-      ? ` WHERE ${config.leadDateColumn}::date >= $1 AND ${config.leadDateColumn}::date <= $2`
+      ? ` WHERE ${lc.dateColumn}::date >= $1 AND ${lc.dateColumn}::date <= $2`
       : '';
     const rows = await queryExternalPG(
-      `SELECT COUNT(${config.leadCountColumn}) as total FROM ${table}${dateFilter}`,
+      `SELECT COUNT(DISTINCT ${lc.countColumn}) as total FROM ${lc.table}${dateFilter}`,
       params
     );
     total += Number((rows[0] as any)?.total || 0);
@@ -189,13 +189,13 @@ async function queryLeadsTotal(config: ProjectConfig, params: string[]): Promise
 // Query daily leads from all lead tables
 async function queryLeadsDaily(config: ProjectConfig, params: string[]): Promise<Map<string, number>> {
   const map = new Map<string, number>();
-  if (config.leadTables.length === 0) return map;
-  for (const table of config.leadTables) {
+  if (config.leadConfigs.length === 0) return map;
+  for (const lc of config.leadConfigs) {
     const dateFilter = params.length >= 2
-      ? ` WHERE ${config.leadDateColumn}::date >= $1 AND ${config.leadDateColumn}::date <= $2`
+      ? ` WHERE ${lc.dateColumn}::date >= $1 AND ${lc.dateColumn}::date <= $2`
       : '';
     const rows = await queryExternalPG(
-      `SELECT ${config.leadDateColumn}::date as dia, COUNT(${config.leadCountColumn}) as total FROM ${table}${dateFilter} GROUP BY ${config.leadDateColumn}::date`,
+      `SELECT ${lc.dateColumn}::date as dia, COUNT(DISTINCT ${lc.countColumn}) as total FROM ${lc.table}${dateFilter} GROUP BY ${lc.dateColumn}::date`,
       params
     );
     for (const r of rows as any[]) {
