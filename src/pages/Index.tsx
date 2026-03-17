@@ -131,6 +131,7 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
           salesDaily={sparklineSalesData}
           isSingleDay={periodDays === 1}
           clientView={clientView}
+          showLeads={config.showLeads}
         />
 
         {/* Charts Row */}
