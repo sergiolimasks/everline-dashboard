@@ -115,12 +115,10 @@ const PROJECTS: Record<string, ProjectConfig> = {
     custoManychat: 0,
     defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%50K-DEZ25%' OR UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%')`,
     offerFilters: {},
-    leadTables: [
-      'bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac',
-      'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter',
+    leadConfigs: [
+      { table: 'bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac', dateColumn: '"Data"', countColumn: '"telefone"' },
+      { table: 'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter', dateColumn: '"Data"', countColumn: '"email"' },
     ],
-    leadCountColumn: '*',
-    leadDateColumn: '"Data"',
   },
 };
 
