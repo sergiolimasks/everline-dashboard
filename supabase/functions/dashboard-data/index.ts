@@ -253,6 +253,13 @@ serve(async (req) => {
         ORDER BY data::date DESC
       `, params);
 
+      // Merge leads data if project has lead tables
+      const leadsMap = await queryLeadsDaily(config, params);
+      data = (trafficRows as any[]).map(row => ({
+        ...row,
+        leads: leadsMap.get(String(row.dia).slice(0, 10)) || 0,
+      }));
+
     } else if (endpoint === 'sales_daily') {
       const salesDateFilter = dateFrom && dateTo
         ? ` AND "Data"::date >= $1 AND "Data"::date <= $2`
