@@ -161,41 +161,41 @@ function DatePickerButton({
   );
 }
 
+/**
+ * Get the most recent Wednesday on or before the given date.
+ * Week runs Wed–Tue.
+ */
+function getWednesday(ref: Date): Date {
+  const d = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
+  const day = d.getDay(); // 0=Sun..6=Sat
+  // days since last Wednesday: (day - 3 + 7) % 7
+  const diff = (day - 3 + 7) % 7;
+  d.setDate(d.getDate() - diff);
+  return d;
+}
+
 export function DateFilter({ dateFrom, dateTo, onDateChange }: DateFilterProps) {
-  const [activePreset, setActivePreset] = useState<string | null>("Hoje");
+  const [activePreset, setActivePreset] = useState<string | null>("Esta semana");
 
   const presets: { label: string; getRange: () => [Date, Date] }[] = [
     {
-      label: "Hoje",
+      label: "Esta semana",
       getRange: () => {
-        const d = new Date();
-        return [d, d];
+        const today = new Date();
+        const wed = getWednesday(today);
+        return [wed, today];
       },
     },
     {
-      label: "Ontem",
+      label: "Semana passada",
       getRange: () => {
-        const d = new Date();
-        d.setDate(d.getDate() - 1);
-        return [d, new Date(d)];
-      },
-    },
-    {
-      label: "7 dias",
-      getRange: () => {
-        const to = new Date();
-        const from = new Date();
-        from.setDate(from.getDate() - 6);
-        return [from, to];
-      },
-    },
-    {
-      label: "14 dias",
-      getRange: () => {
-        const to = new Date();
-        const from = new Date();
-        from.setDate(from.getDate() - 13);
-        return [from, to];
+        const today = new Date();
+        const thisWed = getWednesday(today);
+        const prevTue = new Date(thisWed);
+        prevTue.setDate(prevTue.getDate() - 1);
+        const prevWed = new Date(thisWed);
+        prevWed.setDate(prevWed.getDate() - 7);
+        return [prevWed, prevTue];
       },
     },
     {
@@ -212,15 +212,6 @@ export function DateFilter({ dateFrom, dateTo, onDateChange }: DateFilterProps) 
         const now = new Date();
         const from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const to = new Date(now.getFullYear(), now.getMonth(), 0);
-        return [from, to];
-      },
-    },
-    {
-      label: "Últimos 30 dias",
-      getRange: () => {
-        const to = new Date();
-        const from = new Date();
-        from.setDate(from.getDate() - 29);
         return [from, to];
       },
     },

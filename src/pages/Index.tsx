@@ -49,8 +49,14 @@ interface IndexProps {
 const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
   const config = PROJECT_CONFIGS[projectKey] || PROJECT_CONFIGS['checkup'];
   const today = new Date();
-
-  const [dateFrom, setDateFrom] = useState(formatDateString(today));
+  // Default to "this week" (Wed–today)
+  const getWednesday = (ref: Date) => {
+    const d = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
+    const diff = (d.getDay() - 3 + 7) % 7;
+    d.setDate(d.getDate() - diff);
+    return d;
+  };
+  const [dateFrom, setDateFrom] = useState(formatDateString(getWednesday(today)));
   const [dateTo, setDateTo] = useState(formatDateString(today));
   const [offer, setOffer] = useState<OfferType>('all');
 
