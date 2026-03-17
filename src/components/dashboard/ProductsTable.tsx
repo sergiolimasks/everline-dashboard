@@ -52,7 +52,7 @@ export function ProductsTable({ data, isLoading, allPrincipal = false }: Product
           </thead>
           <tbody>
             {products.map((p, i) => {
-              const isCheckup = (p.produto || '').toLowerCase().includes('checkup') || (p.produto || '').toLowerCase().includes('vida financeira');
+              const isCheckup = allPrincipal || (p.produto || '').toLowerCase().includes('checkup') || (p.produto || '').toLowerCase().includes('vida financeira');
               const ticketMedio = Number(p.vendas_aprovadas) > 0 ? Number(p.receita_bruta) / Number(p.vendas_aprovadas) : 0;
               return (
                 <tr key={i}>
