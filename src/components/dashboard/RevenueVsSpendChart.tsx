@@ -105,14 +105,18 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientV
               <span>Meta Ads + Imposto</span>
               <span>{formatCurrency(data?.gastoMeta || 0)}</span>
             </div>
-            <div className="flex justify-between gap-3">
-              <span>Consultas</span>
-              <span>{formatCurrency(data?.taxaFixa || 0)}</span>
-            </div>
-            <div className="flex justify-between gap-3">
-              <span>ManyChat</span>
-              <span>{formatCurrency(data?.custoManychat || 0)}</span>
-            </div>
+            {!showLeads && (
+              <div className="flex justify-between gap-3">
+                <span>Consultas</span>
+                <span>{formatCurrency(data?.taxaFixa || 0)}</span>
+              </div>
+            )}
+            {!showLeads && (
+              <div className="flex justify-between gap-3">
+                <span>ManyChat</span>
+                <span>{formatCurrency(data?.custoManychat || 0)}</span>
+              </div>
+            )}
           </div>
           <div className="flex justify-between gap-4">
             <span className="text-primary font-medium">Receita Líquida</span>
