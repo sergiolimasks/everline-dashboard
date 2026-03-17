@@ -201,7 +201,7 @@ function ClientCard({ client, isAdmin, clientView }: { client: ClientWithOffers;
   );
 }
 
-export default function Panel() {
+export default function Panel({ clientView }: { clientView?: boolean }) {
   const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientWithOffers[]>([]);
@@ -211,31 +211,65 @@ export default function Panel() {
     if (!user) return;
 
     async function loadClients() {
-      const { data: clientsData, error: clientsError } = await (supabase as any)
-        .from("clients")
-        .select("id, name, slug");
+      if (clientView) {
+        // For client view, load only the client's own campaigns
+        const { data: accessData } = await supabase
+          .from("user_campaign_access")
+          .select("offer_slug, label")
+          .eq("user_id", user!.id);
 
-      if (clientsError || !clientsData) {
-        console.error("Error loading clients:", clientsError);
-        setLoading(false);
-        return;
+        if (!accessData || accessData.length === 0) {
+          setLoading(false);
+          return;
+        }
+
+        // Find matching clients by offer slug
+        const slugs = accessData.map((a: any) => a.offer_slug);
+        const { data: offersData } = await supabase
+          .from("client_offers")
+          .select("client_id, offer_slug, label")
+          .in("offer_slug", slugs);
+
+        const clientIds = [...new Set((offersData || []).map((o: any) => o.client_id))];
+        const { data: clientsData } = await supabase
+          .from("clients")
+          .select("id, name, slug")
+          .in("id", clientIds);
+
+        const clientsWithOffers: ClientWithOffers[] = (clientsData || []).map((c: any) => ({
+          ...c,
+          offers: (offersData || []).filter((o: any) => o.client_id === c.id),
+        }));
+
+        setClients(clientsWithOffers);
+      } else {
+        // Admin view - load all clients
+        const { data: clientsData, error: clientsError } = await supabase
+          .from("clients")
+          .select("id, name, slug");
+
+        if (clientsError || !clientsData) {
+          console.error("Error loading clients:", clientsError);
+          setLoading(false);
+          return;
+        }
+
+        const { data: offersData } = await supabase
+          .from("client_offers")
+          .select("client_id, offer_slug, label");
+
+        const clientsWithOffers: ClientWithOffers[] = clientsData.map((c: any) => ({
+          ...c,
+          offers: (offersData || []).filter((o: any) => o.client_id === c.id),
+        }));
+
+        setClients(clientsWithOffers);
       }
-
-      const { data: offersData } = await (supabase as any)
-        .from("client_offers")
-        .select("client_id, offer_slug, label");
-
-      const clientsWithOffers: ClientWithOffers[] = clientsData.map((c: any) => ({
-        ...c,
-        offers: (offersData || []).filter((o: any) => o.client_id === c.id),
-      }));
-
-      setClients(clientsWithOffers);
       setLoading(false);
     }
 
     loadClients();
-  }, [user]);
+  }, [user, clientView]);
 
   const handleLogout = async () => {
     await signOut();
@@ -251,8 +285,12 @@ export default function Panel() {
               <BarChart3 className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold font-display text-foreground">Painel de Controle</h1>
-              <p className="text-sm text-muted-foreground">Visão geral dos clientes</p>
+              <h1 className="text-2xl font-bold font-display text-foreground">
+                {clientView ? "Meu Painel" : "Painel de Controle"}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {clientView ? "Acompanhe seus resultados" : "Visão geral dos clientes"}
+              </p>
             </div>
           </div>
           <button
@@ -272,7 +310,7 @@ export default function Panel() {
           <div className="space-y-8">
             {clients.map((client) => (
               <div key={client.id} className="rounded-2xl border border-border bg-card/50 p-5 md:p-6 space-y-4">
-                <ClientCard client={client} isAdmin={isAdmin} />
+                <ClientCard client={client} isAdmin={isAdmin} clientView={clientView} />
               </div>
             ))}
           </div>
