@@ -10,7 +10,7 @@ function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
 
-export function ProductsTable({ data, isLoading }: ProductsTableProps) {
+export function ProductsTable({ data, isLoading, allPrincipal = false }: ProductsTableProps) {
   if (isLoading) {
     return (
       <div className="chart-container">
