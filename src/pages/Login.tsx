@@ -52,7 +52,7 @@ export default function Login() {
         .maybeSingle();
 
       if (access?.offer_slug) {
-        navigate(`/cliente/${access.offer_slug}/checkup-performance`);
+        navigate(`/cliente/${access.offer_slug}/painel`);
       } else {
         navigate("/");
       }

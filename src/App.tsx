@@ -24,6 +24,7 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/painel" element={<ProtectedRoute adminOnly><Panel /></ProtectedRoute>} />
+            <Route path="/cliente/:slug/painel" element={<ProtectedRoute><Panel clientView /></ProtectedRoute>} />
             <Route path="/interno/uelicon/checkup-performance" element={<ProtectedRoute adminOnly><Index /></ProtectedRoute>} />
             <Route path="/cliente/:slug/checkup-performance" element={<ProtectedRoute><Index clientView /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
