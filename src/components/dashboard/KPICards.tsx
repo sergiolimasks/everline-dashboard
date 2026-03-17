@@ -71,16 +71,18 @@ function calcMetrics(data: SummaryData | undefined) {
   // Leads-based metrics
   const taxaConvPaginaLeads = totalViews > 0 ? totalLeads / totalViews : 0;  // leads / views_pagina
   const taxaInicioCheckoutLeads = totalLeads > 0 ? totalCheckouts / totalLeads : 0;  // checkouts / leads
+  const taxaConvLeads = totalLeads > 0 ? vendasAprovadas / totalLeads : 0; // vendas / leads
 
   const vendasAprovDia = vendasAprovadas / diasAtivos;
   const vendasBumpDia = vendasBump / diasAtivos;
+  const leadsDia = totalLeads / diasAtivos;
 
     return {
       gastoMeta, impostoMeta, totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
       taxaFixa, custoManychat, coProdutor, taxaGreen, lucro, roi, diasAtivos,
       cac, cacClient, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
       thumbStopRate, receitaPorVenda, receitaPorVendaLiquida, vendasAprovDia, vendasBumpDia,
-      totalLeads, taxaConvPaginaLeads, taxaInicioCheckoutLeads,
+      totalLeads, taxaConvPaginaLeads, taxaInicioCheckoutLeads, taxaConvLeads, leadsDia,
     };
 }
 
@@ -427,7 +429,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
           <KPICard
             label="Leads" value={isLoading ? null : String(current?.totalLeads || 0)}
             icon={Target} color="text-chart-purple" isLoading={isLoading}
-            metricKey="totalLeads" current={current} comp7d={comp7d} comp14d={comp14d}
+            metricKey="leadsDia" current={current} comp7d={comp7d} comp14d={comp14d}
             inlineComparison formatValue={(v) => `${v.toFixed(0)}/d`}
           />
         ) : (
@@ -637,22 +639,35 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                 tooltipContent={getSparkline("taxaConvPaginaLeads")}
               />
             )}
-            <KPICard
-              label={showLeads ? "Iniciou Checkout" : "Iniciou Checkout"}
-              value={isLoading ? null : formatPercent(showLeads ? (current?.taxaInicioCheckoutLeads || 0) : (current?.taxaConversaoPagina || 0))}
-              icon={CheckCircle} color="text-chart-blue" isLoading={isLoading}
-              metricKey={showLeads ? "taxaInicioCheckoutLeads" : "taxaConversaoPagina"}
-              current={current} comp7d={comp7d} comp14d={comp14d}
-              formatValue={formatPercent}
-              tooltipContent={getSparkline(showLeads ? "taxaInicioCheckoutLeads" : "taxaConversaoPagina")}
-            />
-            <KPICard
-              label="Tx Conv. Checkout" value={isLoading ? null : formatPercent(current?.taxaConversaoCheckout || 0)}
-              icon={ShoppingCart} color="text-primary" isLoading={isLoading}
-              metricKey="taxaConversaoCheckout" current={current} comp7d={comp7d} comp14d={comp14d}
-              formatValue={formatPercent}
-              tooltipContent={getSparkline("taxaConversaoCheckout")}
-            />
+            {!showLeads && (
+              <>
+                <KPICard
+                  label="Iniciou Checkout"
+                  value={isLoading ? null : formatPercent(current?.taxaConversaoPagina || 0)}
+                  icon={CheckCircle} color="text-chart-blue" isLoading={isLoading}
+                  metricKey="taxaConversaoPagina"
+                  current={current} comp7d={comp7d} comp14d={comp14d}
+                  formatValue={formatPercent}
+                  tooltipContent={getSparkline("taxaConversaoPagina")}
+                />
+                <KPICard
+                  label="Tx Conv. Checkout" value={isLoading ? null : formatPercent(current?.taxaConversaoCheckout || 0)}
+                  icon={ShoppingCart} color="text-primary" isLoading={isLoading}
+                  metricKey="taxaConversaoCheckout" current={current} comp7d={comp7d} comp14d={comp14d}
+                  formatValue={formatPercent}
+                  tooltipContent={getSparkline("taxaConversaoCheckout")}
+                />
+              </>
+            )}
+            {showLeads && (
+              <KPICard
+                label="Tx Conv. Leads" value={isLoading ? null : formatPercent(current?.taxaConvLeads || 0)}
+                icon={ShoppingCart} color="text-primary" isLoading={isLoading}
+                metricKey="taxaConvLeads" current={current} comp7d={comp7d} comp14d={comp14d}
+                formatValue={formatPercent}
+                tooltipContent={getSparkline("taxaConvLeads")}
+              />
+            )}
           </div>
         </>
       )}
