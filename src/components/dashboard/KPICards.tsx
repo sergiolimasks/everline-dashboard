@@ -634,33 +634,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
       )}
 
       {clientView && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <TooltipProvider delayDuration={200}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div>
-                  <KPICard
-                    label="CAC" value={isLoading ? null : formatCurrency(current?.cacClient || 0)}
-                    icon={Target} color="text-chart-blue" isLoading={isLoading}
-                    metricKey="cacClient" current={current} comp7d={comp7d} comp14d={comp14d}
-                    formatValue={formatCurrency} invertComparison
-                  />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="w-72 p-3">
-                <p className="text-xs font-semibold mb-2 text-foreground">Composição do CAC</p>
-                <div className="space-y-1.5 text-[11px]">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Investimento em Tráfego</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.totalGasto || 0) / current!.vendasAprovadas : 0)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Custo das Consultas</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.taxaFixa || 0) / current!.vendasAprovadas : 0)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">ManyChat</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.custoManychat || 0) / current!.vendasAprovadas : 0)}</span></div>
-                  <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
-                    <span className="text-muted-foreground">CAC Total</span>
-                    <span className="text-foreground">{formatCurrency(current?.cacClient || 0)}</span>
-                  </div>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <TooltipProvider delayDuration={200}>
             <Tooltip>
               <TooltipTrigger asChild>
