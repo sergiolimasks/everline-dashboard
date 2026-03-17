@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSummary } from "@/hooks/use-dashboard";
 import { formatDateString } from "@/lib/date-utils";
-import { BarChart3, LogOut, ExternalLink, TrendingUp, TrendingDown, DollarSign, ShoppingCart, Wallet, PiggyBank, Building2 } from "lucide-react";
+import { BarChart3, LogOut, ExternalLink, Target, DollarSign, ShoppingCart, Wallet, PiggyBank, Building2 } from "lucide-react";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 
 interface ClientWithOffers {
@@ -54,8 +54,8 @@ function VendasTooltip({ products }: { products: { produto: string; vendas_aprov
   );
 }
 
-function LucroTooltip({ faturamentoCliente, gastoMeta, imposto, custoConsultas, custoManychat, taxaGreenn, lucro }: {
-  faturamentoCliente: number; gastoMeta: number; imposto: number; custoConsultas: number; custoManychat: number; taxaGreenn: number; lucro: number;
+function LucroTooltip({ faturamentoCliente, gastoMeta, imposto, custoConsultas, custoManychat, lucro }: {
+  faturamentoCliente: number; gastoMeta: number; imposto: number; custoConsultas: number; custoManychat: number; lucro: number;
 }) {
   return (
     <div className="space-y-1.5 text-xs">
@@ -65,7 +65,6 @@ function LucroTooltip({ faturamentoCliente, gastoMeta, imposto, custoConsultas, 
       <div className="flex justify-between"><span className="text-muted-foreground">Imposto (12,5%)</span><span className="text-red-400 font-medium">- {formatCurrency(imposto)}</span></div>
       <div className="flex justify-between"><span className="text-muted-foreground">Custo Consultas</span><span className="text-red-400 font-medium">- {formatCurrency(custoConsultas)}</span></div>
       <div className="flex justify-between"><span className="text-muted-foreground">ManyChat</span><span className="text-red-400 font-medium">- {formatCurrency(custoManychat)}</span></div>
-      <div className="flex justify-between"><span className="text-muted-foreground">Taxa Greenn</span><span className="text-red-400 font-medium">- {formatCurrency(taxaGreenn)}</span></div>
       <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
         <span className="text-foreground">Lucro do Cliente</span>
         <span className={lucro >= 0 ? "text-emerald-400" : "text-red-400"}>{formatCurrency(lucro)}</span>
@@ -86,13 +85,10 @@ function ClientCard({ client, isAdmin }: { client: ClientWithOffers; isAdmin: bo
   const coProdutor = Number(summary?.sales?.co_produtor || 0);
   const gastoTotal = gastoMeta + imposto + custoConsultas + custoManychat;
   const receitaBruta = Number(summary?.sales?.receita_bruta || 0);
-  const taxaGreenn = Number(summary?.sales?.taxa_green || 0);
   const faturamentoAgencia = coProdutor;
-  // Faturamento do Cliente = receita bruta - co-produtor (agência)
   const faturamentoCliente = receitaBruta - faturamentoAgencia;
-  // Lucro do Cliente = faturamento do cliente - gastos totais - taxa Greenn
-  const lucroCliente = faturamentoCliente - gastoTotal - taxaGreenn;
-  const roi = gastoTotal > 0 ? (faturamentoCliente - gastoTotal) / gastoTotal : 0;
+  const lucroCliente = faturamentoCliente - gastoTotal;
+  const cac = vendasAprovadas > 0 ? gastoTotal / vendasAprovadas : 0;
   const products = summary?.products || [];
 
   const kpis = [
@@ -111,11 +107,11 @@ function ClientCard({ client, isAdmin }: { client: ClientWithOffers; isAdmin: bo
     {
       label: "Lucro do Cliente", value: formatCurrency(lucroCliente), icon: PiggyBank,
       color: lucroCliente >= 0 ? "text-emerald-400" : "text-red-400",
-      tooltip: <LucroTooltip faturamentoCliente={faturamentoCliente} gastoMeta={gastoMeta} imposto={imposto} custoConsultas={custoConsultas} custoManychat={custoManychat} taxaGreenn={taxaGreenn} lucro={lucroCliente} />,
+      tooltip: <LucroTooltip faturamentoCliente={faturamentoCliente} gastoMeta={gastoMeta} imposto={imposto} custoConsultas={custoConsultas} custoManychat={custoManychat} lucro={lucroCliente} />,
     },
     {
-      label: "ROI do Projeto", value: roi.toFixed(2), icon: roi >= 0 ? TrendingUp : TrendingDown,
-      color: roi >= 0 ? "text-emerald-400" : "text-red-400",
+      label: "CAC", value: formatCurrency(cac), icon: Target,
+      color: "text-blue-400",
       tooltip: null,
     },
     ...(isAdmin ? [{

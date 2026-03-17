@@ -469,11 +469,6 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                 metricKey="coProdutor" current={current} comp7d={null} comp14d={null}
               />
               <KPICard
-                label="Taxa Greenn" value={isLoading ? null : formatCurrency(current?.taxaGreen || 0)}
-                icon={CreditCard} color="text-chart-yellow" isLoading={isLoading}
-                metricKey="taxaGreen" current={current} comp7d={null} comp14d={null}
-              />
-              <KPICard
                 label="ManyChat" value={isLoading ? null : formatCurrency(current?.custoManychat || 0)}
                 icon={MessageCircle} color="text-chart-orange" isLoading={isLoading}
                 metricKey="custoManychat" current={current} comp7d={null} comp14d={null}
@@ -515,7 +510,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                     <div className="flex justify-between"><span className="text-muted-foreground">Custo das Consultas</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.taxaFixa || 0) / current.vendasAprovadas : 0)}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">ManyChat</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.custoManychat || 0) / current.vendasAprovadas : 0)}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Taxa Co-Produtor</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.coProdutor || 0) / current.vendasAprovadas : 0)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Taxa Greenn</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.taxaGreen || 0) / current.vendasAprovadas : 0)}</span></div>
+                    
                     <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
                       <span className="text-muted-foreground">CAC Total</span>
                       <span className="text-foreground">{formatCurrency(current?.cac || 0)}</span>
