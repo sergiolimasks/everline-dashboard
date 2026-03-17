@@ -54,12 +54,13 @@ function VendasTooltip({ products }: { products: { produto: string; vendas_aprov
   );
 }
 
-function LucroTooltip({ faturamento, coProdutor, lucro }: { faturamento: number; coProdutor: number; lucro: number }) {
+function LucroTooltip({ faturamentoCliente, gastoTotal, taxaGreenn, lucro }: { faturamentoCliente: number; gastoTotal: number; taxaGreenn: number; lucro: number }) {
   return (
     <div className="space-y-1.5 text-xs">
       <p className="font-semibold text-foreground mb-2">Composição do Lucro do Cliente</p>
-      <div className="flex justify-between"><span className="text-muted-foreground">Faturamento do Projeto</span><span className="text-emerald-400 font-medium">+ {formatCurrency(faturamento)}</span></div>
-      <div className="flex justify-between"><span className="text-muted-foreground">Co-Produtor (desconto)</span><span className="text-red-400 font-medium">- {formatCurrency(coProdutor)}</span></div>
+      <div className="flex justify-between"><span className="text-muted-foreground">Faturamento do Cliente</span><span className="text-emerald-400 font-medium">+ {formatCurrency(faturamentoCliente)}</span></div>
+      <div className="flex justify-between"><span className="text-muted-foreground">Gasto Total</span><span className="text-red-400 font-medium">- {formatCurrency(gastoTotal)}</span></div>
+      <div className="flex justify-between"><span className="text-muted-foreground">Taxa Greenn</span><span className="text-red-400 font-medium">- {formatCurrency(taxaGreenn)}</span></div>
       <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
         <span className="text-foreground">Lucro do Cliente</span>
         <span className={lucro >= 0 ? "text-emerald-400" : "text-red-400"}>{formatCurrency(lucro)}</span>
@@ -79,10 +80,14 @@ function ClientCard({ client, isAdmin }: { client: ClientWithOffers; isAdmin: bo
   const custoManychat = vendasAprovadas * 0.35;
   const coProdutor = Number(summary?.sales?.co_produtor || 0);
   const gastoTotal = gastoMeta + imposto + custoConsultas + custoManychat;
-  const faturamento = Number(summary?.sales?.receita_bruta || 0);
-  const lucroCliente = faturamento - coProdutor;
-  const roi = gastoTotal > 0 ? (faturamento - gastoTotal) / gastoTotal : 0;
+  const receitaBruta = Number(summary?.sales?.receita_bruta || 0);
+  const taxaGreenn = Number(summary?.sales?.taxa_green || 0);
   const faturamentoAgencia = coProdutor;
+  // Faturamento do Cliente = receita bruta - co-produtor (agência)
+  const faturamentoCliente = receitaBruta - faturamentoAgencia;
+  // Lucro do Cliente = faturamento do cliente - gastos totais - taxa Greenn
+  const lucroCliente = faturamentoCliente - gastoTotal - taxaGreenn;
+  const roi = gastoTotal > 0 ? (faturamentoCliente - gastoTotal) / gastoTotal : 0;
   const products = summary?.products || [];
 
   const kpis = [
@@ -95,13 +100,13 @@ function ClientCard({ client, isAdmin }: { client: ClientWithOffers; isAdmin: bo
       tooltip: <VendasTooltip products={products} />,
     },
     {
-      label: "Faturamento do Projeto", value: formatCurrency(faturamento), icon: DollarSign, color: "text-emerald-400",
+      label: "Faturamento do Cliente", value: formatCurrency(faturamentoCliente), icon: DollarSign, color: "text-emerald-400",
       tooltip: null,
     },
     {
       label: "Lucro do Cliente", value: formatCurrency(lucroCliente), icon: PiggyBank,
       color: lucroCliente >= 0 ? "text-emerald-400" : "text-red-400",
-      tooltip: <LucroTooltip faturamento={faturamento} coProdutor={coProdutor} lucro={lucroCliente} />,
+      tooltip: <LucroTooltip faturamentoCliente={faturamentoCliente} gastoTotal={gastoTotal} taxaGreenn={taxaGreenn} lucro={lucroCliente} />,
     },
     {
       label: "ROI do Projeto", value: roi.toFixed(2), icon: roi >= 0 ? TrendingUp : TrendingDown,
