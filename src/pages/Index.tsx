@@ -19,6 +19,7 @@ export interface ProjectDashboardConfig {
   showOfferFilter: boolean;
   showCustoConsultas: boolean;
   showManychat: boolean;
+  showLeads: boolean;
 }
 
 const PROJECT_CONFIGS: Record<string, ProjectDashboardConfig> = {
