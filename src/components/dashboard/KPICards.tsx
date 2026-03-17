@@ -429,7 +429,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
           <KPICard
             label="Leads" value={isLoading ? null : String(current?.totalLeads || 0)}
             icon={Target} color="text-chart-purple" isLoading={isLoading}
-            metricKey="totalLeads" current={current} comp7d={comp7d} comp14d={comp14d}
+            metricKey="leadsDia" current={current} comp7d={comp7d} comp14d={comp14d}
             inlineComparison formatValue={(v) => `${v.toFixed(0)}/d`}
           />
         ) : (
