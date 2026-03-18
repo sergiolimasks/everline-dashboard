@@ -59,7 +59,7 @@ interface IndexProps {
 
 const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
   const { isGestor } = useAuth();
-  const hideCoProdutor = isGestor && !clientView;
+  const navigate = useNavigate();
   const config = PROJECT_CONFIGS[projectKey] || PROJECT_CONFIGS['checkup'];
   const today = new Date();
   // Default to "this week" (Wed–today)
