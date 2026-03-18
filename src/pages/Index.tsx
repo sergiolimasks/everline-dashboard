@@ -108,10 +108,15 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Page Title */}
-        <h1 className="text-3xl md:text-4xl font-bold font-display text-center text-primary tracking-tight">
-          {config.title}
-        </h1>
+        {/* Back Button + Page Title */}
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/painel')} className="shrink-0">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-3xl md:text-4xl font-bold font-display text-primary tracking-tight">
+            {config.title}
+          </h1>
+        </div>
 
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
