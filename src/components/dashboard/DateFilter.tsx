@@ -165,8 +165,17 @@ function DatePickerButton({
 }
 
 
-export function DateFilter({ dateFrom, dateTo, onDateChange, weekStartDay = 0 }: DateFilterProps) {
-  const [activePreset, setActivePreset] = useState<string | null>("Esta semana");
+export function DateFilter({
+  dateFrom,
+  dateTo,
+  onDateChange,
+  weekStartDay = 0,
+  activePreset: controlledActivePreset,
+  onActivePresetChange,
+}: DateFilterProps) {
+  const [internalActivePreset, setInternalActivePreset] = useState<string | null>("Esta semana");
+  const activePreset = controlledActivePreset !== undefined ? controlledActivePreset : internalActivePreset;
+  const setActivePreset = onActivePresetChange ?? setInternalActivePreset;
 
   const presets: { label: string; getRange: () => [Date, Date] }[] = [
     {
