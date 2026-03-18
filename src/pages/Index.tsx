@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useAds, useComparison7d, useComparison14d, useSparklineTraffic, useSparklineSales } from "@/hooks/use-dashboard";
+import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useAds, useComparison7d, useComparison14d, useSparklineTraffic, useSparklineSales, useAttribution } from "@/hooks/use-dashboard";
 import { formatDateString } from "@/lib/date-utils";
 import { KPICards } from "@/components/dashboard/KPICards";
 import { TrafficChart } from "@/components/dashboard/TrafficChart";
@@ -8,6 +8,7 @@ import { RevenueVsSpendChart } from "@/components/dashboard/RevenueVsSpendChart"
 import { ProductsTable } from "@/components/dashboard/ProductsTable";
 import { CampaignsTable } from "@/components/dashboard/CampaignsTable";
 import { CreativesTable } from "@/components/dashboard/CreativesTable";
+import { AttributionTable } from "@/components/dashboard/AttributionTable";
 import { DateFilter } from "@/components/dashboard/DateFilter";
 import { OfferFilter, type OfferType } from "@/components/dashboard/OfferFilter";
 import { BarChart3, RefreshCw } from "lucide-react";
