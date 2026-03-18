@@ -8,6 +8,7 @@ interface FunnelChartProps {
   isLoading: boolean;
   clientView?: boolean;
   showLeads?: boolean;
+  hideCoProdutor?: boolean;
 }
 
 function formatCurrency(value: number) {
