@@ -146,12 +146,13 @@ function getProjectConfig(project: string): ProjectConfig {
   return PROJECTS[project] || PROJECTS['checkup'];
 }
 
-function getOfferFiltersForProject(config: ProjectConfig, offer: string): OfferFilters {
+function getOfferFiltersForProject(config: ProjectConfig, offer: string): OfferFilters & { isAllNoFilter?: boolean } {
   if (offer === 'all_no_filter') {
     return {
       metaWhere: '',
       principalProduct: '',
       useEmailLinkedBumps: false,
+      isAllNoFilter: true,
     };
   }
   if (offer && offer !== 'all' && config.offerFilters[offer]) {
@@ -163,6 +164,17 @@ function getOfferFiltersForProject(config: ProjectConfig, offer: string): OfferF
     useEmailLinkedBumps: false,
   };
 }
+
+// All principal products across ALL projects (for panel view)
+const ALL_PRINCIPAL_PRODUCTS = [
+  ...PROJECTS['checkup'].principalProducts,
+  ...PROJECTS['formacao-consultor'].principalProducts,
+];
+
+const ALL_BUMP_PRODUCTS = [
+  'Avaliação individual de um especialista',
+  'Check-up do CNPJ',
+];
 
 function principalFilter(config: ProjectConfig, productName: string): string {
   if (!productName) {
@@ -599,8 +611,13 @@ serve(async (req) => {
         ? ` AND "Data"::date >= $1 AND "Data"::date <= $2`
         : '';
 
-      const pFilter = principalFilter(config, filters.principalProduct);
-      const apFilter = allProductsFilter(config, filters.principalProduct);
+      const isPanel = (filters as any).isAllNoFilter;
+      const pFilter = isPanel
+        ? `"Nome do produto" IN (${ALL_PRINCIPAL_PRODUCTS.map(p => `'${p}'`).join(',')})`
+        : principalFilter(config, filters.principalProduct);
+      const apFilter = isPanel
+        ? `"Nome do produto" NOT IN (${ALL_BUMP_PRODUCTS.map(p => `'${p}'`).join(',')})`
+        : allProductsFilter(config, filters.principalProduct);
 
       const principalSales = await queryExternalPG(`
         SELECT 
@@ -614,7 +631,7 @@ serve(async (req) => {
       `, params);
 
       let bumpSalesRow: any = { vendas_bump: 0, vendas_cnpj: 0, receita_bruta_bump: 0, receita_liquida_bump: 0, co_produtor_bump: 0, taxa_green_bump: 0 };
-      if (config.bumpProducts.length > 0) {
+      if (!isPanel && config.bumpProducts.length > 0) {
         const bFilter = bumpFilter(config, filters.principalProduct);
         const bumpSales = await queryExternalPG(`
           SELECT 
