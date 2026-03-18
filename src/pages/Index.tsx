@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useAds, useComparison7d, useComparison14d, useSparklineTraffic, useSparklineSales, useAttribution } from "@/hooks/use-dashboard";
 import { formatDateString } from "@/lib/date-utils";
@@ -12,7 +13,8 @@ import { CreativesTable } from "@/components/dashboard/CreativesTable";
 import { AttributionTable } from "@/components/dashboard/AttributionTable";
 import { DateFilter } from "@/components/dashboard/DateFilter";
 import { OfferFilter, type OfferType } from "@/components/dashboard/OfferFilter";
-import { BarChart3, RefreshCw } from "lucide-react";
+import { ArrowLeft, BarChart3, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 
 export interface ProjectDashboardConfig {
@@ -57,6 +59,7 @@ interface IndexProps {
 
 const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
   const { isGestor } = useAuth();
+  const navigate = useNavigate();
   const hideCoProdutor = isGestor && !clientView;
   const config = PROJECT_CONFIGS[projectKey] || PROJECT_CONFIGS['checkup'];
   const today = new Date();
@@ -105,10 +108,15 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Page Title */}
-        <h1 className="text-3xl md:text-4xl font-bold font-display text-center text-primary tracking-tight">
-          {config.title}
-        </h1>
+        {/* Back Button + Page Title */}
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/painel')} className="shrink-0">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-3xl md:text-4xl font-bold font-display text-primary tracking-tight">
+            {config.title}
+          </h1>
+        </div>
 
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
