@@ -1,28 +1,4 @@
-import {
-  ComposedChart as RechartsComposedChart,
-  Area as RechartsArea,
-  Line as RechartsLine,
-  Bar as RechartsBar,
-  XAxis as RechartsXAxis,
-  YAxis as RechartsYAxis,
-  CartesianGrid as RechartsCartesianGrid,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer as RechartsResponsiveContainer,
-  Legend as RechartsLegend,
-  ReferenceDot as RechartsReferenceDot,
-} from "recharts";
-
-const ComposedChart = RechartsComposedChart as any;
-const Area = RechartsArea as any;
-const Line = RechartsLine as any;
-const Bar = RechartsBar as any;
-const XAxis = RechartsXAxis as any;
-const YAxis = RechartsYAxis as any;
-const CartesianGrid = RechartsCartesianGrid as any;
-const Tooltip = RechartsTooltip as any;
-const ResponsiveContainer = RechartsResponsiveContainer as any;
-const Legend = RechartsLegend as any;
-const ReferenceDot = RechartsReferenceDot as any;
+import { ComposedChart, Area, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceDot } from "recharts";
 import type { TrafficDaily, SalesDaily } from "@/lib/dashboard-api";
 import { formatDayMonth } from "@/lib/date-utils";
 

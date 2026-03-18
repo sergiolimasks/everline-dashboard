@@ -1,24 +1,4 @@
-import {
-  BarChart as RechartsBarChart,
-  Bar as RechartsBar,
-  XAxis as RechartsXAxis,
-  YAxis as RechartsYAxis,
-  CartesianGrid as RechartsCartesianGrid,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer as RechartsResponsiveContainer,
-  Cell as RechartsCell,
-  LabelList as RechartsLabelList,
-} from "recharts";
-
-const BarChart = RechartsBarChart as any;
-const Bar = RechartsBar as any;
-const XAxis = RechartsXAxis as any;
-const YAxis = RechartsYAxis as any;
-const CartesianGrid = RechartsCartesianGrid as any;
-const Tooltip = RechartsTooltip as any;
-const ResponsiveContainer = RechartsResponsiveContainer as any;
-const Cell = RechartsCell as any;
-const LabelList = RechartsLabelList as any;
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from "recharts";
 import type { TrafficDaily, SalesDaily, SummaryData } from "@/lib/dashboard-api";
 
 interface TrafficChartProps {

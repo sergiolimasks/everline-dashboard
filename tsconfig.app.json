@@ -25,11 +25,7 @@
     "strict": false,
     "target": "ES2020",
     "types": [
-      "react",
-      "react-dom",
-      "vite/client",
-      "vitest/globals",
-      "@testing-library/jest-dom"
+      "vitest/globals"
     ],
     "useDefineForClassFields": true
   },
