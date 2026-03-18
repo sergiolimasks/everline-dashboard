@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSummary } from "@/hooks/use-dashboard";
-import { formatDateString, formatDayMonth, parseDateStringLocal } from "@/lib/date-utils";
+import { formatDateString, formatDayMonth, getWeekStart, parseDateStringLocal } from "@/lib/date-utils";
 import { BarChart3, LogOut, ExternalLink, Target, DollarSign, ShoppingCart, Wallet, PiggyBank, Building2, Eye, EyeOff, Calendar as CalendarIcon } from "lucide-react";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -225,12 +225,6 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
   const [dateTo, setDateTo] = useState(todayStr);
   const [dateLabel, setDateLabel] = useState("Hoje");
 
-  const getWeekStartSunday = (referenceDate: Date) => {
-    const start = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
-    start.setDate(start.getDate() - start.getDay());
-    return start;
-  };
-
   const applyPreset = (preset: string) => {
     setDatePreset(preset);
     const now = new Date();
@@ -241,7 +235,7 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
         from = to = d; label = "Ontem"; break;
       }
       case "semana": {
-        from = getWeekStartSunday(now);
+        from = getWeekStart(now, 0);
         to = now;
         label = "Semana";
         break;

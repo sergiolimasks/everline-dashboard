@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
-import { formatDateString, parseDateStringLocal } from "@/lib/date-utils";
+import { formatDateString, getWeekStart, parseDateStringLocal } from "@/lib/date-utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -162,15 +162,6 @@ function DatePickerButton({
   );
 }
 
-/**
- * Get the most recent weekStartDay on or before the given date.
- */
-function getWeekStart(ref: Date, startDay: number): Date {
-  const d = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
-  const diff = (d.getDay() - startDay + 7) % 7;
-  d.setDate(d.getDate() - diff);
-  return d;
-}
 
 export function DateFilter({ dateFrom, dateTo, onDateChange, weekStartDay = 0 }: DateFilterProps) {
   const [activePreset, setActivePreset] = useState<string | null>("Esta semana");

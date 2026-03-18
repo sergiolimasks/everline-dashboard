@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useAds, useComparison7d, useComparison14d, useSparklineTraffic, useSparklineSales, useAttribution } from "@/hooks/use-dashboard";
-import { formatDateString } from "@/lib/date-utils";
+import { formatDateString, getWeekStart } from "@/lib/date-utils";
 import { KPICards } from "@/components/dashboard/KPICards";
 import { TrafficChart } from "@/components/dashboard/TrafficChart";
 import { SalesChart } from "@/components/dashboard/SalesChart";
@@ -66,12 +66,6 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
   const hideCoProdutor = isGestor && !clientView;
   const config = PROJECT_CONFIGS[projectKey] || PROJECT_CONFIGS['checkup'];
   const today = new Date();
-  const getWeekStart = (ref: Date, startDay: number) => {
-    const d = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
-    const diff = (d.getDay() - startDay + 7) % 7;
-    d.setDate(d.getDate() - diff);
-    return d;
-  };
   const [dateFrom, setDateFrom] = useState(formatDateString(getWeekStart(today, config.weekStartDay)));
   const [dateTo, setDateTo] = useState(formatDateString(today));
   const [offer, setOffer] = useState<OfferType>('all');
