@@ -9,6 +9,7 @@ interface DateFilterProps {
   dateFrom: string;
   dateTo: string;
   onDateChange: (from: string, to: string) => void;
+  weekStartDay?: number; // 0=Sun, 3=Wed, etc. Default 0
 }
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -162,19 +163,16 @@ function DatePickerButton({
 }
 
 /**
- * Get the most recent Wednesday on or before the given date.
- * Week runs Wed–Tue.
+ * Get the most recent weekStartDay on or before the given date.
  */
-function getWednesday(ref: Date): Date {
+function getWeekStart(ref: Date, startDay: number): Date {
   const d = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
-  const day = d.getDay(); // 0=Sun..6=Sat
-  // days since last Wednesday: (day - 3 + 7) % 7
-  const diff = (day - 3 + 7) % 7;
+  const diff = (d.getDay() - startDay + 7) % 7;
   d.setDate(d.getDate() - diff);
   return d;
 }
 
-export function DateFilter({ dateFrom, dateTo, onDateChange }: DateFilterProps) {
+export function DateFilter({ dateFrom, dateTo, onDateChange, weekStartDay = 0 }: DateFilterProps) {
   const [activePreset, setActivePreset] = useState<string | null>("Esta semana");
 
   const presets: { label: string; getRange: () => [Date, Date] }[] = [
@@ -197,20 +195,20 @@ export function DateFilter({ dateFrom, dateTo, onDateChange }: DateFilterProps) 
       label: "Esta semana",
       getRange: () => {
         const today = new Date();
-        const wed = getWednesday(today);
-        return [wed, today];
+        const start = getWeekStart(today, weekStartDay);
+        return [start, today];
       },
     },
     {
       label: "Semana passada",
       getRange: () => {
         const today = new Date();
-        const thisWed = getWednesday(today);
-        const prevTue = new Date(thisWed);
-        prevTue.setDate(prevTue.getDate() - 1);
-        const prevWed = new Date(thisWed);
-        prevWed.setDate(prevWed.getDate() - 7);
-        return [prevWed, prevTue];
+        const thisStart = getWeekStart(today, weekStartDay);
+        const prevEnd = new Date(thisStart);
+        prevEnd.setDate(prevEnd.getDate() - 1);
+        const prevStart = new Date(thisStart);
+        prevStart.setDate(prevStart.getDate() - 7);
+        return [prevStart, prevEnd];
       },
     },
     {
