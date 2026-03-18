@@ -173,7 +173,7 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientV
           <Bar yAxisId="right" dataKey="Receita/Venda" fill="hsl(270, 60%, 60%)" opacity={0.5} barSize={8} radius={[2, 2, 0, 0]} />
           <Area yAxisId="left" type="monotone" dataKey="Custo Total" stroke="hsl(0, 72%, 55%)" strokeWidth={2} fillOpacity={1} fill="url(#colorCusto)" />
           <Area yAxisId="left" type="monotone" dataKey="Receita Líquida" stroke="hsl(160, 84%, 44%)" strokeWidth={2} fillOpacity={1} fill="url(#colorReceita)" />
-          {!clientView && <Line yAxisId="left" type="monotone" dataKey="Co-Produtor" stroke="hsl(210, 70%, 55%)" strokeWidth={1.5} dot={false} strokeDasharray="4 3" />}
+          {!clientView && !hideCoProdutor && <Line yAxisId="left" type="monotone" dataKey="Co-Produtor" stroke="hsl(210, 70%, 55%)" strokeWidth={1.5} dot={false} strokeDasharray="4 3" />}
           {peaks.map((p, i) => (
             <ReferenceDot
               key={i}
