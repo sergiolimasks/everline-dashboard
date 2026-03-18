@@ -35,6 +35,7 @@ const PROJECT_CONFIGS: Record<string, ProjectDashboardConfig> = {
     showCustoConsultas: true,
     showManychat: true,
     showLeads: false,
+    weekStartDay: 0, // Sunday
   },
   'formacao-consultor': {
     project: 'formacao-consultor',
@@ -43,6 +44,7 @@ const PROJECT_CONFIGS: Record<string, ProjectDashboardConfig> = {
     showCustoConsultas: false,
     showManychat: false,
     showLeads: true,
+    weekStartDay: 3, // Wednesday
     offerOptions: [
       { value: 'all', label: 'Todas Campanhas' },
       { value: 'aplicacao', label: 'Aplicação' },
