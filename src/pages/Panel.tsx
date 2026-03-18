@@ -355,7 +355,7 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
           <div className="flex items-center gap-3">
             {isSuperAdmin && !clientView && (
               <button
-                onClick={() => setSimulateClientView(!simulateClientView)}
+                onClick={() => setPanelState((current) => ({ ...current, simulateClientView: !current.simulateClientView }))}
                 className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${
                   simulateClientView
                     ? "border-primary bg-primary/10 text-primary"
