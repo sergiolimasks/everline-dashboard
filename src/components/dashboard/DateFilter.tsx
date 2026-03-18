@@ -163,14 +163,11 @@ function DatePickerButton({
 }
 
 /**
- * Get the most recent Wednesday on or before the given date.
- * Week runs Wed–Tue.
+ * Get the most recent weekStartDay on or before the given date.
  */
-function getWednesday(ref: Date): Date {
+function getWeekStart(ref: Date, startDay: number): Date {
   const d = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
-  const day = d.getDay(); // 0=Sun..6=Sat
-  // days since last Wednesday: (day - 3 + 7) % 7
-  const diff = (day - 3 + 7) % 7;
+  const diff = (d.getDay() - startDay + 7) % 7;
   d.setDate(d.getDate() - diff);
   return d;
 }
