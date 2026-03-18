@@ -50,7 +50,7 @@ function calcMetrics(data: SummaryData | undefined, showLeads = false, hideCoPro
   const totalLeads = Number(traffic?.total_leads || 0);
   const taxaFixa = showLeads ? 0 : Number(sales?.taxa_fixa || 0);
   const custoManychat = showLeads ? 0 : vendasAprovadas * 0.35;
-  const coProdutor = Number(sales?.co_produtor || 0);
+  const coProdutor = hideCoProdutor ? 0 : Number(sales?.co_produtor || 0);
   const taxaGreen = Number(sales?.taxa_green || 0);
   const diasAtivos = Number(traffic?.dias_ativos || 1);
 
