@@ -192,6 +192,7 @@ function buildPhoneFilter(filteredConfig: ProjectConfig, salesPhoneCol: string):
     `SELECT DISTINCT REGEXP_REPLACE(TRIM(${lc.phoneColumn}), '[^0-9]', '', 'g') as tel FROM ${lc.table} WHERE ${lc.phoneColumn} IS NOT NULL AND TRIM(${lc.phoneColumn}) != ''`
   ).join(' UNION ');
   return ` AND REGEXP_REPLACE(TRIM(${salesPhoneCol}), '[^0-9]', '', 'g') IN (${unions})`;
+}
 
 async function queryLeadsTotal(config: ProjectConfig, params: string[]): Promise<number> {
   if (config.leadConfigs.length === 0) return 0;
