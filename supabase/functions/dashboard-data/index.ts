@@ -232,18 +232,18 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
     }
   }
 
-  // 2) Get emails from each lead source (all time - not filtered by date, to catch leads that registered before)
-  const sourceEmails: Map<string, Set<string>> = new Map();
+  // 2) Get phones from each lead source (all time - to catch leads that registered before)
+  const sourcePhones: Map<string, Set<string>> = new Map();
   for (const lc of config.leadConfigs) {
     const rows = await queryExternalPG(
-      `SELECT DISTINCT LOWER(TRIM(${lc.emailColumn})) as email FROM ${lc.table} WHERE ${lc.emailColumn} IS NOT NULL AND ${lc.emailColumn} != ''`,
+      `SELECT DISTINCT REGEXP_REPLACE(TRIM(${lc.emailColumn}), '[^0-9]', '', 'g') as telefone FROM ${lc.table} WHERE ${lc.emailColumn} IS NOT NULL AND TRIM(${lc.emailColumn}) != ''`,
       []
     );
-    const emails = new Set<string>();
+    const phones = new Set<string>();
     for (const r of rows as any[]) {
-      if (r.email) emails.add(String(r.email));
+      if (r.telefone) phones.add(String(r.telefone));
     }
-    sourceEmails.set(lc.sourceName, emails);
+    sourcePhones.set(lc.sourceName, phones);
   }
 
   // 3) Get lead counts per source for the period
