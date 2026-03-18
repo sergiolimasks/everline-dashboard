@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSummary } from "@/hooks/use-dashboard";
 import { formatDateString } from "@/lib/date-utils";
-import { BarChart3, LogOut, ExternalLink, Target, DollarSign, ShoppingCart, Wallet, PiggyBank, Building2, Eye, EyeOff } from "lucide-react";
+import { BarChart3, LogOut, ExternalLink, Target, DollarSign, ShoppingCart, Wallet, PiggyBank, Building2, Eye, EyeOff, Calendar } from "lucide-react";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CreateUserTab } from "@/components/admin/CreateUserTab";
@@ -96,9 +96,8 @@ function CacTooltip({ gastoMeta, imposto, custoConsultas, custoManychat, gastoTo
   );
 }
 
-function ClientCard({ client, isAdmin, clientView }: { client: ClientWithOffers; isAdmin: boolean; clientView?: boolean }) {
-  const today = formatDateString(new Date());
-  const { data: summary, isLoading } = useSummary(today, today, "all_no_filter");
+function ClientCard({ client, isAdmin, clientView, dateFrom, dateTo, dateLabel }: { client: ClientWithOffers; isAdmin: boolean; clientView?: boolean; dateFrom: string; dateTo: string; dateLabel: string }) {
+  const { data: summary, isLoading } = useSummary(dateFrom, dateTo, "all_no_filter");
 
   const gastoMeta = Number(summary?.traffic?.total_gasto || 0);
   const imposto = gastoMeta * 0.125;
@@ -116,11 +115,11 @@ function ClientCard({ client, isAdmin, clientView }: { client: ClientWithOffers;
 
   const kpis = [
     {
-      label: "Investimento Hoje", value: formatCurrency(gastoTotal), icon: Wallet, color: "text-red-400",
+      label: `Investimento (${dateLabel})`, value: formatCurrency(gastoTotal), icon: Wallet, color: "text-red-400",
       tooltip: <GastoTooltip gastoMeta={gastoMeta} imposto={imposto} custoConsultas={custoConsultas} custoManychat={custoManychat} gastoTotal={gastoTotal} />,
     },
     {
-      label: "Vendas Hoje", value: isLoading ? "..." : String(vendasAprovadas), icon: ShoppingCart, color: "text-blue-400",
+      label: `Vendas (${dateLabel})`, value: isLoading ? "..." : String(vendasAprovadas), icon: ShoppingCart, color: "text-blue-400",
       tooltip: <VendasTooltip products={products} />,
     },
     {
@@ -216,6 +215,46 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
   const [loading, setLoading] = useState(true);
   const [simulateClientView, setSimulateClientView] = useState(false);
   const effectiveClientView = clientView || simulateClientView;
+
+  // Date filter state
+  const today = new Date();
+  const todayStr = formatDateString(today);
+  const [datePreset, setDatePreset] = useState<string>("hoje");
+  const [dateFrom, setDateFrom] = useState(todayStr);
+  const [dateTo, setDateTo] = useState(todayStr);
+  const [dateLabel, setDateLabel] = useState("Hoje");
+
+  const applyPreset = (preset: string) => {
+    setDatePreset(preset);
+    const now = new Date();
+    let from: Date, to: Date, label: string;
+    switch (preset) {
+      case "ontem": {
+        const d = new Date(now); d.setDate(d.getDate() - 1);
+        from = to = d; label = "Ontem"; break;
+      }
+      case "semana": {
+        // Current week: last 7 days
+        const d = new Date(now); d.setDate(d.getDate() - 6);
+        from = d; to = now; label = "Semana"; break;
+      }
+      case "mes": {
+        from = new Date(now.getFullYear(), now.getMonth(), 1);
+        to = now; label = "Mês"; break;
+      }
+      case "mes_passado": {
+        from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        to = new Date(now.getFullYear(), now.getMonth(), 0);
+        label = "Mês Passado"; break;
+      }
+      default: { // hoje
+        from = to = now; label = "Hoje"; break;
+      }
+    }
+    setDateFrom(formatDateString(from));
+    setDateTo(formatDateString(to));
+    setDateLabel(label);
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -327,6 +366,30 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
           </div>
         </div>
 
+        {/* Date filter */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          {[
+            { key: "hoje", label: "Hoje" },
+            { key: "ontem", label: "Ontem" },
+            { key: "semana", label: "Semana" },
+            { key: "mes", label: "Mês" },
+            { key: "mes_passado", label: "Mês Passado" },
+          ].map((p) => (
+            <button
+              key={p.key}
+              onClick={() => applyPreset(p.key)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                datePreset === p.key
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+
         {isSuperAdmin && !clientView ? (
           <Tabs defaultValue="clientes" className="space-y-6">
             <TabsList>
@@ -363,7 +426,7 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
       <div className="space-y-8">
         {clients.map((client) => (
           <div key={client.id} className="rounded-2xl border border-border bg-card/50 p-5 md:p-6 space-y-4">
-            <ClientCard client={client} isAdmin={isAdmin} clientView={effectiveClientView} />
+            <ClientCard client={client} isAdmin={isAdmin} clientView={effectiveClientView} dateFrom={dateFrom} dateTo={dateTo} dateLabel={dateLabel} />
           </div>
         ))}
       </div>
