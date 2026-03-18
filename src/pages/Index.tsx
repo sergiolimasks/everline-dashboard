@@ -142,11 +142,22 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
 
         {/* Offer Filter */}
         {config.showOfferFilter && (
-          <OfferFilter selected={offer} onChange={setOffer} options={config.offerOptions} />
+          <OfferFilter
+            selected={offer}
+            onChange={(nextOffer) => setFilters((current) => ({ ...current, offer: nextOffer }))}
+            options={config.offerOptions}
+          />
         )}
 
         {/* Date Filter */}
-        <DateFilter dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} weekStartDay={config.weekStartDay} />
+        <DateFilter
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateChange={handleDateChange}
+          weekStartDay={config.weekStartDay}
+          activePreset={activePreset}
+          onActivePresetChange={(preset) => setFilters((current) => ({ ...current, activePreset: preset }))}
+        />
 
         {/* KPIs */}
         <KPICards
