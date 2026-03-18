@@ -119,7 +119,7 @@ function ClientCard({ client, isAdmin, clientView, dateFrom, dateTo, dateLabel }
       tooltip: <GastoTooltip gastoMeta={gastoMeta} imposto={imposto} custoConsultas={custoConsultas} custoManychat={custoManychat} gastoTotal={gastoTotal} />,
     },
     {
-      label: "Vendas Hoje", value: isLoading ? "..." : String(vendasAprovadas), icon: ShoppingCart, color: "text-blue-400",
+      label: `Vendas (${dateLabel})`, value: isLoading ? "..." : String(vendasAprovadas), icon: ShoppingCart, color: "text-blue-400",
       tooltip: <VendasTooltip products={products} />,
     },
     {
