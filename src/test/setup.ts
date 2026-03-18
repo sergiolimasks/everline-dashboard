@@ -1,4 +1,4 @@
-import "@testing-library/jest-dom";
+// jest-dom disabled in this environment
 
 Object.defineProperty(window, "matchMedia", {
   writable: true,

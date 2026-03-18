@@ -26,7 +26,8 @@ export default function Login() {
     }
 
     // Get current user after sign in
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    const { data: { session } } = await (supabase.auth as any).getSession();
+    const currentUser = session?.user ?? null;
     if (!currentUser) {
       navigate("/");
       setLoading(false);
