@@ -230,7 +230,6 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
   const effectiveClientView = clientView || simulateClientView;
 
   const applyPreset = (preset: string) => {
-    setDatePreset(preset);
     const now = new Date();
     let from: Date, to: Date, label: string;
     switch (preset) {
@@ -253,13 +252,17 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
         to = new Date(now.getFullYear(), now.getMonth(), 0);
         label = "Mês Passado"; break;
       }
-      default: { // hoje
+      default: {
         from = to = now; label = "Hoje"; break;
       }
     }
-    setDateFrom(formatDateString(from));
-    setDateTo(formatDateString(to));
-    setDateLabel(label);
+    setPanelState((current) => ({
+      ...current,
+      datePreset: preset,
+      dateFrom: formatDateString(from),
+      dateTo: formatDateString(to),
+      dateLabel: label,
+    }));
   };
 
   // Gestor loads clients the same way as a regular client user (only assigned ones)
