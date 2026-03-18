@@ -554,11 +554,13 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                   metricKey="taxaFixa" current={current} comp7d={null} comp14d={null}
                 />
               )}
-              <KPICard
-                label="Co-Produtor" value={isLoading ? null : formatCurrency(current?.coProdutor || 0)}
-                icon={Users} color="text-chart-blue" isLoading={isLoading}
-                metricKey="coProdutor" current={current} comp7d={null} comp14d={null}
-              />
+              {!hideCoProdutor && (
+                <KPICard
+                  label="Co-Produtor" value={isLoading ? null : formatCurrency(current?.coProdutor || 0)}
+                  icon={Users} color="text-chart-blue" isLoading={isLoading}
+                  metricKey="coProdutor" current={current} comp7d={null} comp14d={null}
+                />
+              )}
               {!showLeads && (
                 <KPICard
                   label="ManyChat" value={isLoading ? null : formatCurrency(current?.custoManychat || 0)}
