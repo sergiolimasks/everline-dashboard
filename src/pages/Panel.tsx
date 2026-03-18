@@ -257,12 +257,14 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
     setDateLabel(label);
   };
 
+  // Gestor loads clients the same way as a regular client user (only assigned ones)
+  // but sees the admin-style dashboard (without co-produtor)
   useEffect(() => {
     if (!user) return;
 
     async function loadClients() {
-      if (clientView) {
-        // For client view, load only the client's own campaigns
+      if (clientView || (isGestor && !isAdmin)) {
+        // For client view or gestor, load only assigned campaigns
         const { data: accessData } = await supabase
           .from("user_campaign_access")
           .select("offer_slug, label")
@@ -273,7 +275,6 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
           return;
         }
 
-        // Find matching clients by offer slug
         const slugs = accessData.map((a: any) => a.offer_slug);
         const { data: offersData } = await supabase
           .from("client_offers")
@@ -319,7 +320,7 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
     }
 
     loadClients();
-  }, [user, clientView]);
+  }, [user, clientView, isGestor, isAdmin]);
 
   const handleLogout = async () => {
     await signOut();
