@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSummary } from "@/hooks/use-dashboard";
 import { formatDateString } from "@/lib/date-utils";
-import { BarChart3, LogOut, ExternalLink, Target, DollarSign, ShoppingCart, Wallet, PiggyBank, Building2, Eye, EyeOff } from "lucide-react";
+import { BarChart3, LogOut, ExternalLink, Target, DollarSign, ShoppingCart, Wallet, PiggyBank, Building2, Eye, EyeOff, Calendar } from "lucide-react";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CreateUserTab } from "@/components/admin/CreateUserTab";
