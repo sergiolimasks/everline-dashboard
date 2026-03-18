@@ -239,18 +239,17 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
   const pFilter = principalFilter(config, '');
 
   // Build sales query with both phone and email
-  const emailSelect = salesEmailColumn ? `, LOWER(TRIM(${salesEmailColumn})) as email` : '';
+  const emailSelectCol = salesEmailColumn ? `, LOWER(TRIM(${salesEmailColumn})) as email` : '';
+  const emailGroupBy = salesEmailColumn ? `, LOWER(TRIM(${salesEmailColumn}))` : '';
   const salesRows = await queryExternalPG(`
-    SELECT REGEXP_REPLACE(TRIM(${salesPhoneColumn}), '[^0-9]', '', 'g') as telefone
-           ${emailSelect},
+    SELECT REGEXP_REPLACE(TRIM(${salesPhoneColumn}), '[^0-9]', '', 'g') as telefone${emailSelectCol},
            COUNT(*) as vendas,
            SUM(COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0)) as receita_bruta,
            SUM(COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0)) as receita_liquida
     FROM ${config.greenSchema}
     WHERE ${pFilter} AND "Status da venda" IN ${APPROVED_STATUSES} ${salesDateFilter}
       AND ${salesPhoneColumn} IS NOT NULL AND TRIM(${salesPhoneColumn}) != ''
-    GROUP BY REGEXP_REPLACE(TRIM(${salesPhoneColumn}), '[^0-9]', '', 'g')
-             ${salesEmailColumn ? `, LOWER(TRIM(${salesEmailColumn}))` : ''}
+    GROUP BY REGEXP_REPLACE(TRIM(${salesPhoneColumn}), '[^0-9]', '', 'g')${emailGroupBy}
   `, params);
 
   interface SaleEntry { vendas: number; receita_bruta: number; receita_liquida: number; email?: string; phone: string }
