@@ -11,6 +11,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { CreateUserTab } from "@/components/admin/CreateUserTab";
 import { AssignAccessTab } from "@/components/admin/AssignAccessTab";
+import { ProjectBreakdownTable } from "@/components/dashboard/ProjectBreakdownTable";
 
 interface ClientWithOffers {
   id: string;
