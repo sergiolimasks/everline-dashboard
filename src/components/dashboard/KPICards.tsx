@@ -359,6 +359,32 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
       lowOutlierFactor: 0.45,
       maxValue: 1.0,
     },
+    taxaConvLeads: {
+      metricFn: (d) => {
+        if ((d.leads || 0) <= 0) return 0;
+        const dateKey = String(d.dia).slice(0, 10);
+        const sale = salesByDate.get(dateKey);
+        if (sale) return sale.vendas_aprovadas / (d.leads || 1);
+        return d.compras / (d.leads || 1);
+      },
+      format: formatPercent,
+      label: "Tx Conv. Leads",
+      isValidDay: (d) => {
+        const dateKey = String(d.dia).slice(0, 10);
+        const sale = salesByDate.get(dateKey);
+        if (sale) return (d.leads || 0) > 0 && sale.vendas_aprovadas > 0;
+        return (d.leads || 0) > 0 && d.compras > 0;
+      },
+      lowOutlierFactor: 0.45,
+      maxValue: 1.0,
+    },
+    cpl: {
+      metricFn: (d) => (d.leads || 0) > 0 ? (d.gasto * 1.125) / (d.leads || 1) : 0,
+      format: formatCurrency,
+      label: "Custo por Lead",
+      isValidDay: (d) => (d.leads || 0) > 0 && d.gasto > 0,
+      inverted: true,
+    },
     taxaConversaoCheckout: {
       metricFn: (d) => {
         if (d.checkouts <= 0) return 0;
