@@ -133,3 +133,16 @@ export async function fetchCampaigns(dateFrom?: string, dateTo?: string, offer?:
 export async function fetchAds(dateFrom?: string, dateTo?: string, offer?: string, project?: string): Promise<AdData[]> {
   return fetchDashboard<AdData>('ads', dateFrom, dateTo, offer, project);
 }
+
+export interface AttributionData {
+  source: string;
+  leads: number;
+  vendas: number;
+  receita_bruta: number;
+  receita_liquida: number;
+  taxa_conversao: number;
+}
+
+export async function fetchAttribution(dateFrom?: string, dateTo?: string, offer?: string, project?: string): Promise<AttributionData[]> {
+  return fetchDashboard<AttributionData>('attribution', dateFrom, dateTo, offer, project);
+}
