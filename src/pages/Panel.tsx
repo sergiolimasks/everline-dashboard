@@ -192,16 +192,16 @@ function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, d
               ? `/cliente/${client.slug}/${dashboardPath}`
               : `/interno/${client.slug}/${dashboardPath}`;
             return (
-              <a
+              <Link
                 key={offer.offer_slug}
-                href={reportHref}
+                to={reportHref}
                 className="flex items-center justify-between px-4 py-3 rounded-lg border border-border bg-card hover:border-primary/50 transition-colors group"
               >
                 <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
                   {offer.label}
                 </p>
                 <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </a>
+              </Link>
             );
           })}
         </div>
