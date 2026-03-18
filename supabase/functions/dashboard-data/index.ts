@@ -597,7 +597,7 @@ serve(async (req) => {
       const coProdutorTotal = Number((principalSales[0] as any)?.co_produtor || 0) + Number(bumpSalesRow?.co_produtor_bump || 0);
       const taxaGreenTotal = Number((principalSales[0] as any)?.taxa_green || 0) + Number(bumpSalesRow?.taxa_green_bump || 0);
 
-      const totalLeads = await queryLeadsTotal(config, params);
+      const totalLeads = await queryLeadsTotal(filteredConfig, params);
 
       data = [{
         traffic: { ...(traffic[0] as any), total_leads: totalLeads },
