@@ -13,12 +13,11 @@ Deno.serve(async (req) => {
   try {
     const { action, userId, newPassword } = await req.json();
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
 
     if (action === 'change_password') {
       if (!userId || !newPassword) {
@@ -28,14 +27,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      console.log('auth keys:', Object.keys(supabaseAdmin.auth));
-      console.log('admin keys:', Object.keys(supabaseAdmin.auth.admin));
-      console.log('updateUser type:', typeof supabaseAdmin.auth.admin.updateUser);
-      console.log('updateUserById type:', typeof supabaseAdmin.auth.admin.updateUserById);
-
-      // Try updateUserById if updateUser doesn't exist
-      const updateFn = supabaseAdmin.auth.admin.updateUserById || supabaseAdmin.auth.admin.updateUser;
-      const { data, error } = await updateFn.call(supabaseAdmin.auth.admin, userId, {
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
         password: newPassword,
       });
 
