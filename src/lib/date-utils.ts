@@ -32,3 +32,14 @@ export function formatDateString(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
+
+/**
+ * Returns the most recent startDay on or before the given local date.
+ * 0 = Sunday, 1 = Monday, 3 = Wednesday, etc.
+ */
+export function getWeekStart(referenceDate: Date, startDay = 0): Date {
+  const start = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
+  const diff = (start.getDay() - startDay + 7) % 7;
+  start.setDate(start.getDate() - diff);
+  return start;
+}

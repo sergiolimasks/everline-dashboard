@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useAds, useComparison7d, useComparison14d, useSparklineTraffic, useSparklineSales, useAttribution } from "@/hooks/use-dashboard";
-import { formatDateString } from "@/lib/date-utils";
+import { formatDateString, getWeekStart } from "@/lib/date-utils";
 import { KPICards } from "@/components/dashboard/KPICards";
 import { TrafficChart } from "@/components/dashboard/TrafficChart";
 import { SalesChart } from "@/components/dashboard/SalesChart";

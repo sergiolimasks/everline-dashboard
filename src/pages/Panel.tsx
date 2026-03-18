@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSummary } from "@/hooks/use-dashboard";
-import { formatDateString, formatDayMonth, parseDateStringLocal } from "@/lib/date-utils";
+import { formatDateString, formatDayMonth, getWeekStart, parseDateStringLocal } from "@/lib/date-utils";
 import { BarChart3, LogOut, ExternalLink, Target, DollarSign, ShoppingCart, Wallet, PiggyBank, Building2, Eye, EyeOff, Calendar as CalendarIcon } from "lucide-react";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";

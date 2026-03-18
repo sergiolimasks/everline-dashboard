@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
-import { formatDateString, parseDateStringLocal } from "@/lib/date-utils";
+import { formatDateString, getWeekStart, parseDateStringLocal } from "@/lib/date-utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
