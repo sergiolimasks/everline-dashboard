@@ -1,4 +1,18 @@
-import { LineChart, Line, ReferenceLine, ResponsiveContainer, Dot, Tooltip as RechartsTooltip } from "recharts";
+import {
+  LineChart as RechartsLineChart,
+  Line as RechartsLine,
+  ReferenceLine as RechartsReferenceLine,
+  ResponsiveContainer as RechartsResponsiveContainer,
+  Dot as RechartsDot,
+  Tooltip as RechartsTooltipPrimitive,
+} from "recharts";
+
+const LineChart = RechartsLineChart as any;
+const Line = RechartsLine as any;
+const ReferenceLine = RechartsReferenceLine as any;
+const ResponsiveContainer = RechartsResponsiveContainer as any;
+const Dot = RechartsDot as any;
+const RechartsTooltip = RechartsTooltipPrimitive as any;
 import type { TrafficDaily } from "@/lib/dashboard-api";
 import { formatDayMonth } from "@/lib/date-utils";
 
