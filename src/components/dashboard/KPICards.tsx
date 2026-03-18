@@ -359,6 +359,32 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
       lowOutlierFactor: 0.45,
       maxValue: 1.0,
     },
+    taxaConvLeads: {
+      metricFn: (d) => {
+        if ((d.leads || 0) <= 0) return 0;
+        const dateKey = String(d.dia).slice(0, 10);
+        const sale = salesByDate.get(dateKey);
+        if (sale) return sale.vendas_aprovadas / (d.leads || 1);
+        return d.compras / (d.leads || 1);
+      },
+      format: formatPercent,
+      label: "Tx Conv. Leads",
+      isValidDay: (d) => {
+        const dateKey = String(d.dia).slice(0, 10);
+        const sale = salesByDate.get(dateKey);
+        if (sale) return (d.leads || 0) > 0 && sale.vendas_aprovadas > 0;
+        return (d.leads || 0) > 0 && d.compras > 0;
+      },
+      lowOutlierFactor: 0.45,
+      maxValue: 1.0,
+    },
+    cpl: {
+      metricFn: (d) => (d.leads || 0) > 0 ? (d.gasto * 1.125) / (d.leads || 1) : 0,
+      format: formatCurrency,
+      label: "Custo por Lead",
+      isValidDay: (d) => (d.leads || 0) > 0 && d.gasto > 0,
+      inverted: true,
+    },
     taxaConversaoCheckout: {
       metricFn: (d) => {
         if (d.checkouts <= 0) return 0;
@@ -479,6 +505,25 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
             icon={Users} color="text-chart-orange" isLoading={isLoading}
             metricKey="cpl" current={current} comp7d={comp7d} comp14d={comp14d}
             invertComparison inlineComparison formatValue={formatCurrency}
+            tooltipContent={!isLoading ? (
+              <div className="space-y-3">
+                <div className="w-72 max-w-full p-3 pb-0">
+                  <p className="text-xs font-semibold mb-2 text-foreground">Fórmula do CPL</p>
+                  <div className="space-y-1.5 text-[11px]">
+                    <div className="bg-muted/50 rounded-md p-2 text-center font-mono text-xs text-foreground">
+                      CPL = Investimento Total ÷ Total de Leads
+                    </div>
+                    <div className="flex justify-between"><span className="text-destructive">Investimento Total</span><span className="font-medium text-destructive">{formatCurrency(current?.totalGasto || 0)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Total Leads</span><span className="font-medium text-foreground">{current?.totalLeads || 0}</span></div>
+                    <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
+                      <span className="text-muted-foreground">Custo por Lead</span>
+                      <span className="text-foreground">{formatCurrency(current?.cpl || 0)}</span>
+                    </div>
+                  </div>
+                </div>
+                {getSparkline("cpl")}
+              </div>
+            ) : undefined}
           />
         )}
       </div>
@@ -678,7 +723,25 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                 icon={ShoppingCart} color="text-primary" isLoading={isLoading}
                 metricKey="taxaConvLeads" current={current} comp7d={comp7d} comp14d={comp14d}
                 formatValue={formatPercent}
-                tooltipContent={getSparkline("taxaConvLeads")}
+                tooltipContent={!isLoading ? (
+                  <div className="space-y-3">
+                    <div className="w-72 max-w-full p-3 pb-0">
+                      <p className="text-xs font-semibold mb-2 text-foreground">Fórmula Tx Conv. Leads</p>
+                      <div className="space-y-1.5 text-[11px]">
+                        <div className="bg-muted/50 rounded-md p-2 text-center font-mono text-xs text-foreground">
+                          Tx Conv. = Vendas Aprovadas ÷ Leads
+                        </div>
+                        <div className="flex justify-between"><span className="text-primary">Vendas Aprovadas</span><span className="font-medium text-primary">{current?.vendasAprovadas || 0}</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Total Leads</span><span className="font-medium text-foreground">{current?.totalLeads || 0}</span></div>
+                        <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
+                          <span className="text-muted-foreground">Tx Conv. Leads</span>
+                          <span className="text-foreground">{formatPercent(current?.taxaConvLeads || 0)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {getSparkline("taxaConvLeads")}
+                  </div>
+                ) : undefined}
               />
             )}
           </div>
