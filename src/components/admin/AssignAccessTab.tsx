@@ -79,10 +79,23 @@ export function AssignAccessTab() {
     if (!selectedUser) return;
     setLoading(true);
 
-    const { error } = await supabase.from("user_roles").upsert({
+    // First check if user already has this role
+    const { data: existing } = await supabase
+      .from("user_roles")
+      .select("id")
+      .eq("user_id", selectedUser)
+      .eq("role", selectedRole as any);
+
+    if (existing && existing.length > 0) {
+      toast.error("Usuário já possui esse papel.");
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await supabase.from("user_roles").insert({
       user_id: selectedUser,
-      role: selectedRole,
-    }, { onConflict: "user_id,role" });
+      role: selectedRole as any,
+    });
 
     if (error) {
       toast.error("Erro: " + error.message);
