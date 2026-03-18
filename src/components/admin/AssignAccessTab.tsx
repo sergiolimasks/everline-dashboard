@@ -174,11 +174,12 @@ export function AssignAccessTab() {
             <label className="block text-sm font-medium text-foreground mb-1.5">Papel</label>
             <select
               value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value as "user" | "admin")}
+              onChange={(e) => setSelectedRole(e.target.value as "user" | "admin" | "super_admin")}
               className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="user">Usuário (Cliente)</option>
               <option value="admin">Administrador</option>
+              <option value="super_admin">Super Administrador</option>
             </select>
           </div>
           <button
