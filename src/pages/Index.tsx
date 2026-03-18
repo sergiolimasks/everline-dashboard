@@ -66,14 +66,13 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
   const hideCoProdutor = isGestor && !clientView;
   const config = PROJECT_CONFIGS[projectKey] || PROJECT_CONFIGS['checkup'];
   const today = new Date();
-  // Default to "this week" (Wed–today)
-  const getWednesday = (ref: Date) => {
+  const getWeekStart = (ref: Date, startDay: number) => {
     const d = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
-    const diff = (d.getDay() - 3 + 7) % 7;
+    const diff = (d.getDay() - startDay + 7) % 7;
     d.setDate(d.getDate() - diff);
     return d;
   };
-  const [dateFrom, setDateFrom] = useState(formatDateString(getWednesday(today)));
+  const [dateFrom, setDateFrom] = useState(formatDateString(getWeekStart(today, config.weekStartDay)));
   const [dateTo, setDateTo] = useState(formatDateString(today));
   const [offer, setOffer] = useState<OfferType>('all');
 
