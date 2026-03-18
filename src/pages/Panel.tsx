@@ -6,6 +6,10 @@ import { useSummary } from "@/hooks/use-dashboard";
 import { formatDateString } from "@/lib/date-utils";
 import { BarChart3, LogOut, ExternalLink, Target, DollarSign, ShoppingCart, Wallet, PiggyBank, Building2 } from "lucide-react";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { CreateUserTab } from "@/components/admin/CreateUserTab";
+import { ManagePermissionsTab } from "@/components/admin/ManagePermissionsTab";
+import { AssignAccessTab } from "@/components/admin/AssignAccessTab";
 
 interface ClientWithOffers {
   id: string;
