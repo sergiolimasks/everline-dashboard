@@ -285,12 +285,13 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
     sourcePhones.set(lc.sourceName, phones);
   }
 
-  // Build email sets per source (fallback)
+  // Build email sets per source (fallback) — columns already detected
   const sourceEmails: Map<string, Set<string>> = new Map();
   if (salesEmailColumn) {
-    for (const lc of config.leadConfigs) {
-      const leadEmailCol = await detectLeadEmailColumn(lc.table);
-      if (leadEmailCol) {
+    const emailPromises = config.leadConfigs
+      .filter(lc => leadEmailColumns.get(lc.sourceName))
+      .map(async (lc) => {
+        const leadEmailCol = leadEmailColumns.get(lc.sourceName)!;
         const rows = await queryExternalPG(
           `SELECT DISTINCT LOWER(TRIM(${leadEmailCol})) as email FROM ${lc.table} WHERE ${leadEmailCol} IS NOT NULL AND TRIM(${leadEmailCol}) != ''`,
           []
@@ -299,8 +300,11 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
         for (const r of rows as any[]) {
           if (r.email) emails.add(String(r.email));
         }
-        sourceEmails.set(lc.sourceName, emails);
-      }
+        return { sourceName: lc.sourceName, emails };
+      });
+    const emailResults = await Promise.all(emailPromises);
+    for (const { sourceName, emails } of emailResults) {
+      sourceEmails.set(sourceName, emails);
     }
   }
 
