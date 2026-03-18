@@ -147,6 +147,13 @@ function getProjectConfig(project: string): ProjectConfig {
 }
 
 function getOfferFiltersForProject(config: ProjectConfig, offer: string): OfferFilters {
+  if (offer === 'all_no_filter') {
+    return {
+      metaWhere: '',
+      principalProduct: '',
+      useEmailLinkedBumps: false,
+    };
+  }
   if (offer && offer !== 'all' && config.offerFilters[offer]) {
     return config.offerFilters[offer];
   }
