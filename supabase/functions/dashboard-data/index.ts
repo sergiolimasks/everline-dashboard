@@ -185,6 +185,14 @@ function allProductsFilter(config: ProjectConfig, productName: string): string {
   return `("Nome do produto" = '${productName}' OR ${bumpFilter(config, productName)})`;
 }
 
+// Build a phone-based WHERE clause to filter sales by lead source phones
+function buildPhoneFilter(filteredConfig: ProjectConfig, salesPhoneCol: string): string {
+  if (filteredConfig.leadConfigs.length === 0) return '';
+  const unions = filteredConfig.leadConfigs.map(lc =>
+    `SELECT DISTINCT REGEXP_REPLACE(TRIM(${lc.phoneColumn}), '[^0-9]', '', 'g') as tel FROM ${lc.table} WHERE ${lc.phoneColumn} IS NOT NULL AND TRIM(${lc.phoneColumn}) != ''`
+  ).join(' UNION ');
+  return ` AND REGEXP_REPLACE(TRIM(${salesPhoneCol}), '[^0-9]', '', 'g') IN (${unions})`;
+
 async function queryLeadsTotal(config: ProjectConfig, params: string[]): Promise<number> {
   if (config.leadConfigs.length === 0) return 0;
   let total = 0;
