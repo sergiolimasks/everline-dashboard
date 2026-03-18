@@ -226,12 +226,17 @@ async function detectLeadEmailColumn(table: string): Promise<string | null> {
 async function queryAttribution(config: ProjectConfig, params: string[]): Promise<any[]> {
   if (config.leadConfigs.length === 0) return [];
 
-  const salesPhoneColumn = await detectSalesPhoneColumn(config);
+  // Detect columns in parallel
+  const [salesPhoneColumn, salesEmailColumn, ...leadEmailCols] = await Promise.all([
+    detectSalesPhoneColumn(config),
+    detectSalesEmailColumn(config),
+    ...config.leadConfigs.map(lc => detectLeadEmailColumn(lc.table)),
+  ]);
   if (!salesPhoneColumn) {
     throw new Error('Nenhuma coluna de telefone encontrada na base de vendas');
   }
-
-  const salesEmailColumn = await detectSalesEmailColumn(config);
+  const leadEmailColumns: Map<string, string | null> = new Map();
+  config.leadConfigs.forEach((lc, i) => leadEmailColumns.set(lc.sourceName, leadEmailCols[i]));
 
   const salesDateFilter = params.length >= 2
     ? ` AND "Data"::date >= $1 AND "Data"::date <= $2`
