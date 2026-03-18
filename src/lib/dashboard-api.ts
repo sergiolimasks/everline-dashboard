@@ -142,8 +142,13 @@ export async function fetchAds(dateFrom?: string, dateTo?: string, offer?: strin
 
 export interface AttributionData {
   source: string;
+  gasto: number;
   leads: number;
+  cpl: number;
   vendas: number;
+  cpa: number;
+  roi: number;
+  lucro: number;
   receita_bruta: number;
   receita_liquida: number;
   taxa_conversao: number;

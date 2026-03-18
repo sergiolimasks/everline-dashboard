@@ -13,10 +13,6 @@ function formatNumber(value: number) {
   return value.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
 }
 
-function formatPercent(value: number) {
-  return `${(value * 100).toFixed(2)}%`;
-}
-
 export function AttributionTable({ data, isLoading }: AttributionTableProps) {
   if (isLoading) {
     return (
@@ -39,15 +35,18 @@ export function AttributionTable({ data, isLoading }: AttributionTableProps) {
 
   const totals = rows.reduce(
     (acc, r) => {
+      acc.gasto += r.gasto;
       acc.leads += r.leads;
       acc.vendas += r.vendas;
-      acc.receita_bruta += r.receita_bruta;
       acc.receita_liquida += r.receita_liquida;
+      acc.lucro += r.lucro;
       return acc;
     },
-    { leads: 0, vendas: 0, receita_bruta: 0, receita_liquida: 0 }
+    { gasto: 0, leads: 0, vendas: 0, receita_liquida: 0, lucro: 0 }
   );
-  const totalTxConv = totals.leads > 0 ? totals.vendas / totals.leads : 0;
+  const totalCpl = totals.leads > 0 ? totals.gasto / totals.leads : 0;
+  const totalCpa = totals.vendas > 0 ? totals.gasto / totals.vendas : 0;
+  const totalRoi = totals.gasto > 0 ? totals.receita_liquida / totals.gasto : 0;
 
   return (
     <div className="chart-container">
@@ -62,11 +61,13 @@ export function AttributionTable({ data, isLoading }: AttributionTableProps) {
           <thead>
             <tr>
               <th>Fonte</th>
+              <th className="text-right">Valor Gasto</th>
               <th className="text-right">Leads</th>
-              <th className="text-right">Vendas Atribuídas</th>
-              <th className="text-right">Tx Conv.</th>
-              <th className="text-right">Receita Bruta</th>
-              <th className="text-right">Receita Líquida</th>
+              <th className="text-right">CPL</th>
+              <th className="text-right">Vendas</th>
+              <th className="text-right">CPA</th>
+              <th className="text-right">ROI</th>
+              <th className="text-right">Lucro</th>
             </tr>
           </thead>
           <tbody>
@@ -80,22 +81,30 @@ export function AttributionTable({ data, isLoading }: AttributionTableProps) {
                     {r.source}
                   </div>
                 </td>
+                <td className="text-right font-display font-semibold">{formatCurrency(r.gasto)}</td>
                 <td className="text-right">{formatNumber(r.leads)}</td>
-                <td className="text-right font-display font-semibold">{formatNumber(r.vendas)}</td>
-                <td className="text-right">{r.leads > 0 ? formatPercent(r.taxa_conversao) : '—'}</td>
-                <td className="text-right">{formatCurrency(r.receita_bruta)}</td>
-                <td className="text-right">{formatCurrency(r.receita_liquida)}</td>
+                <td className="text-right">{r.leads > 0 ? formatCurrency(r.cpl) : '—'}</td>
+                <td className="text-right">{formatNumber(r.vendas)}</td>
+                <td className="text-right">{r.vendas > 0 ? formatCurrency(r.cpa) : '—'}</td>
+                <td className={`text-right font-display font-semibold ${r.roi >= 1 ? 'text-primary' : r.gasto > 0 ? 'text-destructive' : ''}`}>
+                  {r.gasto > 0 ? r.roi.toFixed(2) : '—'}
+                </td>
+                <td className={`text-right font-display font-semibold ${r.lucro >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                  {r.gasto > 0 || r.lucro !== 0 ? formatCurrency(r.lucro) : '—'}
+                </td>
               </tr>
             ))}
           </tbody>
           <tfoot className="border-t-2 border-border">
             <tr className="font-semibold bg-muted/30">
               <td>Total</td>
+              <td className="text-right font-display">{formatCurrency(totals.gasto)}</td>
               <td className="text-right">{formatNumber(totals.leads)}</td>
-              <td className="text-right font-display">{formatNumber(totals.vendas)}</td>
-              <td className="text-right">{formatPercent(totalTxConv)}</td>
-              <td className="text-right">{formatCurrency(totals.receita_bruta)}</td>
-              <td className="text-right">{formatCurrency(totals.receita_liquida)}</td>
+              <td className="text-right">{formatCurrency(totalCpl)}</td>
+              <td className="text-right">{formatNumber(totals.vendas)}</td>
+              <td className="text-right">{formatCurrency(totalCpa)}</td>
+              <td className={`text-right font-display ${totalRoi >= 1 ? 'text-primary' : 'text-destructive'}`}>{totalRoi.toFixed(2)}</td>
+              <td className={`text-right font-display ${totals.lucro >= 0 ? 'text-primary' : 'text-destructive'}`}>{formatCurrency(totals.lucro)}</td>
             </tr>
           </tfoot>
         </table>
