@@ -54,6 +54,7 @@ interface OfferFilters {
   metaWhere: string;
   principalProduct: string;
   useEmailLinkedBumps: boolean;
+  leadSources?: string[]; // filter leadConfigs by sourceName
 }
 
 const PROJECTS: Record<string, ProjectConfig> = {
