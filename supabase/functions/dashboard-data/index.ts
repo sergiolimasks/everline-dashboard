@@ -631,7 +631,7 @@ serve(async (req) => {
       `, params);
 
       let bumpSalesRow: any = { vendas_bump: 0, vendas_cnpj: 0, receita_bruta_bump: 0, receita_liquida_bump: 0, co_produtor_bump: 0, taxa_green_bump: 0 };
-      if (config.bumpProducts.length > 0) {
+      if (!isPanel && config.bumpProducts.length > 0) {
         const bFilter = bumpFilter(config, filters.principalProduct);
         const bumpSales = await queryExternalPG(`
           SELECT 
