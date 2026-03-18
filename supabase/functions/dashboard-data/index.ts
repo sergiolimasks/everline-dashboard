@@ -1,4 +1,4 @@
-// Dashboard data edge function v9 — multi-project + leads support
+// Dashboard data edge function v10 — multi-project + leads + attribution
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
@@ -8,9 +8,6 @@ const corsHeaders = {
 };
 
 const APPROVED_STATUSES = `('paid','Paid','approved','Aprovada','aprovada','Completa','completa')`;
-const TAXA_FIXA_POR_VENDA = 18;
-
-const ALL_BUMP_PRODUCTS = `('Avaliação individual de um especialista','Check-up do CNPJ')`;
 
 async function queryExternalPG(sql: string, params: unknown[] = []) {
   const client = new Client({
@@ -36,6 +33,8 @@ interface LeadTableConfig {
   table: string;
   dateColumn: string;
   countExpression: string;
+  emailColumn: string;
+  sourceName: string;
 }
 
 interface ProjectConfig {
@@ -116,8 +115,9 @@ const PROJECTS: Record<string, ProjectConfig> = {
     defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%50K-DEZ25%' OR UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%' OR UPPER(campanha) LIKE '%PRESENCIAL%')`,
     offerFilters: {},
     leadConfigs: [
-      { table: 'bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"' },
-      { table: 'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter', dateColumn: '"Data"', countExpression: '*' },
+      { table: 'bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"', emailColumn: '"email"', sourceName: 'Aplicação' },
+      { table: 'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter', dateColumn: '"Data"', countExpression: '*', emailColumn: '"email"', sourceName: 'Lançamento 50K' },
+      { table: 'bd_ads_clientes.leads_uelicon_venancio_presencial', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"', emailColumn: '"email"', sourceName: 'Presencial' },
     ],
   },
 };
@@ -137,10 +137,8 @@ function getOfferFiltersForProject(config: ProjectConfig, offer: string): OfferF
   };
 }
 
-// Build principal product SQL filter
 function principalFilter(config: ProjectConfig, productName: string): string {
   if (!productName) {
-    // Default "all" — broad filter using all principal products
     if (config.principalProducts.length > 0) {
       const names = config.principalProducts.map(p => `'${p}'`).join(',');
       return `"Nome do produto" IN (${names})`;
@@ -150,9 +148,8 @@ function principalFilter(config: ProjectConfig, productName: string): string {
   return `"Nome do produto" = '${productName}'`;
 }
 
-// Build bump filter
 function bumpFilter(config: ProjectConfig, productName: string): string {
-  if (config.bumpProducts.length === 0) return `1=0`; // no bumps
+  if (config.bumpProducts.length === 0) return `1=0`;
   const bumpList = config.bumpProducts.map(p => `'${p}'`).join(',');
   if (!productName) {
     return `("Nome do produto" IN (${bumpList}))`;
@@ -160,7 +157,6 @@ function bumpFilter(config: ProjectConfig, productName: string): string {
   return `("Nome do produto" IN (${bumpList}) AND "Email do cliente" IN (SELECT DISTINCT "Email do cliente" FROM ${config.greenSchema} WHERE "Nome do produto" = '${productName}' AND "Status da venda" IN ${APPROVED_STATUSES}))`;
 }
 
-// All products filter
 function allProductsFilter(config: ProjectConfig, productName: string): string {
   if (!productName) {
     const allNames = [...config.principalProducts, ...config.bumpProducts].map(p => `'${p}'`).join(',');
@@ -169,7 +165,6 @@ function allProductsFilter(config: ProjectConfig, productName: string): string {
   return `("Nome do produto" = '${productName}' OR ${bumpFilter(config, productName)})`;
 }
 
-// Query total leads from all lead tables
 async function queryLeadsTotal(config: ProjectConfig, params: string[]): Promise<number> {
   if (config.leadConfigs.length === 0) return 0;
   let total = 0;
@@ -186,7 +181,6 @@ async function queryLeadsTotal(config: ProjectConfig, params: string[]): Promise
   return total;
 }
 
-// Query daily leads from all lead tables
 async function queryLeadsDaily(config: ProjectConfig, params: string[]): Promise<Map<string, number>> {
   const map = new Map<string, number>();
   if (config.leadConfigs.length === 0) return map;
@@ -204,6 +198,121 @@ async function queryLeadsDaily(config: ProjectConfig, params: string[]): Promise
     }
   }
   return map;
+}
+
+// ========== EMAIL-BASED SALES ATTRIBUTION ==========
+async function queryAttribution(config: ProjectConfig, params: string[]): Promise<any[]> {
+  if (config.leadConfigs.length === 0) return [];
+
+  const salesDateFilter = params.length >= 2
+    ? ` AND "Data"::date >= $1 AND "Data"::date <= $2`
+    : '';
+  const pFilter = principalFilter(config, '');
+
+  // 1) Get approved sale emails in the period
+  const salesRows = await queryExternalPG(`
+    SELECT LOWER(TRIM("Email do cliente")) as email,
+           COUNT(*) as vendas,
+           SUM(COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0)) as receita_bruta,
+           SUM(COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0)) as receita_liquida
+    FROM ${config.greenSchema}
+    WHERE ${pFilter} AND "Status da venda" IN ${APPROVED_STATUSES} ${salesDateFilter}
+    GROUP BY LOWER(TRIM("Email do cliente"))
+  `, params);
+
+  const salesByEmail = new Map<string, { vendas: number; receita_bruta: number; receita_liquida: number }>();
+  for (const r of salesRows as any[]) {
+    if (r.email) {
+      salesByEmail.set(String(r.email), {
+        vendas: Number(r.vendas || 0),
+        receita_bruta: Number(r.receita_bruta || 0),
+        receita_liquida: Number(r.receita_liquida || 0),
+      });
+    }
+  }
+
+  // 2) Get emails from each lead source (all time - not filtered by date, to catch leads that registered before)
+  const sourceEmails: Map<string, Set<string>> = new Map();
+  for (const lc of config.leadConfigs) {
+    const rows = await queryExternalPG(
+      `SELECT DISTINCT LOWER(TRIM(${lc.emailColumn})) as email FROM ${lc.table} WHERE ${lc.emailColumn} IS NOT NULL AND ${lc.emailColumn} != ''`,
+      []
+    );
+    const emails = new Set<string>();
+    for (const r of rows as any[]) {
+      if (r.email) emails.add(String(r.email));
+    }
+    sourceEmails.set(lc.sourceName, emails);
+  }
+
+  // 3) Get lead counts per source for the period
+  const leadsDateFilter = params.length >= 2
+    ? ` WHERE ${config.leadConfigs[0].dateColumn}::date >= $1 AND ${config.leadConfigs[0].dateColumn}::date <= $2`
+    : '';
+
+  const leadCounts: Map<string, number> = new Map();
+  for (const lc of config.leadConfigs) {
+    const df = params.length >= 2
+      ? ` WHERE ${lc.dateColumn}::date >= $1 AND ${lc.dateColumn}::date <= $2`
+      : '';
+    const rows = await queryExternalPG(
+      `SELECT COUNT(${lc.countExpression}) as total FROM ${lc.table}${df}`,
+      params
+    );
+    leadCounts.set(lc.sourceName, Number((rows[0] as any)?.total || 0));
+  }
+
+  // 4) Cross-reference: for each sale email, find which sources it belongs to
+  const attribution: Map<string, { vendas: number; receita_bruta: number; receita_liquida: number; leads: number }> = new Map();
+  // Initialize
+  for (const lc of config.leadConfigs) {
+    attribution.set(lc.sourceName, { vendas: 0, receita_bruta: 0, receita_liquida: 0, leads: leadCounts.get(lc.sourceName) || 0 });
+  }
+  attribution.set('Não identificado', { vendas: 0, receita_bruta: 0, receita_liquida: 0, leads: 0 });
+
+  for (const [email, sale] of salesByEmail) {
+    // Find which sources this email belongs to
+    const matchedSources: string[] = [];
+    for (const [sourceName, emails] of sourceEmails) {
+      if (emails.has(email)) {
+        matchedSources.push(sourceName);
+      }
+    }
+
+    if (matchedSources.length === 0) {
+      // Not found in any lead source
+      const entry = attribution.get('Não identificado')!;
+      entry.vendas += sale.vendas;
+      entry.receita_bruta += sale.receita_bruta;
+      entry.receita_liquida += sale.receita_liquida;
+    } else {
+      // Proportional distribution
+      const weight = 1 / matchedSources.length;
+      for (const src of matchedSources) {
+        const entry = attribution.get(src)!;
+        entry.vendas += sale.vendas * weight;
+        entry.receita_bruta += sale.receita_bruta * weight;
+        entry.receita_liquida += sale.receita_liquida * weight;
+      }
+    }
+  }
+
+  // Convert to array
+  const result: any[] = [];
+  for (const [source, data] of attribution) {
+    if (data.vendas > 0 || data.leads > 0) {
+      result.push({
+        source,
+        leads: data.leads,
+        vendas: Math.round(data.vendas * 100) / 100,
+        receita_bruta: Math.round(data.receita_bruta * 100) / 100,
+        receita_liquida: Math.round(data.receita_liquida * 100) / 100,
+        taxa_conversao: data.leads > 0 ? data.vendas / data.leads : 0,
+      });
+    }
+  }
+
+  return result;
 }
 
 serve(async (req) => {
@@ -253,7 +362,6 @@ serve(async (req) => {
         ORDER BY data::date DESC
       `, params);
 
-      // Merge leads data if project has lead tables
       const leadsMap = await queryLeadsDaily(config, params);
       data = (trafficRows as any[]).map(row => ({
         ...row,
@@ -387,7 +495,6 @@ serve(async (req) => {
       const coProdutorTotal = Number((principalSales[0] as any)?.co_produtor || 0) + Number(bumpSalesRow?.co_produtor_bump || 0);
       const taxaGreenTotal = Number((principalSales[0] as any)?.taxa_green || 0) + Number(bumpSalesRow?.taxa_green_bump || 0);
 
-      // Query leads total
       const totalLeads = await queryLeadsTotal(config, params);
 
       data = [{
@@ -469,13 +576,16 @@ serve(async (req) => {
         ...row,
         link: linkMap.get(String(row.anuncio)) || null,
       }));
+
+    } else if (endpoint === 'attribution') {
+      data = await queryAttribution(config, params);
     }
 
     return new Response(JSON.stringify({ data }, (_, v) => typeof v === 'bigint' ? Number(v) : v), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Dashboard v8 error:', error);
+    console.error('Dashboard v10 error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
