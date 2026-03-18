@@ -210,7 +210,7 @@ function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, d
 }
 
 export default function Panel({ clientView }: { clientView?: boolean }) {
-  const { user, isAdmin, isSuperAdmin, signOut } = useAuth();
+  const { user, isAdmin, isSuperAdmin, isGestor, signOut } = useAuth();
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientWithOffers[]>([]);
   const [loading, setLoading] = useState(true);
