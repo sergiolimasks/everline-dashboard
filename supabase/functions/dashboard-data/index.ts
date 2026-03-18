@@ -592,7 +592,7 @@ serve(async (req) => {
             SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor_bump,
             SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("TAXA GREEN", ',', '.'), '')::numeric, 0) ELSE 0 END) as taxa_green_bump
           FROM ${config.greenSchema}
-          WHERE ${bFilter} ${salesDateFilter}
+          WHERE ${bFilter} ${salesDateFilter} ${salesPhoneFilter}
         `, params);
         bumpSalesRow = bumpSales[0] || bumpSalesRow;
       }
