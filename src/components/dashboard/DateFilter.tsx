@@ -195,20 +195,20 @@ export function DateFilter({ dateFrom, dateTo, onDateChange, weekStartDay = 0 }:
       label: "Esta semana",
       getRange: () => {
         const today = new Date();
-        const wed = getWednesday(today);
-        return [wed, today];
+        const start = getWeekStart(today, weekStartDay);
+        return [start, today];
       },
     },
     {
       label: "Semana passada",
       getRange: () => {
         const today = new Date();
-        const thisWed = getWednesday(today);
-        const prevTue = new Date(thisWed);
-        prevTue.setDate(prevTue.getDate() - 1);
-        const prevWed = new Date(thisWed);
-        prevWed.setDate(prevWed.getDate() - 7);
-        return [prevWed, prevTue];
+        const thisStart = getWeekStart(today, weekStartDay);
+        const prevEnd = new Date(thisStart);
+        prevEnd.setDate(prevEnd.getDate() - 1);
+        const prevStart = new Date(thisStart);
+        prevStart.setDate(prevStart.getDate() - 7);
+        return [prevStart, prevEnd];
       },
     },
     {
