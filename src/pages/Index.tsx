@@ -149,6 +149,7 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
           isSingleDay={periodDays === 1}
           clientView={clientView}
           showLeads={config.showLeads}
+          hideCoProdutor={hideCoProdutor}
         />
 
         {/* Charts Row */}
