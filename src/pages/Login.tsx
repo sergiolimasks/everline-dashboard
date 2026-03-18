@@ -38,10 +38,11 @@ export default function Login() {
       .from("user_roles")
       .select("role")
       .eq("user_id", currentUser.id)
-      .eq("role", "admin")
-      .maybeSingle();
+      .in("role", ["admin", "super_admin", "gestor"] as any);
 
-    if (roleData) {
+    const hasAdminAccess = roleData && roleData.length > 0;
+
+    if (hasAdminAccess) {
       navigate("/painel");
     } else {
       const { data: access } = await supabase
