@@ -4,6 +4,7 @@ import type { CampaignData } from "@/lib/dashboard-api";
 interface CampaignsTableProps {
   data: CampaignData[] | undefined;
   isLoading: boolean;
+  showLeads?: boolean;
 }
 
 function formatCurrency(value: number) {
@@ -24,7 +25,7 @@ function StatusIndicator({ status }: { status?: string }) {
   );
 }
 
-export function CampaignsTable({ data, isLoading }: CampaignsTableProps) {
+export function CampaignsTable({ data, isLoading, showLeads = false }: CampaignsTableProps) {
   const [showAll, setShowAll] = useState(false);
   const INITIAL_SHOW = 5;
 
@@ -66,10 +67,9 @@ export function CampaignsTable({ data, isLoading }: CampaignsTableProps) {
             <tr>
               <th>Campanha</th>
               <th className="text-right">Gasto</th>
-              <th className="text-right">Vendas</th>
-              <th className="text-right">CPA</th>
-              <th className="text-right">Valor Compras</th>
-              <th className="text-right">ROAS</th>
+              <th className="text-right">{showLeads ? 'Leads' : 'Vendas'}</th>
+              <th className="text-right">{showLeads ? 'CPL' : 'CPA'}</th>
+              {!showLeads && <th className="text-right">Valor Compras</th>}
             </tr>
           </thead>
           <tbody>
@@ -90,8 +90,7 @@ export function CampaignsTable({ data, isLoading }: CampaignsTableProps) {
                   <td className="text-right font-display font-semibold">{formatCurrency(gasto)}</td>
                   <td className="text-right">{formatNumber(compras)}</td>
                   <td className="text-right">{formatCurrency(cpa)}</td>
-                  <td className="text-right">{formatCurrency(valorCompras)}</td>
-                  <td className="text-right font-display font-semibold">{roas.toFixed(2)}x</td>
+                  {!showLeads && <td className="text-right">{formatCurrency(valorCompras)}</td>}
                 </tr>
               );
             })}
@@ -102,8 +101,7 @@ export function CampaignsTable({ data, isLoading }: CampaignsTableProps) {
               <td className="text-right font-display">{formatCurrency(totals.gasto)}</td>
               <td className="text-right">{formatNumber(totals.compras)}</td>
               <td className="text-right">{formatCurrency(totalCpa)}</td>
-              <td className="text-right">{formatCurrency(totals.valorCompras)}</td>
-              <td className="text-right font-display">{totalRoas.toFixed(2)}x</td>
+              {!showLeads && <td className="text-right">{formatCurrency(totals.valorCompras)}</td>}
             </tr>
           </tfoot>
         </table>
