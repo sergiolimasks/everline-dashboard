@@ -263,7 +263,7 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
     if (!user) return;
 
     async function loadClients() {
-      if (clientView || (isGestor && !isAdmin)) {
+      if (clientView || (isGestor && !isSuperAdmin)) {
         // For client view or gestor, load only assigned campaigns
         const { data: accessData } = await supabase
           .from("user_campaign_access")

@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select("role")
       .eq("user_id", userId);
     const roles = (data || []).map((r: any) => r.role);
-    setIsAdmin(roles.includes("admin") || roles.includes("super_admin"));
+    setIsAdmin(roles.includes("admin") || roles.includes("super_admin") || roles.includes("gestor"));
     setIsSuperAdmin(roles.includes("super_admin"));
     setIsGestor(roles.includes("gestor"));
   };
