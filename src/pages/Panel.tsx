@@ -97,7 +97,7 @@ function CacTooltip({ gastoMeta, imposto, custoConsultas, custoManychat, gastoTo
   );
 }
 
-function ClientCard({ client, isAdmin, clientView, dateFrom, dateTo, dateLabel }: { client: ClientWithOffers; isAdmin: boolean; clientView?: boolean; dateFrom: string; dateTo: string; dateLabel: string }) {
+function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, dateLabel }: { client: ClientWithOffers; isAdmin: boolean; isGestor?: boolean; clientView?: boolean; dateFrom: string; dateTo: string; dateLabel: string }) {
   const { data: summary, isLoading } = useSummary(dateFrom, dateTo, "all_no_filter");
 
   const gastoMeta = Number(summary?.traffic?.total_gasto || 0);
