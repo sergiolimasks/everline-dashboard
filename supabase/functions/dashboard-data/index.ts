@@ -209,15 +209,16 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
     : '';
   const pFilter = principalFilter(config, '');
 
-  // 1) Get approved sale emails in the period
+  // 1) Get approved sale phones in the period
   const salesRows = await queryExternalPG(`
-    SELECT LOWER(TRIM("Email do cliente")) as email,
+    SELECT REGEXP_REPLACE(TRIM("Telefone do cliente"), '[^0-9]', '', 'g') as telefone,
            COUNT(*) as vendas,
            SUM(COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0)) as receita_bruta,
            SUM(COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0)) as receita_liquida
     FROM ${config.greenSchema}
     WHERE ${pFilter} AND "Status da venda" IN ${APPROVED_STATUSES} ${salesDateFilter}
-    GROUP BY LOWER(TRIM("Email do cliente"))
+      AND "Telefone do cliente" IS NOT NULL AND TRIM("Telefone do cliente") != ''
+    GROUP BY REGEXP_REPLACE(TRIM("Telefone do cliente"), '[^0-9]', '', 'g')
   `, params);
 
   const salesByEmail = new Map<string, { vendas: number; receita_bruta: number; receita_liquida: number }>();
