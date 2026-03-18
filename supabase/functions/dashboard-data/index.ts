@@ -426,10 +426,16 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
   const result: any[] = [];
   for (const [source, data] of attribution) {
     if (data.vendas > 0 || data.leads > 0) {
+      const lucro = data.receita_liquida - data.gasto;
       result.push({
         source,
+        gasto: Math.round(data.gasto * 100) / 100,
         leads: data.leads,
+        cpl: data.leads > 0 ? Math.round((data.gasto / data.leads) * 100) / 100 : 0,
         vendas: Math.round(data.vendas * 100) / 100,
+        cpa: data.vendas > 0 ? Math.round((data.gasto / data.vendas) * 100) / 100 : 0,
+        roi: data.gasto > 0 ? Math.round((data.receita_liquida / data.gasto) * 100) / 100 : 0,
+        lucro: Math.round(lucro * 100) / 100,
         receita_bruta: Math.round(data.receita_bruta * 100) / 100,
         receita_liquida: Math.round(data.receita_liquida * 100) / 100,
         taxa_conversao: data.leads > 0 ? data.vendas / data.leads : 0,
