@@ -473,6 +473,14 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
           inlineComparison
           tooltipContent={roiTooltip}
         />
+        {showLeads && (
+          <KPICard
+            label="Custo por Lead" value={isLoading ? null : formatCurrency(current?.cpl || 0)}
+            icon={Users} color="text-chart-orange" isLoading={isLoading}
+            metricKey="cpl" current={current} comp7d={comp7d} comp14d={comp14d}
+            invertComparison inlineComparison formatValue={formatCurrency}
+          />
+        )}
       </div>
 
       {!clientView && (
