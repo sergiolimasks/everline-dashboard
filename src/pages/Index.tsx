@@ -24,6 +24,7 @@ export interface ProjectDashboardConfig {
   showCustoConsultas: boolean;
   showManychat: boolean;
   showLeads: boolean;
+  weekStartDay: number; // 0=Sun, 3=Wed, etc.
   offerOptions?: { value: string; label: string }[];
 }
 
