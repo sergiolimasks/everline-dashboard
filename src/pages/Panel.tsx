@@ -216,6 +216,46 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
   const [simulateClientView, setSimulateClientView] = useState(false);
   const effectiveClientView = clientView || simulateClientView;
 
+  // Date filter state
+  const today = new Date();
+  const todayStr = formatDateString(today);
+  const [datePreset, setDatePreset] = useState<string>("hoje");
+  const [dateFrom, setDateFrom] = useState(todayStr);
+  const [dateTo, setDateTo] = useState(todayStr);
+  const [dateLabel, setDateLabel] = useState("Hoje");
+
+  const applyPreset = (preset: string) => {
+    setDatePreset(preset);
+    const now = new Date();
+    let from: Date, to: Date, label: string;
+    switch (preset) {
+      case "ontem": {
+        const d = new Date(now); d.setDate(d.getDate() - 1);
+        from = to = d; label = "Ontem"; break;
+      }
+      case "semana": {
+        // Current week: last 7 days
+        const d = new Date(now); d.setDate(d.getDate() - 6);
+        from = d; to = now; label = "Semana"; break;
+      }
+      case "mes": {
+        from = new Date(now.getFullYear(), now.getMonth(), 1);
+        to = now; label = "Mês"; break;
+      }
+      case "mes_passado": {
+        from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        to = new Date(now.getFullYear(), now.getMonth(), 0);
+        label = "Mês Passado"; break;
+      }
+      default: { // hoje
+        from = to = now; label = "Hoje"; break;
+      }
+    }
+    setDateFrom(formatDateString(from));
+    setDateTo(formatDateString(to));
+    setDateLabel(label);
+  };
+
   useEffect(() => {
     if (!user) return;
 
