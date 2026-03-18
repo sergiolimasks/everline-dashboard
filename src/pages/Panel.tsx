@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSummary } from "@/hooks/use-dashboard";
 import { formatDateString } from "@/lib/date-utils";
-import { BarChart3, LogOut, ExternalLink, Target, DollarSign, ShoppingCart, Wallet, PiggyBank, Building2 } from "lucide-react";
+import { BarChart3, LogOut, ExternalLink, Target, DollarSign, ShoppingCart, Wallet, PiggyBank, Building2, Eye, EyeOff } from "lucide-react";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CreateUserTab } from "@/components/admin/CreateUserTab";
@@ -214,6 +214,8 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientWithOffers[]>([]);
   const [loading, setLoading] = useState(true);
+  const [simulateClientView, setSimulateClientView] = useState(false);
+  const effectiveClientView = clientView || simulateClientView;
 
   useEffect(() => {
     if (!user) return;
@@ -301,13 +303,28 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
               </p>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-border bg-card text-secondary-foreground hover:border-destructive/50 hover:text-destructive transition-colors"
-          >
-            <LogOut className="h-4 w-4" />
-            Sair
-          </button>
+          <div className="flex items-center gap-3">
+            {isSuperAdmin && !clientView && (
+              <button
+                onClick={() => setSimulateClientView(!simulateClientView)}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                  simulateClientView
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-card text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {simulateClientView ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {simulateClientView ? "Visão Cliente" : "Visão Admin"}
+              </button>
+            )}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-border bg-card text-secondary-foreground hover:border-destructive/50 hover:text-destructive transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+              Sair
+            </button>
+          </div>
         </div>
 
         {isSuperAdmin && !clientView ? (
@@ -346,7 +363,7 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
       <div className="space-y-8">
         {clients.map((client) => (
           <div key={client.id} className="rounded-2xl border border-border bg-card/50 p-5 md:p-6 space-y-4">
-            <ClientCard client={client} isAdmin={isAdmin} clientView={clientView} />
+            <ClientCard client={client} isAdmin={isAdmin} clientView={effectiveClientView} />
           </div>
         ))}
       </div>
