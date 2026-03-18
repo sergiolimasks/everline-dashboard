@@ -366,6 +366,30 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
           </div>
         </div>
 
+        {/* Date filter */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          {[
+            { key: "hoje", label: "Hoje" },
+            { key: "ontem", label: "Ontem" },
+            { key: "semana", label: "Semana" },
+            { key: "mes", label: "Mês" },
+            { key: "mes_passado", label: "Mês Passado" },
+          ].map((p) => (
+            <button
+              key={p.key}
+              onClick={() => applyPreset(p.key)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                datePreset === p.key
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+
         {isSuperAdmin && !clientView ? (
           <Tabs defaultValue="clientes" className="space-y-6">
             <TabsList>
