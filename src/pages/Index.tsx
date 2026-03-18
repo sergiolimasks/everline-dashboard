@@ -170,6 +170,7 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
           isLoading={loadingTraffic || loadingSales}
           clientView={clientView}
           showLeads={config.showLeads}
+          hideCoProdutor={hideCoProdutor}
         />
 
         {!clientView && (
