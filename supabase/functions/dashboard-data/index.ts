@@ -429,6 +429,11 @@ serve(async (req) => {
     const filters = getOfferFiltersForProject(config, offer);
     const metaFilter = filters.metaWhere;
 
+    // Filter leadConfigs by selected offer's leadSources
+    const filteredConfig = filters.leadSources
+      ? { ...config, leadConfigs: config.leadConfigs.filter(lc => filters.leadSources!.includes(lc.sourceName)) }
+      : config;
+
     let dateFilter = '';
     const params: string[] = [];
 
