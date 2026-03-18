@@ -28,7 +28,7 @@ export function AssignAccessTab() {
   const [selectedUser, setSelectedUser] = useState("");
   const [selectedOffer, setSelectedOffer] = useState("");
   const [loading, setLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<"user" | "admin">("user");
+  const [selectedRole, setSelectedRole] = useState<"user" | "admin" | "super_admin">("user");
 
   const loadData = async () => {
     const [{ data: p }, { data: a }, { data: o }] = await Promise.all([
