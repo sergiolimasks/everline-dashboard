@@ -115,7 +115,7 @@ function ClientCard({ client, isAdmin, clientView, dateFrom, dateTo, dateLabel }
 
   const kpis = [
     {
-      label: "Investimento Hoje", value: formatCurrency(gastoTotal), icon: Wallet, color: "text-red-400",
+      label: `Investimento (${dateLabel})`, value: formatCurrency(gastoTotal), icon: Wallet, color: "text-red-400",
       tooltip: <GastoTooltip gastoMeta={gastoMeta} imposto={imposto} custoConsultas={custoConsultas} custoManychat={custoManychat} gastoTotal={gastoTotal} />,
     },
     {
