@@ -115,9 +115,9 @@ const PROJECTS: Record<string, ProjectConfig> = {
     defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%50K-DEZ25%' OR UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%' OR UPPER(campanha) LIKE '%PRESENCIAL%')`,
     offerFilters: {},
     leadConfigs: [
-      { table: 'bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"', emailColumn: '"Email"', sourceName: 'Aplicação' },
-      { table: 'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter', dateColumn: '"Data"', countExpression: '*', emailColumn: '"Email"', sourceName: 'Lançamento 50K' },
-      { table: 'bd_ads_clientes.leads_uelicon_venancio_presencial', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"', emailColumn: '"Email"', sourceName: 'Presencial' },
+      { table: 'bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"', emailColumn: '"telefone"', sourceName: 'Aplicação' },
+      { table: 'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter', dateColumn: '"Data"', countExpression: '*', emailColumn: '"telefone"', sourceName: 'Lançamento 50K' },
+      { table: 'bd_ads_clientes.leads_uelicon_venancio_presencial', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"', emailColumn: '"telefone"', sourceName: 'Presencial' },
     ],
   },
 };
@@ -209,21 +209,22 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
     : '';
   const pFilter = principalFilter(config, '');
 
-  // 1) Get approved sale emails in the period
+  // 1) Get approved sale phones in the period
   const salesRows = await queryExternalPG(`
-    SELECT LOWER(TRIM("Email do cliente")) as email,
+    SELECT REGEXP_REPLACE(TRIM("Telefone do cliente"), '[^0-9]', '', 'g') as telefone,
            COUNT(*) as vendas,
            SUM(COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0)) as receita_bruta,
            SUM(COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0)) as receita_liquida
     FROM ${config.greenSchema}
     WHERE ${pFilter} AND "Status da venda" IN ${APPROVED_STATUSES} ${salesDateFilter}
-    GROUP BY LOWER(TRIM("Email do cliente"))
+      AND "Telefone do cliente" IS NOT NULL AND TRIM("Telefone do cliente") != ''
+    GROUP BY REGEXP_REPLACE(TRIM("Telefone do cliente"), '[^0-9]', '', 'g')
   `, params);
 
-  const salesByEmail = new Map<string, { vendas: number; receita_bruta: number; receita_liquida: number }>();
+  const salesByPhone = new Map<string, { vendas: number; receita_bruta: number; receita_liquida: number }>();
   for (const r of salesRows as any[]) {
-    if (r.email) {
-      salesByEmail.set(String(r.email), {
+    if (r.telefone) {
+      salesByPhone.set(String(r.telefone), {
         vendas: Number(r.vendas || 0),
         receita_bruta: Number(r.receita_bruta || 0),
         receita_liquida: Number(r.receita_liquida || 0),
@@ -231,18 +232,18 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
     }
   }
 
-  // 2) Get emails from each lead source (all time - not filtered by date, to catch leads that registered before)
-  const sourceEmails: Map<string, Set<string>> = new Map();
+  // 2) Get phones from each lead source (all time - to catch leads that registered before)
+  const sourcePhones: Map<string, Set<string>> = new Map();
   for (const lc of config.leadConfigs) {
     const rows = await queryExternalPG(
-      `SELECT DISTINCT LOWER(TRIM(${lc.emailColumn})) as email FROM ${lc.table} WHERE ${lc.emailColumn} IS NOT NULL AND ${lc.emailColumn} != ''`,
+      `SELECT DISTINCT REGEXP_REPLACE(TRIM(${lc.emailColumn}), '[^0-9]', '', 'g') as telefone FROM ${lc.table} WHERE ${lc.emailColumn} IS NOT NULL AND TRIM(${lc.emailColumn}) != ''`,
       []
     );
-    const emails = new Set<string>();
+    const phones = new Set<string>();
     for (const r of rows as any[]) {
-      if (r.email) emails.add(String(r.email));
+      if (r.telefone) phones.add(String(r.telefone));
     }
-    sourceEmails.set(lc.sourceName, emails);
+    sourcePhones.set(lc.sourceName, phones);
   }
 
   // 3) Get lead counts per source for the period
@@ -270,11 +271,11 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
   }
   attribution.set('Não identificado', { vendas: 0, receita_bruta: 0, receita_liquida: 0, leads: 0 });
 
-  for (const [email, sale] of salesByEmail) {
-    // Find which sources this email belongs to
+  for (const [phone, sale] of salesByPhone) {
+    // Find which sources this phone belongs to
     const matchedSources: string[] = [];
-    for (const [sourceName, emails] of sourceEmails) {
-      if (emails.has(email)) {
+    for (const [sourceName, phones] of sourcePhones) {
+      if (phones.has(phone)) {
         matchedSources.push(sourceName);
       }
     }
