@@ -185,6 +185,15 @@ function allProductsFilter(config: ProjectConfig, productName: string): string {
   return `("Nome do produto" = '${productName}' OR ${bumpFilter(config, productName)})`;
 }
 
+// Build a phone-based WHERE clause to filter sales by lead source phones
+function buildPhoneFilter(filteredConfig: ProjectConfig, salesPhoneCol: string): string {
+  if (filteredConfig.leadConfigs.length === 0) return '';
+  const unions = filteredConfig.leadConfigs.map(lc =>
+    `SELECT DISTINCT REGEXP_REPLACE(TRIM(${lc.phoneColumn}), '[^0-9]', '', 'g') as tel FROM ${lc.table} WHERE ${lc.phoneColumn} IS NOT NULL AND TRIM(${lc.phoneColumn}) != ''`
+  ).join(' UNION ');
+  return ` AND REGEXP_REPLACE(TRIM(${salesPhoneCol}), '[^0-9]', '', 'g') IN (${unions})`;
+}
+
 async function queryLeadsTotal(config: ProjectConfig, params: string[]): Promise<number> {
   if (config.leadConfigs.length === 0) return 0;
   let total = 0;
@@ -434,6 +443,17 @@ serve(async (req) => {
       ? { ...config, leadConfigs: config.leadConfigs.filter(lc => filters.leadSources!.includes(lc.sourceName)) }
       : config;
 
+    // Build phone-based sales filter when a specific campaign is selected
+    let salesPhoneFilter = '';
+    if (filters.leadSources && filteredConfig.leadConfigs.length > 0) {
+      // Detect phone column in sales table
+      const salesCols = await getTableColumns(config.greenSchema);
+      const salesPhoneCol = findColumn(salesCols, PHONE_CANDIDATES);
+      if (salesPhoneCol) {
+        salesPhoneFilter = buildPhoneFilter(filteredConfig, salesPhoneCol);
+      }
+    }
+
     let dateFilter = '';
     const params: string[] = [];
 
@@ -485,7 +505,7 @@ serve(async (req) => {
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_liquida,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor
         FROM ${config.greenSchema}
-        WHERE ${pFilter} ${salesDateFilter}
+        WHERE ${pFilter} ${salesDateFilter} ${salesPhoneFilter}
         GROUP BY "Data"::date
         ORDER BY "Data"::date DESC
       `, params);
@@ -501,7 +521,7 @@ serve(async (req) => {
             SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor_bump,
             COUNT(*) FILTER (WHERE "Status da venda" IN ${APPROVED_STATUSES} AND "Nome do produto" = 'Check-up do CNPJ') as vendas_cnpj
           FROM ${config.greenSchema}
-          WHERE ${bFilter} ${salesDateFilter}
+          WHERE ${bFilter} ${salesDateFilter} ${salesPhoneFilter}
           GROUP BY "Data"::date
         `, params) as any[];
       }
@@ -558,7 +578,7 @@ serve(async (req) => {
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("TAXA GREEN", ',', '.'), '')::numeric, 0) ELSE 0 END) as taxa_green
         FROM ${config.greenSchema}
-        WHERE ${pFilter} ${salesDateFilter}
+        WHERE ${pFilter} ${salesDateFilter} ${salesPhoneFilter}
       `, params);
 
       let bumpSalesRow: any = { vendas_bump: 0, vendas_cnpj: 0, receita_bruta_bump: 0, receita_liquida_bump: 0, co_produtor_bump: 0, taxa_green_bump: 0 };
@@ -573,7 +593,7 @@ serve(async (req) => {
             SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor_bump,
             SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("TAXA GREEN", ',', '.'), '')::numeric, 0) ELSE 0 END) as taxa_green_bump
           FROM ${config.greenSchema}
-          WHERE ${bFilter} ${salesDateFilter}
+          WHERE ${bFilter} ${salesDateFilter} ${salesPhoneFilter}
         `, params);
         bumpSalesRow = bumpSales[0] || bumpSalesRow;
       }
@@ -585,7 +605,7 @@ serve(async (req) => {
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_bruta,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_liquida
         FROM ${config.greenSchema}
-        WHERE ${apFilter} ${salesDateFilter}
+        WHERE ${apFilter} ${salesDateFilter} ${salesPhoneFilter}
         GROUP BY "Nome do produto"
       `, params);
 
