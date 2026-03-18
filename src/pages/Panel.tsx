@@ -213,18 +213,21 @@ function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, d
 export default function Panel({ clientView }: { clientView?: boolean }) {
   const { user, isAdmin, isSuperAdmin, isGestor, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [clients, setClients] = useState<ClientWithOffers[]>([]);
   const [loading, setLoading] = useState(true);
-  const [simulateClientView, setSimulateClientView] = useState(false);
-  const effectiveClientView = clientView || simulateClientView;
-
-  // Date filter state
+  const stateKey = `panel:${location.pathname}`;
   const today = new Date();
   const todayStr = formatDateString(today);
-  const [datePreset, setDatePreset] = useState<string>("hoje");
-  const [dateFrom, setDateFrom] = useState(todayStr);
-  const [dateTo, setDateTo] = useState(todayStr);
-  const [dateLabel, setDateLabel] = useState("Hoje");
+  const [panelState, setPanelState] = usePageState(stateKey, {
+    simulateClientView: false,
+    datePreset: "hoje",
+    dateFrom: todayStr,
+    dateTo: todayStr,
+    dateLabel: "Hoje",
+  });
+  const { simulateClientView, datePreset, dateFrom, dateTo, dateLabel } = panelState;
+  const effectiveClientView = clientView || simulateClientView;
 
   const applyPreset = (preset: string) => {
     setDatePreset(preset);
