@@ -79,7 +79,7 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
   const { data: salesDaily, isLoading: loadingSales } = useSalesDaily(chartDateFrom, dateTo, offerParam, config.project);
   const { data: campaigns, isLoading: loadingCampaigns } = useCampaigns(dateFrom, dateTo, offerParam, config.project);
   const { data: ads, isLoading: loadingAds } = useAds(dateFrom, dateTo, offerParam, config.project);
-
+  const { data: attribution, isLoading: loadingAttribution } = useAttribution(dateFrom, dateTo, offerParam, config.project, config.showLeads);
   const sparklineData = periodDays > 30 ? trafficDaily : sparklineTraffic;
   const sparklineSalesData = periodDays > 30 ? salesDaily : sparklineSales;
 
