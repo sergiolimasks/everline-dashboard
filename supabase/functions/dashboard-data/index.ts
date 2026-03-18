@@ -114,7 +114,26 @@ const PROJECTS: Record<string, ProjectConfig> = {
     taxaFixaPorVenda: 0,
     custoManychat: 0,
     defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%50K-DEZ25%' OR UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%' OR UPPER(campanha) LIKE '%PRESENCIAL%')`,
-    offerFilters: {},
+    offerFilters: {
+      aplicacao: {
+        metaWhere: ` AND (UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%')`,
+        principalProduct: '',
+        useEmailLinkedBumps: false,
+        leadSources: ['Aplicação'],
+      },
+      '50k': {
+        metaWhere: ` AND UPPER(campanha) LIKE '%50K-DEZ25%'`,
+        principalProduct: '',
+        useEmailLinkedBumps: false,
+        leadSources: ['Lançamento 50K'],
+      },
+      presencial: {
+        metaWhere: ` AND UPPER(campanha) LIKE '%PRESENCIAL%'`,
+        principalProduct: '',
+        useEmailLinkedBumps: false,
+        leadSources: ['Presencial'],
+      },
+    },
     leadConfigs: [
       { table: 'bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"', phoneColumn: '"telefone"', sourceName: 'Aplicação' },
       { table: 'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"', phoneColumn: '"telefone"', sourceName: 'Lançamento 50K' },
