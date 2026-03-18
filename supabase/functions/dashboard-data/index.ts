@@ -464,7 +464,7 @@ serve(async (req) => {
         ORDER BY data::date DESC
       `, params);
 
-      const leadsMap = await queryLeadsDaily(config, params);
+      const leadsMap = await queryLeadsDaily(filteredConfig, params);
       data = (trafficRows as any[]).map(row => ({
         ...row,
         leads: leadsMap.get(String(row.dia).slice(0, 10)) || 0,
