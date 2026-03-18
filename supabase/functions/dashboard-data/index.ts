@@ -604,7 +604,7 @@ serve(async (req) => {
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_bruta,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_liquida
         FROM ${config.greenSchema}
-        WHERE ${apFilter} ${salesDateFilter}
+        WHERE ${apFilter} ${salesDateFilter} ${salesPhoneFilter}
         GROUP BY "Nome do produto"
       `, params);
 
