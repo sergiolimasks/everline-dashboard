@@ -364,11 +364,30 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
     leadCounts.set(lc.sourceName, Number((rows[0] as any)?.total || 0));
   }
 
-  const attribution: Map<string, { vendas: number; receita_bruta: number; receita_liquida: number; leads: number }> = new Map();
+  // Query spend per source using offer filters
+  const sourceSpend: Map<string, number> = new Map();
+  const sourceLeadMap: Record<string, string> = {};
   for (const lc of config.leadConfigs) {
-    attribution.set(lc.sourceName, { vendas: 0, receita_bruta: 0, receita_liquida: 0, leads: leadCounts.get(lc.sourceName) || 0 });
+    sourceLeadMap[lc.sourceName] = lc.sourceName;
   }
-  attribution.set('Não identificado', { vendas: 0, receita_bruta: 0, receita_liquida: 0, leads: 0 });
+  for (const [offerKey, filters] of Object.entries(config.offerFilters)) {
+    if (filters.leadSources && filters.leadSources.length === 1) {
+      const sourceName = filters.leadSources[0];
+      const dateFilter = params.length >= 2 ? ` AND data::date >= $1 AND data::date <= $2` : '';
+      const rows = await queryExternalPG(
+        `SELECT COALESCE(SUM(gasto), 0) as total_gasto FROM ${config.metaTable} WHERE 1=1 ${dateFilter} ${filters.metaWhere}`,
+        params
+      );
+      const gasto = Number((rows[0] as any)?.total_gasto || 0) * 1.125; // +12.5% tax
+      sourceSpend.set(sourceName, gasto);
+    }
+  }
+
+  const attribution: Map<string, { vendas: number; receita_bruta: number; receita_liquida: number; leads: number; gasto: number }> = new Map();
+  for (const lc of config.leadConfigs) {
+    attribution.set(lc.sourceName, { vendas: 0, receita_bruta: 0, receita_liquida: 0, leads: leadCounts.get(lc.sourceName) || 0, gasto: sourceSpend.get(lc.sourceName) || 0 });
+  }
+  attribution.set('Não identificado', { vendas: 0, receita_bruta: 0, receita_liquida: 0, leads: 0, gasto: 0 });
 
   for (const sale of salesEntries) {
     // 1st pass: match by phone
@@ -407,10 +426,16 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
   const result: any[] = [];
   for (const [source, data] of attribution) {
     if (data.vendas > 0 || data.leads > 0) {
+      const lucro = data.receita_liquida - data.gasto;
       result.push({
         source,
+        gasto: Math.round(data.gasto * 100) / 100,
         leads: data.leads,
+        cpl: data.leads > 0 ? Math.round((data.gasto / data.leads) * 100) / 100 : 0,
         vendas: Math.round(data.vendas * 100) / 100,
+        cpa: data.vendas > 0 ? Math.round((data.gasto / data.vendas) * 100) / 100 : 0,
+        roi: data.gasto > 0 ? Math.round((data.receita_liquida / data.gasto) * 100) / 100 : 0,
+        lucro: Math.round(lucro * 100) / 100,
         receita_bruta: Math.round(data.receita_bruta * 100) / 100,
         receita_liquida: Math.round(data.receita_liquida * 100) / 100,
         taxa_conversao: data.leads > 0 ? data.vendas / data.leads : 0,
