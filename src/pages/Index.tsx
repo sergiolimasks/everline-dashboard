@@ -100,8 +100,7 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
   const sparklineSalesData = periodDays > 30 ? salesDaily : sparklineSales;
 
   const handleDateChange = (from: string, to: string) => {
-    setDateFrom(from);
-    setDateTo(to);
+    setFilters((current) => ({ ...current, dateFrom: from, dateTo: to }));
   };
 
   const handleRefresh = () => {
