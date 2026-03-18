@@ -15,7 +15,7 @@ function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
 
-export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientView = false, showLeads = false }: FunnelChartProps) {
+export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientView = false, showLeads = false, hideCoProdutor = false }: FunnelChartProps) {
   if (isLoading) {
     return (
       <div className="chart-container">
