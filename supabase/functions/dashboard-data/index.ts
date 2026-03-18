@@ -680,7 +680,7 @@ serve(async (req) => {
       }));
 
     } else if (endpoint === 'attribution') {
-      data = await queryAttribution(config, params);
+      data = await queryAttribution(filteredConfig, params);
     } else if (endpoint === 'debug_columns') {
       const tables = [config.greenSchema, ...config.leadConfigs.map(lc => lc.table)];
       const results: Record<string, string[]> = {};
