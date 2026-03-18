@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSummary } from "@/hooks/use-dashboard";
-import { formatDateString } from "@/lib/date-utils";
-import { BarChart3, LogOut, ExternalLink, Target, DollarSign, ShoppingCart, Wallet, PiggyBank, Building2, Eye, EyeOff, Calendar } from "lucide-react";
+import { formatDateString, formatDayMonth, parseDateStringLocal } from "@/lib/date-utils";
+import { BarChart3, LogOut, ExternalLink, Target, DollarSign, ShoppingCart, Wallet, PiggyBank, Building2, Eye, EyeOff, Calendar as CalendarIcon } from "lucide-react";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { CreateUserTab } from "@/components/admin/CreateUserTab";
-import { ManagePermissionsTab } from "@/components/admin/ManagePermissionsTab";
 import { AssignAccessTab } from "@/components/admin/AssignAccessTab";
 
 interface ClientWithOffers {
@@ -366,54 +367,148 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
           </div>
         </div>
 
-        {/* Date filter */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-          {[
-            { key: "hoje", label: "Hoje" },
-            { key: "ontem", label: "Ontem" },
-            { key: "semana", label: "Semana" },
-            { key: "mes", label: "Mês" },
-            { key: "mes_passado", label: "Mês Passado" },
-          ].map((p) => (
-            <button
-              key={p.key}
-              onClick={() => applyPreset(p.key)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-                datePreset === p.key
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border bg-card text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-
         {isSuperAdmin && !clientView ? (
           <Tabs defaultValue="clientes" className="space-y-6">
             <TabsList>
               <TabsTrigger value="clientes">Clientes</TabsTrigger>
               <TabsTrigger value="usuarios">Cadastrar Usuários</TabsTrigger>
-              <TabsTrigger value="permissoes">Permissões</TabsTrigger>
               <TabsTrigger value="acessos">Atribuir Acessos</TabsTrigger>
             </TabsList>
 
             <TabsContent value="clientes">
+              {/* Date filter */}
+              <div className="flex items-center gap-2 flex-wrap mb-6">
+                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                {[
+                  { key: "hoje", label: "Hoje" },
+                  { key: "ontem", label: "Ontem" },
+                  { key: "semana", label: "Semana" },
+                  { key: "mes", label: "Mês" },
+                  { key: "mes_passado", label: "Mês Passado" },
+                ].map((p) => (
+                  <button
+                    key={p.key}
+                    onClick={() => applyPreset(p.key)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                      datePreset === p.key
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-card text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                        datePreset === "custom"
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-card text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {datePreset === "custom"
+                        ? `${formatDayMonth(dateFrom)} — ${formatDayMonth(dateTo)}`
+                        : "Personalizado"}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="range"
+                      selected={{
+                        from: parseDateStringLocal(dateFrom),
+                        to: parseDateStringLocal(dateTo),
+                      }}
+                      onSelect={(range) => {
+                        if (range?.from) {
+                          setDatePreset("custom");
+                          setDateFrom(formatDateString(range.from));
+                          setDateTo(formatDateString(range.to || range.from));
+                          setDateLabel(
+                            range.to
+                              ? `${formatDayMonth(formatDateString(range.from))} — ${formatDayMonth(formatDateString(range.to))}`
+                              : formatDayMonth(formatDateString(range.from))
+                          );
+                        }
+                      }}
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
               {renderClients()}
             </TabsContent>
             <TabsContent value="usuarios">
               <CreateUserTab />
-            </TabsContent>
-            <TabsContent value="permissoes">
-              <ManagePermissionsTab />
             </TabsContent>
             <TabsContent value="acessos">
               <AssignAccessTab />
             </TabsContent>
           </Tabs>
         ) : (
-          renderClients()
+          <>
+            {/* Date filter for non-super-admin */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+              {[
+                { key: "hoje", label: "Hoje" },
+                { key: "ontem", label: "Ontem" },
+                { key: "semana", label: "Semana" },
+                { key: "mes", label: "Mês" },
+                { key: "mes_passado", label: "Mês Passado" },
+              ].map((p) => (
+                <button
+                  key={p.key}
+                  onClick={() => applyPreset(p.key)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                    datePreset === p.key
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-card text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                      datePreset === "custom"
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-card text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {datePreset === "custom"
+                      ? `${formatDayMonth(dateFrom)} — ${formatDayMonth(dateTo)}`
+                      : "Personalizado"}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="range"
+                    selected={{
+                      from: parseDateStringLocal(dateFrom),
+                      to: parseDateStringLocal(dateTo),
+                    }}
+                    onSelect={(range) => {
+                      if (range?.from) {
+                        setDatePreset("custom");
+                        setDateFrom(formatDateString(range.from));
+                        setDateTo(formatDateString(range.to || range.from));
+                        setDateLabel(
+                          range.to
+                            ? `${formatDayMonth(formatDateString(range.from))} — ${formatDayMonth(formatDateString(range.to))}`
+                            : formatDayMonth(formatDateString(range.from))
+                        );
+                      }
+                    }}
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            {renderClients()}
+          </>
         )}
       </div>
     </div>
