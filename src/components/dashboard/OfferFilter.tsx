@@ -1,13 +1,19 @@
 import { Filter } from "lucide-react";
 
-export type OfferType = 'all' | 'com_ob' | 'sem_ob' | '147' | '197' | '247';
+export type OfferType = string;
+
+interface OfferOption {
+  value: string;
+  label: string;
+}
 
 interface OfferFilterProps {
   selected: OfferType;
   onChange: (offer: OfferType) => void;
+  options?: OfferOption[];
 }
 
-const offers: { value: OfferType; label: string }[] = [
+const defaultOffers: OfferOption[] = [
   { value: 'all', label: 'Todas Ofertas' },
   { value: 'com_ob', label: 'Checkup c/ OB' },
   { value: 'sem_ob', label: 'Checkup s/ OB' },
@@ -16,12 +22,13 @@ const offers: { value: OfferType; label: string }[] = [
   { value: '247', label: 'Checkup 247' },
 ];
 
-export function OfferFilter({ selected, onChange }: OfferFilterProps) {
+export function OfferFilter({ selected, onChange, options }: OfferFilterProps) {
+  const items = options || defaultOffers;
   return (
     <div className="flex flex-wrap items-center gap-3">
       <Filter className="h-4 w-4 text-muted-foreground" />
       <div className="flex gap-2">
-        {offers.map((o) => (
+        {items.map((o) => (
           <button
             key={o.value}
             onClick={() => onChange(o.value)}
