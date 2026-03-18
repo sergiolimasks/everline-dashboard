@@ -42,7 +42,7 @@ export default function Login() {
 
     const hasAdminAccess = roleData && roleData.length > 0;
 
-    if (roleData) {
+    if (hasAdminAccess) {
       navigate("/painel");
     } else {
       const { data: access } = await supabase
