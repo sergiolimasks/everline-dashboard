@@ -172,7 +172,7 @@ function getWeekStart(ref: Date, startDay: number): Date {
   return d;
 }
 
-export function DateFilter({ dateFrom, dateTo, onDateChange }: DateFilterProps) {
+export function DateFilter({ dateFrom, dateTo, onDateChange, weekStartDay = 0 }: DateFilterProps) {
   const [activePreset, setActivePreset] = useState<string | null>("Esta semana");
 
   const presets: { label: string; getRange: () => [Date, Date] }[] = [
