@@ -428,18 +428,19 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
                         from: parseDateStringLocal(dateFrom),
                         to: parseDateStringLocal(dateTo),
                       }}
-                      onSelect={(range) => {
-                        if (range?.from) {
-                          setDatePreset("custom");
-                          setDateFrom(formatDateString(range.from));
-                          setDateTo(formatDateString(range.to || range.from));
-                          setDateLabel(
-                            range.to
-                              ? `${formatDayMonth(formatDateString(range.from))} — ${formatDayMonth(formatDateString(range.to))}`
-                              : formatDayMonth(formatDateString(range.from))
-                          );
-                        }
-                      }}
+                       onSelect={(range) => {
+                         if (range?.from) {
+                           setPanelState((current) => ({
+                             ...current,
+                             datePreset: "custom",
+                             dateFrom: formatDateString(range.from),
+                             dateTo: formatDateString(range.to || range.from),
+                             dateLabel: range.to
+                               ? `${formatDayMonth(formatDateString(range.from))} — ${formatDayMonth(formatDateString(range.to))}`
+                               : formatDayMonth(formatDateString(range.from)),
+                           }));
+                         }
+                       }}
                       className="p-3 pointer-events-auto"
                     />
                   </PopoverContent>
