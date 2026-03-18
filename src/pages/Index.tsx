@@ -179,10 +179,10 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
             <ProductsTable data={summary} isLoading={loadingSummary} allPrincipal={config.showLeads} />
 
             {/* Campaigns Table */}
-            <CampaignsTable data={campaigns} isLoading={loadingCampaigns} />
+            <CampaignsTable data={campaigns} isLoading={loadingCampaigns} showLeads={config.showLeads} />
 
             {/* Creatives Table */}
-            <CreativesTable data={ads} isLoading={loadingAds} />
+            <CreativesTable data={ads} isLoading={loadingAds} showLeads={config.showLeads} />
           </>
         )}
       </div>

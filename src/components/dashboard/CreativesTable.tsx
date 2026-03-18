@@ -5,6 +5,7 @@ import type { AdData } from "@/lib/dashboard-api";
 interface CreativesTableProps {
   data: AdData[] | undefined;
   isLoading: boolean;
+  showLeads?: boolean;
 }
 
 function formatCurrency(value: number) {
@@ -19,7 +20,7 @@ function formatPercent(value: number) {
   return (value * 100).toFixed(2) + '%';
 }
 
-export function CreativesTable({ data, isLoading }: CreativesTableProps) {
+export function CreativesTable({ data, isLoading, showLeads = false }: CreativesTableProps) {
   const [showAll, setShowAll] = useState(false);
   const INITIAL_SHOW = 5;
 
@@ -51,7 +52,6 @@ export function CreativesTable({ data, isLoading }: CreativesTableProps) {
   const totalCtr = totals.impressoes > 0 ? totals.cliques / totals.impressoes : 0;
   const totalTsr = totals.impressoes > 0 ? totals.views_3s / totals.impressoes : 0;
   const totalCpa = totals.compras > 0 ? totals.gasto / totals.compras : 0;
-  const totalRoas = totals.gasto > 0 ? totals.valorCompras / totals.gasto : 0;
 
   return (
     <div className="chart-container">
@@ -65,10 +65,10 @@ export function CreativesTable({ data, isLoading }: CreativesTableProps) {
             <tr>
               <th>Anúncio</th>
               <th className="text-right">Gasto</th>
-              <th className="text-right">Vendas</th>
-              <th className="text-right">CPA</th>
-              <th className="text-right">Valor Compras</th>
-              <th className="text-right">ROAS</th>
+              <th className="text-right">{showLeads ? 'Leads' : 'Vendas'}</th>
+              <th className="text-right">{showLeads ? 'CPL' : 'CPA'}</th>
+              {!showLeads && <th className="text-right">Valor Compras</th>}
+              {!showLeads && <th className="text-right">ROAS</th>}
               <th className="text-right">CTR</th>
               <th className="text-right">Thumb Stop Rate</th>
               <th className="text-right">CPC</th>
@@ -108,8 +108,8 @@ export function CreativesTable({ data, isLoading }: CreativesTableProps) {
                   <td className="text-right font-display font-semibold">{formatCurrency(gasto)}</td>
                   <td className="text-right">{formatNumber(compras)}</td>
                   <td className="text-right">{formatCurrency(cpa)}</td>
-                  <td className="text-right">{formatCurrency(valorCompras)}</td>
-                  <td className="text-right font-display font-semibold">{roas.toFixed(2)}x</td>
+                  {!showLeads && <td className="text-right">{formatCurrency(valorCompras)}</td>}
+                  {!showLeads && <td className="text-right font-display font-semibold">{roas.toFixed(2)}x</td>}
                   <td className="text-right font-display font-semibold">{formatPercent(Number(a.ctr))}</td>
                   <td className="text-right font-display font-semibold">{formatPercent(Number(a.thumb_stop_rate))}</td>
                   <td className="text-right">{formatCurrency(Number(a.cpc))}</td>
@@ -123,8 +123,8 @@ export function CreativesTable({ data, isLoading }: CreativesTableProps) {
               <td className="text-right font-display">{formatCurrency(totals.gasto)}</td>
               <td className="text-right">{formatNumber(totals.compras)}</td>
               <td className="text-right">{formatCurrency(totalCpa)}</td>
-              <td className="text-right">{formatCurrency(totals.valorCompras)}</td>
-              <td className="text-right font-display">{totalRoas.toFixed(2)}x</td>
+              {!showLeads && <td className="text-right">{formatCurrency(totals.valorCompras)}</td>}
+              {!showLeads && <td className="text-right font-display">—</td>}
               <td className="text-right font-display">{formatPercent(totalCtr)}</td>
               <td className="text-right font-display">{formatPercent(totalTsr)}</td>
               <td className="text-right">—</td>
