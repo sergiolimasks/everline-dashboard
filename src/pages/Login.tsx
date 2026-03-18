@@ -38,8 +38,9 @@ export default function Login() {
       .from("user_roles")
       .select("role")
       .eq("user_id", currentUser.id)
-      .eq("role", "admin")
-      .maybeSingle();
+      .in("role", ["admin", "super_admin", "gestor"] as any);
+
+    const hasAdminAccess = roleData && roleData.length > 0;
 
     if (roleData) {
       navigate("/painel");
