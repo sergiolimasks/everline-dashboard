@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchSummary, fetchTrafficDaily, fetchSalesDaily, fetchCampaigns, fetchAds } from "@/lib/dashboard-api";
+import { fetchSummary, fetchTrafficDaily, fetchSalesDaily, fetchCampaigns, fetchAds, fetchAttribution } from "@/lib/dashboard-api";
 import { formatDateString, parseDateStringLocal } from "@/lib/date-utils";
 
 export function useSummary(dateFrom?: string, dateTo?: string, offer?: string, project?: string) {
@@ -97,5 +97,14 @@ export function useAds(dateFrom?: string, dateTo?: string, offer?: string, proje
     queryKey: ['ads', dateFrom, dateTo, offer, project],
     queryFn: () => fetchAds(dateFrom, dateTo, offer, project),
     staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useAttribution(dateFrom?: string, dateTo?: string, offer?: string, project?: string, enabled = true) {
+  return useQuery({
+    queryKey: ['attribution', dateFrom, dateTo, offer, project],
+    queryFn: () => fetchAttribution(dateFrom, dateTo, offer, project),
+    staleTime: 1000 * 60 * 5,
+    enabled,
   });
 }

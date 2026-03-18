@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useAds, useComparison7d, useComparison14d, useSparklineTraffic, useSparklineSales } from "@/hooks/use-dashboard";
+import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useAds, useComparison7d, useComparison14d, useSparklineTraffic, useSparklineSales, useAttribution } from "@/hooks/use-dashboard";
 import { formatDateString } from "@/lib/date-utils";
 import { KPICards } from "@/components/dashboard/KPICards";
 import { TrafficChart } from "@/components/dashboard/TrafficChart";
@@ -8,6 +8,7 @@ import { RevenueVsSpendChart } from "@/components/dashboard/RevenueVsSpendChart"
 import { ProductsTable } from "@/components/dashboard/ProductsTable";
 import { CampaignsTable } from "@/components/dashboard/CampaignsTable";
 import { CreativesTable } from "@/components/dashboard/CreativesTable";
+import { AttributionTable } from "@/components/dashboard/AttributionTable";
 import { DateFilter } from "@/components/dashboard/DateFilter";
 import { OfferFilter, type OfferType } from "@/components/dashboard/OfferFilter";
 import { BarChart3, RefreshCw } from "lucide-react";
@@ -78,7 +79,7 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
   const { data: salesDaily, isLoading: loadingSales } = useSalesDaily(chartDateFrom, dateTo, offerParam, config.project);
   const { data: campaigns, isLoading: loadingCampaigns } = useCampaigns(dateFrom, dateTo, offerParam, config.project);
   const { data: ads, isLoading: loadingAds } = useAds(dateFrom, dateTo, offerParam, config.project);
-
+  const { data: attribution, isLoading: loadingAttribution } = useAttribution(dateFrom, dateTo, offerParam, config.project, config.showLeads);
   const sparklineData = periodDays > 30 ? trafficDaily : sparklineTraffic;
   const sparklineSalesData = periodDays > 30 ? salesDaily : sparklineSales;
 
@@ -162,6 +163,11 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
 
         {!clientView && (
           <>
+            {/* Attribution Table (leads projects only) */}
+            {config.showLeads && (
+              <AttributionTable data={attribution} isLoading={loadingAttribution} />
+            )}
+
             {/* Products Table */}
             <ProductsTable data={summary} isLoading={loadingSummary} allPrincipal={config.showLeads} />
 
