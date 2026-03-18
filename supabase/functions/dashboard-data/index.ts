@@ -33,7 +33,7 @@ interface LeadTableConfig {
   table: string;
   dateColumn: string;
   countExpression: string;
-  emailColumn: string;
+  phoneColumn: string;
   sourceName: string;
 }
 
@@ -115,9 +115,9 @@ const PROJECTS: Record<string, ProjectConfig> = {
     defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%50K-DEZ25%' OR UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%' OR UPPER(campanha) LIKE '%PRESENCIAL%')`,
     offerFilters: {},
     leadConfigs: [
-      { table: 'bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"', emailColumn: '"telefone"', sourceName: 'Aplicação' },
-      { table: 'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter', dateColumn: '"Data"', countExpression: '*', emailColumn: '"telefone"', sourceName: 'Lançamento 50K' },
-      { table: 'bd_ads_clientes.leads_uelicon_venancio_presencial', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"', emailColumn: '"telefone"', sourceName: 'Presencial' },
+      { table: 'bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"', phoneColumn: '"telefone"', sourceName: 'Aplicação' },
+      { table: 'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter', dateColumn: '"Data"', countExpression: '*', phoneColumn: '"telefone"', sourceName: 'Lançamento 50K' },
+      { table: 'bd_ads_clientes.leads_uelicon_venancio_presencial', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"', phoneColumn: '"telefone"', sourceName: 'Presencial' },
     ],
   },
 };
@@ -200,25 +200,51 @@ async function queryLeadsDaily(config: ProjectConfig, params: string[]): Promise
   return map;
 }
 
-// ========== EMAIL-BASED SALES ATTRIBUTION ==========
+// ========== PHONE-BASED SALES ATTRIBUTION ==========
+async function detectSalesPhoneColumn(config: ProjectConfig): Promise<string | null> {
+  const candidates = [
+    '"telefone"',
+    '"Telefone"',
+    '"Telefone do cliente"',
+    '"telefone_cliente"',
+    '"celular"',
+    '"Celular"',
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      await queryExternalPG(`SELECT ${candidate} FROM ${config.greenSchema} LIMIT 1`, []);
+      return candidate;
+    } catch {
+      // try next candidate
+    }
+  }
+
+  return null;
+}
+
 async function queryAttribution(config: ProjectConfig, params: string[]): Promise<any[]> {
   if (config.leadConfigs.length === 0) return [];
+
+  const salesPhoneColumn = await detectSalesPhoneColumn(config);
+  if (!salesPhoneColumn) {
+    throw new Error('Nenhuma coluna de telefone encontrada na base de vendas');
+  }
 
   const salesDateFilter = params.length >= 2
     ? ` AND "Data"::date >= $1 AND "Data"::date <= $2`
     : '';
   const pFilter = principalFilter(config, '');
 
-  // 1) Get approved sale phones in the period
   const salesRows = await queryExternalPG(`
-    SELECT REGEXP_REPLACE(TRIM("Telefone do cliente"), '[^0-9]', '', 'g') as telefone,
+    SELECT REGEXP_REPLACE(TRIM(${salesPhoneColumn}), '[^0-9]', '', 'g') as telefone,
            COUNT(*) as vendas,
            SUM(COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0)) as receita_bruta,
            SUM(COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0)) as receita_liquida
     FROM ${config.greenSchema}
     WHERE ${pFilter} AND "Status da venda" IN ${APPROVED_STATUSES} ${salesDateFilter}
-      AND "Telefone do cliente" IS NOT NULL AND TRIM("Telefone do cliente") != ''
-    GROUP BY REGEXP_REPLACE(TRIM("Telefone do cliente"), '[^0-9]', '', 'g')
+      AND ${salesPhoneColumn} IS NOT NULL AND TRIM(${salesPhoneColumn}) != ''
+    GROUP BY REGEXP_REPLACE(TRIM(${salesPhoneColumn}), '[^0-9]', '', 'g')
   `, params);
 
   const salesByPhone = new Map<string, { vendas: number; receita_bruta: number; receita_liquida: number }>();
@@ -232,11 +258,10 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
     }
   }
 
-  // 2) Get phones from each lead source (all time - to catch leads that registered before)
   const sourcePhones: Map<string, Set<string>> = new Map();
   for (const lc of config.leadConfigs) {
     const rows = await queryExternalPG(
-      `SELECT DISTINCT REGEXP_REPLACE(TRIM(${lc.emailColumn}), '[^0-9]', '', 'g') as telefone FROM ${lc.table} WHERE ${lc.emailColumn} IS NOT NULL AND TRIM(${lc.emailColumn}) != ''`,
+      `SELECT DISTINCT REGEXP_REPLACE(TRIM(${lc.phoneColumn}), '[^0-9]', '', 'g') as telefone FROM ${lc.table} WHERE ${lc.phoneColumn} IS NOT NULL AND TRIM(${lc.phoneColumn}) != ''`,
       []
     );
     const phones = new Set<string>();
@@ -245,11 +270,6 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
     }
     sourcePhones.set(lc.sourceName, phones);
   }
-
-  // 3) Get lead counts per source for the period
-  const leadsDateFilter = params.length >= 2
-    ? ` WHERE ${config.leadConfigs[0].dateColumn}::date >= $1 AND ${config.leadConfigs[0].dateColumn}::date <= $2`
-    : '';
 
   const leadCounts: Map<string, number> = new Map();
   for (const lc of config.leadConfigs) {
@@ -263,16 +283,13 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
     leadCounts.set(lc.sourceName, Number((rows[0] as any)?.total || 0));
   }
 
-  // 4) Cross-reference: for each sale email, find which sources it belongs to
   const attribution: Map<string, { vendas: number; receita_bruta: number; receita_liquida: number; leads: number }> = new Map();
-  // Initialize
   for (const lc of config.leadConfigs) {
     attribution.set(lc.sourceName, { vendas: 0, receita_bruta: 0, receita_liquida: 0, leads: leadCounts.get(lc.sourceName) || 0 });
   }
   attribution.set('Não identificado', { vendas: 0, receita_bruta: 0, receita_liquida: 0, leads: 0 });
 
   for (const [phone, sale] of salesByPhone) {
-    // Find which sources this phone belongs to
     const matchedSources: string[] = [];
     for (const [sourceName, phones] of sourcePhones) {
       if (phones.has(phone)) {
@@ -281,13 +298,11 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
     }
 
     if (matchedSources.length === 0) {
-      // Not found in any lead source
       const entry = attribution.get('Não identificado')!;
       entry.vendas += sale.vendas;
       entry.receita_bruta += sale.receita_bruta;
       entry.receita_liquida += sale.receita_liquida;
     } else {
-      // Proportional distribution
       const weight = 1 / matchedSources.length;
       for (const src of matchedSources) {
         const entry = attribution.get(src)!;
@@ -298,7 +313,6 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
     }
   }
 
-  // Convert to array
   const result: any[] = [];
   for (const [source, data] of attribution) {
     if (data.vendas > 0 || data.leads > 0) {
