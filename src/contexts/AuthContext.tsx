@@ -37,10 +37,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          // Don't await inside onAuthStateChange to avoid deadlocks
-          checkAdmin(session.user.id);
+          checkRoles(session.user.id);
         } else {
           setIsAdmin(false);
+          setIsSuperAdmin(false);
         }
         setLoading(false);
       }
