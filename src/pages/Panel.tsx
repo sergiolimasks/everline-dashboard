@@ -137,7 +137,7 @@ function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, d
       color: "text-blue-400",
       tooltip: <CacTooltip gastoMeta={gastoMeta} imposto={imposto} custoConsultas={custoConsultas} custoManychat={custoManychat} gastoTotal={gastoTotal} vendasAprovadas={vendasAprovadas} cac={cac} />,
     },
-    ...(!clientView && isAdmin ? [{
+    ...(!clientView && isAdmin && !isGestor ? [{
       label: "Faturamento Agência", value: formatCurrency(faturamentoAgencia), icon: Building2, color: "text-primary",
       tooltip: null as React.ReactNode | null,
     }] : []),
