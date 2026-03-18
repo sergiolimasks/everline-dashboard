@@ -33,7 +33,7 @@ interface LeadTableConfig {
   table: string;
   dateColumn: string;
   countExpression: string;
-  emailColumn: string;
+  phoneColumn: string;
   sourceName: string;
 }
 

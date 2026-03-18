@@ -54,7 +54,7 @@ export function AttributionTable({ data, isLoading }: AttributionTableProps) {
       <div className="flex items-center justify-between mb-4">
         <h3 className="dashboard-section-title">Atribuição de Vendas por Fonte de Lead</h3>
         <span className="text-[10px] text-muted-foreground bg-muted/50 rounded px-2 py-1">
-          Cruzamento por e-mail · Distribuição proporcional
+          Cruzamento por telefone · Distribuição proporcional
         </span>
       </div>
       <div className="overflow-x-auto">
