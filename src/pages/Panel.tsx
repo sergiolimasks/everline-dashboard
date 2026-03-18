@@ -522,6 +522,7 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
     if (clients.length === 0) return <div className="text-center py-12 text-muted-foreground">Nenhum cliente cadastrado.</div>;
     return (
       <div className="space-y-8">
+        <ProjectBreakdownTable dateFrom={dateFrom} dateTo={dateTo} dateLabel={dateLabel} isGestor={isGestor} />
         {clients.map((client) => (
           <div key={client.id} className="rounded-2xl border border-border bg-card/50 p-5 md:p-6 space-y-4">
             <ClientCard client={client} isAdmin={isAdmin} isGestor={isGestor} clientView={effectiveClientView} dateFrom={dateFrom} dateTo={dateTo} dateLabel={dateLabel} />
