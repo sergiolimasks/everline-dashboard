@@ -214,6 +214,8 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientWithOffers[]>([]);
   const [loading, setLoading] = useState(true);
+  const [simulateClientView, setSimulateClientView] = useState(false);
+  const effectiveClientView = clientView || simulateClientView;
 
   useEffect(() => {
     if (!user) return;
