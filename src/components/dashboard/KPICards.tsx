@@ -76,13 +76,14 @@ function calcMetrics(data: SummaryData | undefined, showLeads = false) {
   const vendasAprovDia = vendasAprovadas / diasAtivos;
   const vendasBumpDia = vendasBump / diasAtivos;
   const leadsDia = totalLeads / diasAtivos;
+  const cpl = totalLeads > 0 ? totalGasto / totalLeads : 0;
 
     return {
       gastoMeta, impostoMeta, totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
       taxaFixa, custoManychat, coProdutor, taxaGreen, lucro, roi, diasAtivos,
       cac, cacClient, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
       thumbStopRate, receitaPorVenda, receitaPorVendaLiquida, vendasAprovDia, vendasBumpDia,
-      totalLeads, taxaConvPaginaLeads, taxaInicioCheckoutLeads, taxaConvLeads, leadsDia,
+      totalLeads, taxaConvPaginaLeads, taxaInicioCheckoutLeads, taxaConvLeads, leadsDia, cpl,
     };
 }
 
