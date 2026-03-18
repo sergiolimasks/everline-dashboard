@@ -7,6 +7,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -18,15 +19,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
-  const checkAdmin = async (userId: string) => {
+  const checkRoles = async (userId: string) => {
     const { data } = await supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    setIsAdmin(!!data);
+      .eq("user_id", userId);
+    const roles = (data || []).map((r: any) => r.role);
+    setIsAdmin(roles.includes("admin") || roles.includes("super_admin"));
+    setIsSuperAdmin(roles.includes("super_admin"));
   };
 
   useEffect(() => {
@@ -35,10 +37,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          // Don't await inside onAuthStateChange to avoid deadlocks
-          checkAdmin(session.user.id);
+          checkRoles(session.user.id);
         } else {
           setIsAdmin(false);
+          setIsSuperAdmin(false);
         }
         setLoading(false);
       }
@@ -48,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdmin(session.user.id);
+        checkRoles(session.user.id);
       }
       setLoading(false);
     });
@@ -66,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, isSuperAdmin, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

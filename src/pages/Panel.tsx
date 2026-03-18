@@ -6,6 +6,10 @@ import { useSummary } from "@/hooks/use-dashboard";
 import { formatDateString } from "@/lib/date-utils";
 import { BarChart3, LogOut, ExternalLink, Target, DollarSign, ShoppingCart, Wallet, PiggyBank, Building2 } from "lucide-react";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { CreateUserTab } from "@/components/admin/CreateUserTab";
+import { ManagePermissionsTab } from "@/components/admin/ManagePermissionsTab";
+import { AssignAccessTab } from "@/components/admin/AssignAccessTab";
 
 interface ClientWithOffers {
   id: string;
@@ -206,7 +210,7 @@ function ClientCard({ client, isAdmin, clientView }: { client: ClientWithOffers;
 }
 
 export default function Panel({ clientView }: { clientView?: boolean }) {
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, isSuperAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientWithOffers[]>([]);
   const [loading, setLoading] = useState(true);
@@ -306,20 +310,46 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
           </button>
         </div>
 
-        {loading ? (
-          <div className="text-center py-12 text-muted-foreground">Carregando...</div>
-        ) : clients.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">Nenhum cliente cadastrado.</div>
+        {isSuperAdmin && !clientView ? (
+          <Tabs defaultValue="clientes" className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="clientes">Clientes</TabsTrigger>
+              <TabsTrigger value="usuarios">Cadastrar Usuários</TabsTrigger>
+              <TabsTrigger value="permissoes">Permissões</TabsTrigger>
+              <TabsTrigger value="acessos">Atribuir Acessos</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="clientes">
+              {renderClients()}
+            </TabsContent>
+            <TabsContent value="usuarios">
+              <CreateUserTab />
+            </TabsContent>
+            <TabsContent value="permissoes">
+              <ManagePermissionsTab />
+            </TabsContent>
+            <TabsContent value="acessos">
+              <AssignAccessTab />
+            </TabsContent>
+          </Tabs>
         ) : (
-          <div className="space-y-8">
-            {clients.map((client) => (
-              <div key={client.id} className="rounded-2xl border border-border bg-card/50 p-5 md:p-6 space-y-4">
-                <ClientCard client={client} isAdmin={isAdmin} clientView={clientView} />
-              </div>
-            ))}
-          </div>
+          renderClients()
         )}
       </div>
     </div>
   );
+
+  function renderClients() {
+    if (loading) return <div className="text-center py-12 text-muted-foreground">Carregando...</div>;
+    if (clients.length === 0) return <div className="text-center py-12 text-muted-foreground">Nenhum cliente cadastrado.</div>;
+    return (
+      <div className="space-y-8">
+        {clients.map((client) => (
+          <div key={client.id} className="rounded-2xl border border-border bg-card/50 p-5 md:p-6 space-y-4">
+            <ClientCard client={client} isAdmin={isAdmin} clientView={clientView} />
+          </div>
+        ))}
+      </div>
+    );
+  }
 }
