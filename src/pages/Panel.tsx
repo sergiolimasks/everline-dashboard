@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSummary } from "@/hooks/use-dashboard";
+import { usePageScroll, usePageState } from "@/hooks/use-page-state";
 import { formatDateString, formatDayMonth, getWeekStart, parseDateStringLocal } from "@/lib/date-utils";
 import { BarChart3, LogOut, ExternalLink, Target, DollarSign, ShoppingCart, Wallet, PiggyBank, Building2, Eye, EyeOff, Calendar as CalendarIcon } from "lucide-react";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
@@ -191,16 +192,16 @@ function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, d
               ? `/cliente/${client.slug}/${dashboardPath}`
               : `/interno/${client.slug}/${dashboardPath}`;
             return (
-              <a
+              <Link
                 key={offer.offer_slug}
-                href={reportHref}
+                to={reportHref}
                 className="flex items-center justify-between px-4 py-3 rounded-lg border border-border bg-card hover:border-primary/50 transition-colors group"
               >
                 <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
                   {offer.label}
                 </p>
                 <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </a>
+              </Link>
             );
           })}
         </div>
@@ -212,21 +213,23 @@ function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, d
 export default function Panel({ clientView }: { clientView?: boolean }) {
   const { user, isAdmin, isSuperAdmin, isGestor, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [clients, setClients] = useState<ClientWithOffers[]>([]);
   const [loading, setLoading] = useState(true);
-  const [simulateClientView, setSimulateClientView] = useState(false);
-  const effectiveClientView = clientView || simulateClientView;
-
-  // Date filter state
+  const stateKey = `panel:${location.pathname}`;
   const today = new Date();
   const todayStr = formatDateString(today);
-  const [datePreset, setDatePreset] = useState<string>("hoje");
-  const [dateFrom, setDateFrom] = useState(todayStr);
-  const [dateTo, setDateTo] = useState(todayStr);
-  const [dateLabel, setDateLabel] = useState("Hoje");
+  const [panelState, setPanelState] = usePageState(stateKey, {
+    simulateClientView: false,
+    datePreset: "hoje",
+    dateFrom: todayStr,
+    dateTo: todayStr,
+    dateLabel: "Hoje",
+  });
+  const { simulateClientView, datePreset, dateFrom, dateTo, dateLabel } = panelState;
+  const effectiveClientView = clientView || simulateClientView;
 
   const applyPreset = (preset: string) => {
-    setDatePreset(preset);
     const now = new Date();
     let from: Date, to: Date, label: string;
     switch (preset) {
@@ -249,13 +252,17 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
         to = new Date(now.getFullYear(), now.getMonth(), 0);
         label = "Mês Passado"; break;
       }
-      default: { // hoje
+      default: {
         from = to = now; label = "Hoje"; break;
       }
     }
-    setDateFrom(formatDateString(from));
-    setDateTo(formatDateString(to));
-    setDateLabel(label);
+    setPanelState((current) => ({
+      ...current,
+      datePreset: preset,
+      dateFrom: formatDateString(from),
+      dateTo: formatDateString(to),
+      dateLabel: label,
+    }));
   };
 
   // Gestor loads clients the same way as a regular client user (only assigned ones)
@@ -328,6 +335,8 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
     navigate("/");
   };
 
+  usePageScroll(stateKey, !loading);
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -348,7 +357,7 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
           <div className="flex items-center gap-3">
             {isSuperAdmin && !clientView && (
               <button
-                onClick={() => setSimulateClientView(!simulateClientView)}
+                onClick={() => setPanelState((current) => ({ ...current, simulateClientView: !current.simulateClientView }))}
                 className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${
                   simulateClientView
                     ? "border-primary bg-primary/10 text-primary"
@@ -421,18 +430,19 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
                         from: parseDateStringLocal(dateFrom),
                         to: parseDateStringLocal(dateTo),
                       }}
-                      onSelect={(range) => {
-                        if (range?.from) {
-                          setDatePreset("custom");
-                          setDateFrom(formatDateString(range.from));
-                          setDateTo(formatDateString(range.to || range.from));
-                          setDateLabel(
-                            range.to
-                              ? `${formatDayMonth(formatDateString(range.from))} — ${formatDayMonth(formatDateString(range.to))}`
-                              : formatDayMonth(formatDateString(range.from))
-                          );
-                        }
-                      }}
+                       onSelect={(range) => {
+                         if (range?.from) {
+                           setPanelState((current) => ({
+                             ...current,
+                             datePreset: "custom",
+                             dateFrom: formatDateString(range.from),
+                             dateTo: formatDateString(range.to || range.from),
+                             dateLabel: range.to
+                               ? `${formatDayMonth(formatDateString(range.from))} — ${formatDayMonth(formatDateString(range.to))}`
+                               : formatDayMonth(formatDateString(range.from)),
+                           }));
+                         }
+                       }}
                       className="p-3 pointer-events-auto"
                     />
                   </PopoverContent>
@@ -492,18 +502,19 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
                       from: parseDateStringLocal(dateFrom),
                       to: parseDateStringLocal(dateTo),
                     }}
-                    onSelect={(range) => {
-                      if (range?.from) {
-                        setDatePreset("custom");
-                        setDateFrom(formatDateString(range.from));
-                        setDateTo(formatDateString(range.to || range.from));
-                        setDateLabel(
-                          range.to
-                            ? `${formatDayMonth(formatDateString(range.from))} — ${formatDayMonth(formatDateString(range.to))}`
-                            : formatDayMonth(formatDateString(range.from))
-                        );
-                      }
-                    }}
+                     onSelect={(range) => {
+                       if (range?.from) {
+                         setPanelState((current) => ({
+                           ...current,
+                           datePreset: "custom",
+                           dateFrom: formatDateString(range.from),
+                           dateTo: formatDateString(range.to || range.from),
+                           dateLabel: range.to
+                             ? `${formatDayMonth(formatDateString(range.from))} — ${formatDayMonth(formatDateString(range.to))}`
+                             : formatDayMonth(formatDateString(range.from)),
+                         }));
+                       }
+                     }}
                     className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>

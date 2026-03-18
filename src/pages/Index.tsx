@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useAds, useComparison7d, useComparison14d, useSparklineTraffic, useSparklineSales, useAttribution } from "@/hooks/use-dashboard";
+import { usePageScroll, usePageState } from "@/hooks/use-page-state";
 import { formatDateString, getWeekStart } from "@/lib/date-utils";
 import { KPICards } from "@/components/dashboard/KPICards";
 import { TrafficChart } from "@/components/dashboard/TrafficChart";
@@ -63,12 +64,18 @@ interface IndexProps {
 const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
   const { isGestor } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const hideCoProdutor = isGestor && !clientView;
   const config = PROJECT_CONFIGS[projectKey] || PROJECT_CONFIGS['checkup'];
   const today = new Date();
-  const [dateFrom, setDateFrom] = useState(formatDateString(getWeekStart(today, config.weekStartDay)));
-  const [dateTo, setDateTo] = useState(formatDateString(today));
-  const [offer, setOffer] = useState<OfferType>('all');
+  const stateKey = `report:${location.pathname}`;
+  const [filters, setFilters] = usePageState(stateKey, {
+    dateFrom: formatDateString(getWeekStart(today, config.weekStartDay)),
+    dateTo: formatDateString(today),
+    offer: 'all' as OfferType,
+    activePreset: 'Esta semana' as string | null,
+  });
+  const { dateFrom, dateTo, offer, activePreset } = filters;
 
   const queryClient = useQueryClient();
 
@@ -93,13 +100,14 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
   const sparklineSalesData = periodDays > 30 ? salesDaily : sparklineSales;
 
   const handleDateChange = (from: string, to: string) => {
-    setDateFrom(from);
-    setDateTo(to);
+    setFilters((current) => ({ ...current, dateFrom: from, dateTo: to }));
   };
 
   const handleRefresh = () => {
     queryClient.invalidateQueries();
   };
+
+  usePageScroll(stateKey, !loadingSummary && !loadingTraffic && !loadingSales && !loadingCampaigns && !loadingAds && !loadingAttribution);
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
@@ -136,11 +144,22 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
 
         {/* Offer Filter */}
         {config.showOfferFilter && (
-          <OfferFilter selected={offer} onChange={setOffer} options={config.offerOptions} />
+          <OfferFilter
+            selected={offer}
+            onChange={(nextOffer) => setFilters((current) => ({ ...current, offer: nextOffer }))}
+            options={config.offerOptions}
+          />
         )}
 
         {/* Date Filter */}
-        <DateFilter dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} weekStartDay={config.weekStartDay} />
+        <DateFilter
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateChange={handleDateChange}
+          weekStartDay={config.weekStartDay}
+          activePreset={activePreset}
+          onActivePresetChange={(preset) => setFilters((current) => ({ ...current, activePreset: preset }))}
+        />
 
         {/* KPIs */}
         <KPICards

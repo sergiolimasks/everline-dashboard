@@ -10,6 +10,8 @@ interface DateFilterProps {
   dateTo: string;
   onDateChange: (from: string, to: string) => void;
   weekStartDay?: number; // 0=Sun, 3=Wed, etc. Default 0
+  activePreset?: string | null;
+  onActivePresetChange?: (preset: string | null) => void;
 }
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -163,8 +165,17 @@ function DatePickerButton({
 }
 
 
-export function DateFilter({ dateFrom, dateTo, onDateChange, weekStartDay = 0 }: DateFilterProps) {
-  const [activePreset, setActivePreset] = useState<string | null>("Esta semana");
+export function DateFilter({
+  dateFrom,
+  dateTo,
+  onDateChange,
+  weekStartDay = 0,
+  activePreset: controlledActivePreset,
+  onActivePresetChange,
+}: DateFilterProps) {
+  const [internalActivePreset, setInternalActivePreset] = useState<string | null>("Esta semana");
+  const activePreset = controlledActivePreset !== undefined ? controlledActivePreset : internalActivePreset;
+  const setActivePreset = onActivePresetChange ?? setInternalActivePreset;
 
   const presets: { label: string; getRange: () => [Date, Date] }[] = [
     {
