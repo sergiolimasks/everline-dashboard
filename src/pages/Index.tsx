@@ -146,7 +146,7 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
         )}
 
         {/* Date Filter */}
-        <DateFilter dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} />
+        <DateFilter dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} weekStartDay={config.weekStartDay} />
 
         {/* KPIs */}
         <KPICards
