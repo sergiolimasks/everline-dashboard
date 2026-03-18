@@ -179,6 +179,21 @@ export function DateFilter({ dateFrom, dateTo, onDateChange }: DateFilterProps) 
 
   const presets: { label: string; getRange: () => [Date, Date] }[] = [
     {
+      label: "Hoje",
+      getRange: () => {
+        const today = new Date();
+        return [today, today];
+      },
+    },
+    {
+      label: "Ontem",
+      getRange: () => {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        return [yesterday, yesterday];
+      },
+    },
+    {
       label: "Esta semana",
       getRange: () => {
         const today = new Date();
