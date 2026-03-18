@@ -21,6 +21,7 @@ export interface ProjectDashboardConfig {
   showCustoConsultas: boolean;
   showManychat: boolean;
   showLeads: boolean;
+  offerOptions?: { value: string; label: string }[];
 }
 
 const PROJECT_CONFIGS: Record<string, ProjectDashboardConfig> = {
@@ -35,10 +36,16 @@ const PROJECT_CONFIGS: Record<string, ProjectDashboardConfig> = {
   'formacao-consultor': {
     project: 'formacao-consultor',
     title: 'Formação Consultor 360',
-    showOfferFilter: false,
+    showOfferFilter: true,
     showCustoConsultas: false,
     showManychat: false,
     showLeads: true,
+    offerOptions: [
+      { value: 'all', label: 'Todas Campanhas' },
+      { value: 'aplicacao', label: 'Aplicação' },
+      { value: '50k', label: 'Lançamento 50K' },
+      { value: 'presencial', label: 'Presencial' },
+    ],
   },
 };
 
@@ -122,7 +129,7 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
 
         {/* Offer Filter */}
         {config.showOfferFilter && (
-          <OfferFilter selected={offer} onChange={setOffer} />
+          <OfferFilter selected={offer} onChange={setOffer} options={config.offerOptions} />
         )}
 
         {/* Date Filter */}

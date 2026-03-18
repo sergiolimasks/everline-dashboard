@@ -54,6 +54,7 @@ interface OfferFilters {
   metaWhere: string;
   principalProduct: string;
   useEmailLinkedBumps: boolean;
+  leadSources?: string[]; // filter leadConfigs by sourceName
 }
 
 const PROJECTS: Record<string, ProjectConfig> = {
@@ -113,7 +114,26 @@ const PROJECTS: Record<string, ProjectConfig> = {
     taxaFixaPorVenda: 0,
     custoManychat: 0,
     defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%50K-DEZ25%' OR UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%' OR UPPER(campanha) LIKE '%PRESENCIAL%')`,
-    offerFilters: {},
+    offerFilters: {
+      aplicacao: {
+        metaWhere: ` AND (UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%')`,
+        principalProduct: '',
+        useEmailLinkedBumps: false,
+        leadSources: ['Aplicação'],
+      },
+      '50k': {
+        metaWhere: ` AND UPPER(campanha) LIKE '%50K-DEZ25%'`,
+        principalProduct: '',
+        useEmailLinkedBumps: false,
+        leadSources: ['Lançamento 50K'],
+      },
+      presencial: {
+        metaWhere: ` AND UPPER(campanha) LIKE '%PRESENCIAL%'`,
+        principalProduct: '',
+        useEmailLinkedBumps: false,
+        leadSources: ['Presencial'],
+      },
+    },
     leadConfigs: [
       { table: 'bd_ads_clientes.leads_uelicon_venancio_aplicacao_formac', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"', phoneColumn: '"telefone"', sourceName: 'Aplicação' },
       { table: 'bd_ads_clientes.leads_uelicon_venancio_acao_50k_ter', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"', phoneColumn: '"telefone"', sourceName: 'Lançamento 50K' },
@@ -409,6 +429,11 @@ serve(async (req) => {
     const filters = getOfferFiltersForProject(config, offer);
     const metaFilter = filters.metaWhere;
 
+    // Filter leadConfigs by selected offer's leadSources
+    const filteredConfig = filters.leadSources
+      ? { ...config, leadConfigs: config.leadConfigs.filter(lc => filters.leadSources!.includes(lc.sourceName)) }
+      : config;
+
     let dateFilter = '';
     const params: string[] = [];
 
@@ -439,7 +464,7 @@ serve(async (req) => {
         ORDER BY data::date DESC
       `, params);
 
-      const leadsMap = await queryLeadsDaily(config, params);
+      const leadsMap = await queryLeadsDaily(filteredConfig, params);
       data = (trafficRows as any[]).map(row => ({
         ...row,
         leads: leadsMap.get(String(row.dia).slice(0, 10)) || 0,
@@ -572,7 +597,7 @@ serve(async (req) => {
       const coProdutorTotal = Number((principalSales[0] as any)?.co_produtor || 0) + Number(bumpSalesRow?.co_produtor_bump || 0);
       const taxaGreenTotal = Number((principalSales[0] as any)?.taxa_green || 0) + Number(bumpSalesRow?.taxa_green_bump || 0);
 
-      const totalLeads = await queryLeadsTotal(config, params);
+      const totalLeads = await queryLeadsTotal(filteredConfig, params);
 
       data = [{
         traffic: { ...(traffic[0] as any), total_leads: totalLeads },
@@ -655,7 +680,7 @@ serve(async (req) => {
       }));
 
     } else if (endpoint === 'attribution') {
-      data = await queryAttribution(config, params);
+      data = await queryAttribution(filteredConfig, params);
     } else if (endpoint === 'debug_columns') {
       const tables = [config.greenSchema, ...config.leadConfigs.map(lc => lc.table)];
       const results: Record<string, string[]> = {};
