@@ -19,6 +19,18 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
+    // Check if email already exists
+    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+    const emailExists = existingUsers?.users?.some(
+      (u) => u.email?.toLowerCase() === email.toLowerCase()
+    );
+    if (emailExists) {
+      return new Response(JSON.stringify({ error: 'Já existe um usuário com esse e-mail.' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Create user via admin API (auto-confirms email)
     const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
