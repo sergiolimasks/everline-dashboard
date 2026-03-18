@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useAds, useComparison7d, useComparison14d, useSparklineTraffic, useSparklineSales, useAttribution } from "@/hooks/use-dashboard";
 import { formatDateString } from "@/lib/date-utils";
@@ -12,7 +13,8 @@ import { CreativesTable } from "@/components/dashboard/CreativesTable";
 import { AttributionTable } from "@/components/dashboard/AttributionTable";
 import { DateFilter } from "@/components/dashboard/DateFilter";
 import { OfferFilter, type OfferType } from "@/components/dashboard/OfferFilter";
-import { BarChart3, RefreshCw } from "lucide-react";
+import { ArrowLeft, BarChart3, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 
 export interface ProjectDashboardConfig {
