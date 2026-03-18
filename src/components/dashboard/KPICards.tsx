@@ -704,7 +704,25 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                 icon={ShoppingCart} color="text-primary" isLoading={isLoading}
                 metricKey="taxaConvLeads" current={current} comp7d={comp7d} comp14d={comp14d}
                 formatValue={formatPercent}
-                tooltipContent={getSparkline("taxaConvLeads")}
+                tooltipContent={!isLoading ? (
+                  <div className="space-y-3">
+                    <div className="w-72 max-w-full p-3 pb-0">
+                      <p className="text-xs font-semibold mb-2 text-foreground">Fórmula Tx Conv. Leads</p>
+                      <div className="space-y-1.5 text-[11px]">
+                        <div className="bg-muted/50 rounded-md p-2 text-center font-mono text-xs text-foreground">
+                          Tx Conv. = Vendas Aprovadas ÷ Leads
+                        </div>
+                        <div className="flex justify-between"><span className="text-primary">Vendas Aprovadas</span><span className="font-medium text-primary">{current?.vendasAprovadas || 0}</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Total Leads</span><span className="font-medium text-foreground">{current?.totalLeads || 0}</span></div>
+                        <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
+                          <span className="text-muted-foreground">Tx Conv. Leads</span>
+                          <span className="text-foreground">{formatPercent(current?.taxaConvLeads || 0)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {getSparkline("taxaConvLeads")}
+                  </div>
+                ) : undefined}
               />
             )}
           </div>
