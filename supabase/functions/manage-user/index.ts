@@ -28,7 +28,14 @@ Deno.serve(async (req) => {
         });
       }
 
-      const { data, error } = await supabaseAdmin.auth.admin.updateUser(userId, {
+      console.log('auth keys:', Object.keys(supabaseAdmin.auth));
+      console.log('admin keys:', Object.keys(supabaseAdmin.auth.admin));
+      console.log('updateUser type:', typeof supabaseAdmin.auth.admin.updateUser);
+      console.log('updateUserById type:', typeof supabaseAdmin.auth.admin.updateUserById);
+
+      // Try updateUserById if updateUser doesn't exist
+      const updateFn = supabaseAdmin.auth.admin.updateUserById || supabaseAdmin.auth.admin.updateUser;
+      const { data, error } = await updateFn.call(supabaseAdmin.auth.admin, userId, {
         password: newPassword,
       });
 
