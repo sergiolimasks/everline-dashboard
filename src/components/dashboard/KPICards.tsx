@@ -29,7 +29,7 @@ function SkeletonBlock() {
   return <div className="h-8 w-24 bg-muted rounded animate-pulse" />;
 }
 
-function calcMetrics(data: SummaryData | undefined, showLeads = false) {
+function calcMetrics(data: SummaryData | undefined, showLeads = false, hideCoProdutor = false) {
   if (!data) return null;
   const traffic = data.traffic;
   const sales = data.sales;
