@@ -522,7 +522,7 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
       <div className="space-y-8">
         {clients.map((client) => (
           <div key={client.id} className="rounded-2xl border border-border bg-card/50 p-5 md:p-6 space-y-4">
-            <ClientCard client={client} isAdmin={isAdmin} clientView={effectiveClientView} dateFrom={dateFrom} dateTo={dateTo} dateLabel={dateLabel} />
+            <ClientCard client={client} isAdmin={isAdmin} isGestor={isGestor} clientView={effectiveClientView} dateFrom={dateFrom} dateTo={dateTo} dateLabel={dateLabel} />
           </div>
         ))}
       </div>
