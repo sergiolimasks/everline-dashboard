@@ -201,42 +201,56 @@ async function queryLeadsDaily(config: ProjectConfig, params: string[]): Promise
 }
 
 // ========== PHONE + EMAIL SALES ATTRIBUTION ==========
-async function detectColumn(table: string, candidates: string[]): Promise<string | null> {
-  for (const candidate of candidates) {
-    try {
-      await queryExternalPG(`SELECT ${candidate} FROM ${table} LIMIT 1`, []);
-      return candidate;
-    } catch { /* next */ }
+
+// Detect columns via information_schema in a single query per schema
+async function getTableColumns(schemaAndTable: string): Promise<Set<string>> {
+  // schemaAndTable like "uelicon_database.controle_green" or "bd_ads_clientes.leads_..."
+  const parts = schemaAndTable.split('.');
+  const schema = parts[0];
+  const table = parts[1];
+  const rows = await queryExternalPG(
+    `SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2`,
+    [schema, table]
+  );
+  const cols = new Set<string>();
+  for (const r of rows as any[]) {
+    cols.add(String(r.column_name));
+  }
+  return cols;
+}
+
+function findColumn(columns: Set<string>, candidates: string[]): string | null {
+  for (const c of candidates) {
+    if (columns.has(c)) return `"${c}"`;
   }
   return null;
 }
 
-async function detectSalesPhoneColumn(config: ProjectConfig): Promise<string | null> {
-  return detectColumn(config.greenSchema, ['"telefone"', '"Telefone"', '"Telefone do cliente"', '"telefone_cliente"', '"celular"', '"Celular"']);
-}
-
-async function detectSalesEmailColumn(config: ProjectConfig): Promise<string | null> {
-  return detectColumn(config.greenSchema, ['"Email do cliente"', '"email"', '"Email"', '"e-mail"']);
-}
-
-async function detectLeadEmailColumn(table: string): Promise<string | null> {
-  return detectColumn(table, ['"email"', '"Email"', '"E-mail"', '"e-mail"']);
-}
+const PHONE_CANDIDATES = ['telefone', 'Telefone', 'Telefone do cliente', 'telefone_cliente', 'celular', 'Celular'];
+const EMAIL_CANDIDATES = ['Email do cliente', 'email', 'Email', 'e-mail', 'E-mail'];
 
 async function queryAttribution(config: ProjectConfig, params: string[]): Promise<any[]> {
   if (config.leadConfigs.length === 0) return [];
 
-  // Detect columns in parallel
-  const [salesPhoneColumn, salesEmailColumn, ...leadEmailCols] = await Promise.all([
-    detectSalesPhoneColumn(config),
-    detectSalesEmailColumn(config),
-    ...config.leadConfigs.map(lc => detectLeadEmailColumn(lc.table)),
-  ]);
+  // Detect all columns in parallel (one query per table)
+  const allTables = [config.greenSchema, ...config.leadConfigs.map(lc => lc.table)];
+  const uniqueTables = [...new Set(allTables)];
+  const columnSets = await Promise.all(uniqueTables.map(t => getTableColumns(t)));
+  const tableColumns: Map<string, Set<string>> = new Map();
+  uniqueTables.forEach((t, i) => tableColumns.set(t, columnSets[i]));
+
+  const salesCols = tableColumns.get(config.greenSchema)!;
+  const salesPhoneColumn = findColumn(salesCols, PHONE_CANDIDATES);
   if (!salesPhoneColumn) {
     throw new Error('Nenhuma coluna de telefone encontrada na base de vendas');
   }
+  const salesEmailColumn = findColumn(salesCols, EMAIL_CANDIDATES);
+
   const leadEmailColumns: Map<string, string | null> = new Map();
-  config.leadConfigs.forEach((lc, i) => leadEmailColumns.set(lc.sourceName, leadEmailCols[i]));
+  for (const lc of config.leadConfigs) {
+    const cols = tableColumns.get(lc.table)!;
+    leadEmailColumns.set(lc.sourceName, findColumn(cols, EMAIL_CANDIDATES));
+  }
 
   const salesDateFilter = params.length >= 2
     ? ` AND "Data"::date >= $1 AND "Data"::date <= $2`
