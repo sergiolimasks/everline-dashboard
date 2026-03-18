@@ -206,7 +206,7 @@ function ClientCard({ client, isAdmin, clientView }: { client: ClientWithOffers;
 }
 
 export default function Panel({ clientView }: { clientView?: boolean }) {
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, isSuperAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientWithOffers[]>([]);
   const [loading, setLoading] = useState(true);
