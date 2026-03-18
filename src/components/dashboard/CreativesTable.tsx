@@ -37,6 +37,8 @@ export function CreativesTable({ data, isLoading, showLeads = false }: Creatives
   const visible = showAll ? ads : ads.slice(0, INITIAL_SHOW);
   const hasMore = ads.length > INITIAL_SHOW;
 
+  const getLeads = (a: any) => Number(a.endform || 0) + Number(a.lead_aplicacao || 0) + Number(a.lead_presencial || 0);
+
   const totals = ads.reduce(
     (acc, a) => {
       acc.impressoes += Number(a.impressoes);
@@ -45,13 +47,15 @@ export function CreativesTable({ data, isLoading, showLeads = false }: Creatives
       acc.views_3s += Number(a.views_3s);
       acc.compras += Number(a.compras);
       acc.valorCompras += Number(a.valor_compras);
+      acc.leads += getLeads(a);
       return acc;
     },
-    { impressoes: 0, cliques: 0, gasto: 0, views_3s: 0, compras: 0, valorCompras: 0 }
+    { impressoes: 0, cliques: 0, gasto: 0, views_3s: 0, compras: 0, valorCompras: 0, leads: 0 }
   );
   const totalCtr = totals.impressoes > 0 ? totals.cliques / totals.impressoes : 0;
   const totalTsr = totals.impressoes > 0 ? totals.views_3s / totals.impressoes : 0;
-  const totalCpa = totals.compras > 0 ? totals.gasto / totals.compras : 0;
+  const countCol = showLeads ? totals.leads : totals.compras;
+  const totalCpa = countCol > 0 ? totals.gasto / countCol : 0;
 
   return (
     <div className="chart-container">
@@ -77,9 +81,9 @@ export function CreativesTable({ data, isLoading, showLeads = false }: Creatives
           <tbody>
             {visible.map((a, i) => {
               const gasto = Number(a.gasto);
-              const compras = Number(a.compras);
+              const count = showLeads ? getLeads(a) : Number(a.compras);
               const valorCompras = Number(a.valor_compras);
-              const cpa = compras > 0 ? gasto / compras : 0;
+              const cpaVal = count > 0 ? gasto / count : 0;
               const roas = gasto > 0 ? valorCompras / gasto : 0;
               const isActive = a.status && a.status.toUpperCase() === 'ACTIVE';
               return (
@@ -106,8 +110,8 @@ export function CreativesTable({ data, isLoading, showLeads = false }: Creatives
                     </div>
                   </td>
                   <td className="text-right font-display font-semibold">{formatCurrency(gasto)}</td>
-                  <td className="text-right">{formatNumber(compras)}</td>
-                  <td className="text-right">{formatCurrency(cpa)}</td>
+                  <td className="text-right">{formatNumber(count)}</td>
+                  <td className="text-right">{formatCurrency(cpaVal)}</td>
                   {!showLeads && <td className="text-right">{formatCurrency(valorCompras)}</td>}
                   {!showLeads && <td className="text-right font-display font-semibold">{roas.toFixed(2)}x</td>}
                   <td className="text-right font-display font-semibold">{formatPercent(Number(a.ctr))}</td>
@@ -121,7 +125,7 @@ export function CreativesTable({ data, isLoading, showLeads = false }: Creatives
             <tr className="font-semibold bg-muted/30">
               <td className="font-medium">Total ({ads.length} anúncios)</td>
               <td className="text-right font-display">{formatCurrency(totals.gasto)}</td>
-              <td className="text-right">{formatNumber(totals.compras)}</td>
+              <td className="text-right">{formatNumber(countCol)}</td>
               <td className="text-right">{formatCurrency(totalCpa)}</td>
               {!showLeads && <td className="text-right">{formatCurrency(totals.valorCompras)}</td>}
               {!showLeads && <td className="text-right font-display">—</td>}

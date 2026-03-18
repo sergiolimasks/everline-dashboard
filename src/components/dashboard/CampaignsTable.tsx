@@ -42,18 +42,21 @@ export function CampaignsTable({ data, isLoading, showLeads = false }: Campaigns
   const visible = showAll ? campaigns : campaigns.slice(0, INITIAL_SHOW);
   const hasMore = campaigns.length > INITIAL_SHOW;
 
+  const getLeads = (c: any) => Number(c.endform || 0) + Number(c.lead_aplicacao || 0) + Number(c.lead_presencial || 0);
+
   // Calculate totals
   const totals = campaigns.reduce(
     (acc, c) => {
       acc.gasto += Number(c.gasto);
       acc.compras += Number(c.compras);
       acc.valorCompras += Number(c.valor_compras);
+      acc.leads += getLeads(c);
       return acc;
     },
-    { gasto: 0, compras: 0, valorCompras: 0 }
+    { gasto: 0, compras: 0, valorCompras: 0, leads: 0 }
   );
-  const totalCpa = totals.compras > 0 ? totals.gasto / totals.compras : 0;
-  const totalRoas = totals.gasto > 0 ? totals.valorCompras / totals.gasto : 0;
+  const countCol = showLeads ? totals.leads : totals.compras;
+  const totalCpa = countCol > 0 ? totals.gasto / countCol : 0;
 
   return (
     <div className="chart-container">
@@ -75,10 +78,9 @@ export function CampaignsTable({ data, isLoading, showLeads = false }: Campaigns
           <tbody>
             {visible.map((c, i) => {
               const gasto = Number(c.gasto);
-              const compras = Number(c.compras);
+              const count = showLeads ? getLeads(c) : Number(c.compras);
               const valorCompras = Number(c.valor_compras);
-              const cpa = compras > 0 ? gasto / compras : 0;
-              const roas = gasto > 0 ? valorCompras / gasto : 0;
+              const cpaVal = count > 0 ? gasto / count : 0;
               return (
                 <tr key={i}>
                   <td className="font-medium max-w-xs">
@@ -88,8 +90,8 @@ export function CampaignsTable({ data, isLoading, showLeads = false }: Campaigns
                     </div>
                   </td>
                   <td className="text-right font-display font-semibold">{formatCurrency(gasto)}</td>
-                  <td className="text-right">{formatNumber(compras)}</td>
-                  <td className="text-right">{formatCurrency(cpa)}</td>
+                  <td className="text-right">{formatNumber(count)}</td>
+                  <td className="text-right">{formatCurrency(cpaVal)}</td>
                   {!showLeads && <td className="text-right">{formatCurrency(valorCompras)}</td>}
                 </tr>
               );
@@ -99,7 +101,7 @@ export function CampaignsTable({ data, isLoading, showLeads = false }: Campaigns
             <tr className="font-semibold bg-muted/30">
               <td className="font-medium">Total ({campaigns.length} campanhas)</td>
               <td className="text-right font-display">{formatCurrency(totals.gasto)}</td>
-              <td className="text-right">{formatNumber(totals.compras)}</td>
+              <td className="text-right">{formatNumber(countCol)}</td>
               <td className="text-right">{formatCurrency(totalCpa)}</td>
               {!showLeads && <td className="text-right">{formatCurrency(totals.valorCompras)}</td>}
             </tr>
