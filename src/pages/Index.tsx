@@ -129,7 +129,7 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
 
         {/* Offer Filter */}
         {config.showOfferFilter && (
-          <OfferFilter selected={offer} onChange={setOffer} />
+          <OfferFilter selected={offer} onChange={setOffer} options={config.offerOptions} />
         )}
 
         {/* Date Filter */}
