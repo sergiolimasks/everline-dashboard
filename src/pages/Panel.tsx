@@ -97,7 +97,7 @@ function CacTooltip({ gastoMeta, imposto, custoConsultas, custoManychat, gastoTo
   );
 }
 
-function ClientCard({ client, isAdmin, clientView, dateFrom, dateTo, dateLabel }: { client: ClientWithOffers; isAdmin: boolean; clientView?: boolean; dateFrom: string; dateTo: string; dateLabel: string }) {
+function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, dateLabel }: { client: ClientWithOffers; isAdmin: boolean; isGestor?: boolean; clientView?: boolean; dateFrom: string; dateTo: string; dateLabel: string }) {
   const { data: summary, isLoading } = useSummary(dateFrom, dateTo, "all_no_filter");
 
   const gastoMeta = Number(summary?.traffic?.total_gasto || 0);
@@ -137,7 +137,7 @@ function ClientCard({ client, isAdmin, clientView, dateFrom, dateTo, dateLabel }
       color: "text-blue-400",
       tooltip: <CacTooltip gastoMeta={gastoMeta} imposto={imposto} custoConsultas={custoConsultas} custoManychat={custoManychat} gastoTotal={gastoTotal} vendasAprovadas={vendasAprovadas} cac={cac} />,
     },
-    ...(!clientView && isAdmin ? [{
+    ...(!clientView && isAdmin && !isGestor ? [{
       label: "Faturamento Agência", value: formatCurrency(faturamentoAgencia), icon: Building2, color: "text-primary",
       tooltip: null as React.ReactNode | null,
     }] : []),
@@ -210,7 +210,7 @@ function ClientCard({ client, isAdmin, clientView, dateFrom, dateTo, dateLabel }
 }
 
 export default function Panel({ clientView }: { clientView?: boolean }) {
-  const { user, isAdmin, isSuperAdmin, signOut } = useAuth();
+  const { user, isAdmin, isSuperAdmin, isGestor, signOut } = useAuth();
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientWithOffers[]>([]);
   const [loading, setLoading] = useState(true);
@@ -257,12 +257,14 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
     setDateLabel(label);
   };
 
+  // Gestor loads clients the same way as a regular client user (only assigned ones)
+  // but sees the admin-style dashboard (without co-produtor)
   useEffect(() => {
     if (!user) return;
 
     async function loadClients() {
-      if (clientView) {
-        // For client view, load only the client's own campaigns
+      if (clientView || (isGestor && !isAdmin)) {
+        // For client view or gestor, load only assigned campaigns
         const { data: accessData } = await supabase
           .from("user_campaign_access")
           .select("offer_slug, label")
@@ -273,7 +275,6 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
           return;
         }
 
-        // Find matching clients by offer slug
         const slugs = accessData.map((a: any) => a.offer_slug);
         const { data: offersData } = await supabase
           .from("client_offers")
@@ -319,7 +320,7 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
     }
 
     loadClients();
-  }, [user, clientView]);
+  }, [user, clientView, isGestor, isAdmin]);
 
   const handleLogout = async () => {
     await signOut();
@@ -521,7 +522,7 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
       <div className="space-y-8">
         {clients.map((client) => (
           <div key={client.id} className="rounded-2xl border border-border bg-card/50 p-5 md:p-6 space-y-4">
-            <ClientCard client={client} isAdmin={isAdmin} clientView={effectiveClientView} dateFrom={dateFrom} dateTo={dateTo} dateLabel={dateLabel} />
+            <ClientCard client={client} isAdmin={isAdmin} isGestor={isGestor} clientView={effectiveClientView} dateFrom={dateFrom} dateTo={dateTo} dateLabel={dateLabel} />
           </div>
         ))}
       </div>

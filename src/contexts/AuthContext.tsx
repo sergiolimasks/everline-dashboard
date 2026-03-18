@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   isSuperAdmin: boolean;
+  isGestor: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -20,6 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [isGestor, setIsGestor] = useState(false);
 
   const checkRoles = async (userId: string) => {
     const { data } = await supabase
@@ -29,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const roles = (data || []).map((r: any) => r.role);
     setIsAdmin(roles.includes("admin") || roles.includes("super_admin"));
     setIsSuperAdmin(roles.includes("super_admin"));
+    setIsGestor(roles.includes("gestor"));
   };
 
   useEffect(() => {
@@ -41,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setIsAdmin(false);
           setIsSuperAdmin(false);
+          setIsGestor(false);
         }
         setLoading(false);
       }
@@ -68,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, isSuperAdmin, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, isSuperAdmin, isGestor, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
