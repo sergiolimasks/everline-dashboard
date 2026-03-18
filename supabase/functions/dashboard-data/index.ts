@@ -647,6 +647,18 @@ serve(async (req) => {
         bumpSalesRow = bumpSales[0] || bumpSalesRow;
       }
 
+      // For panel view: get co_produtor from ALL products (including bumps)
+      let panelCoProdutorTotal = 0;
+      if (isPanel) {
+        const allSales = await queryExternalPG(`
+          SELECT 
+            SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor_all
+          FROM ${config.greenSchema}
+          WHERE 1=1 ${salesDateFilter} ${salesPhoneFilter}
+        `, params);
+        panelCoProdutorTotal = Number((allSales[0] as any)?.co_produtor_all || 0);
+      }
+
       const products = await queryExternalPG(`
         SELECT 
           "Nome do produto" as produto,
@@ -663,7 +675,7 @@ serve(async (req) => {
       const taxaFixaTotal = config.taxaFixaPorVenda > 0 ? (vendasPrincipal + vendasCnpj) * config.taxaFixaPorVenda : 0;
       const receitaBrutaTotal = Number((principalSales[0] as any)?.receita_bruta || 0) + Number(bumpSalesRow?.receita_bruta_bump || 0);
       const receitaLiquidaTotal = Number((principalSales[0] as any)?.receita_liquida || 0) + Number(bumpSalesRow?.receita_liquida_bump || 0);
-      const coProdutorTotal = Number((principalSales[0] as any)?.co_produtor || 0) + Number(bumpSalesRow?.co_produtor_bump || 0);
+      const coProdutorTotal = isPanel ? panelCoProdutorTotal : (Number((principalSales[0] as any)?.co_produtor || 0) + Number(bumpSalesRow?.co_produtor_bump || 0));
       const taxaGreenTotal = Number((principalSales[0] as any)?.taxa_green || 0) + Number(bumpSalesRow?.taxa_green_bump || 0);
 
       const totalLeads = await queryLeadsTotal(filteredConfig, params);
