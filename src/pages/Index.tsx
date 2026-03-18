@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useAds, useComparison7d, useComparison14d, useSparklineTraffic, useSparklineSales, useAttribution } from "@/hooks/use-dashboard";
 import { formatDateString } from "@/lib/date-utils";
 import { KPICards } from "@/components/dashboard/KPICards";
@@ -55,6 +56,8 @@ interface IndexProps {
 }
 
 const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
+  const { isGestor } = useAuth();
+  const hideCoProdutor = isGestor && !clientView;
   const config = PROJECT_CONFIGS[projectKey] || PROJECT_CONFIGS['checkup'];
   const today = new Date();
   // Default to "this week" (Wed–today)
@@ -146,6 +149,7 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
           isSingleDay={periodDays === 1}
           clientView={clientView}
           showLeads={config.showLeads}
+          hideCoProdutor={hideCoProdutor}
         />
 
         {/* Charts Row */}
@@ -166,6 +170,7 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
           isLoading={loadingTraffic || loadingSales}
           clientView={clientView}
           showLeads={config.showLeads}
+          hideCoProdutor={hideCoProdutor}
         />
 
         {!clientView && (

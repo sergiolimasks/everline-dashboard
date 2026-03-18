@@ -14,6 +14,7 @@ interface KPICardsProps {
   isSingleDay?: boolean;
   clientView?: boolean;
   showLeads?: boolean;
+  hideCoProdutor?: boolean;
 }
 
 function formatCurrency(value: number) {
@@ -28,7 +29,7 @@ function SkeletonBlock() {
   return <div className="h-8 w-24 bg-muted rounded animate-pulse" />;
 }
 
-function calcMetrics(data: SummaryData | undefined, showLeads = false) {
+function calcMetrics(data: SummaryData | undefined, showLeads = false, hideCoProdutor = false) {
   if (!data) return null;
   const traffic = data.traffic;
   const sales = data.sales;
@@ -49,7 +50,7 @@ function calcMetrics(data: SummaryData | undefined, showLeads = false) {
   const totalLeads = Number(traffic?.total_leads || 0);
   const taxaFixa = showLeads ? 0 : Number(sales?.taxa_fixa || 0);
   const custoManychat = showLeads ? 0 : vendasAprovadas * 0.35;
-  const coProdutor = Number(sales?.co_produtor || 0);
+  const coProdutor = hideCoProdutor ? 0 : Number(sales?.co_produtor || 0);
   const taxaGreen = Number(sales?.taxa_green || 0);
   const diasAtivos = Number(traffic?.dias_ativos || 1);
 
@@ -206,12 +207,12 @@ function KPICard({
   return cardContent;
 }
 
-export function KPICards({ data, isLoading, comparison7d, comparison14d, trafficDaily, salesDaily, isSingleDay = false, clientView = false, showLeads = false }: KPICardsProps) {
+export function KPICards({ data, isLoading, comparison7d, comparison14d, trafficDaily, salesDaily, isSingleDay = false, clientView = false, showLeads = false, hideCoProdutor = false }: KPICardsProps) {
   const [showDetails, setShowDetails] = useState(false);
 
-  const current = calcMetrics(data, showLeads);
-  const comp7d = calcMetrics(comparison7d, showLeads);
-  const comp14d = calcMetrics(comparison14d, showLeads);
+  const current = calcMetrics(data, showLeads, hideCoProdutor);
+  const comp7d = calcMetrics(comparison7d, showLeads, hideCoProdutor);
+  const comp14d = calcMetrics(comparison14d, showLeads, hideCoProdutor);
 
   const products = data?.products || [];
   const mainProducts = products.filter(p => {
@@ -553,11 +554,13 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                   metricKey="taxaFixa" current={current} comp7d={null} comp14d={null}
                 />
               )}
-              <KPICard
-                label="Co-Produtor" value={isLoading ? null : formatCurrency(current?.coProdutor || 0)}
-                icon={Users} color="text-chart-blue" isLoading={isLoading}
-                metricKey="coProdutor" current={current} comp7d={null} comp14d={null}
-              />
+              {!hideCoProdutor && (
+                <KPICard
+                  label="Co-Produtor" value={isLoading ? null : formatCurrency(current?.coProdutor || 0)}
+                  icon={Users} color="text-chart-blue" isLoading={isLoading}
+                  metricKey="coProdutor" current={current} comp7d={null} comp14d={null}
+                />
+              )}
               {!showLeads && (
                 <KPICard
                   label="ManyChat" value={isLoading ? null : formatCurrency(current?.custoManychat || 0)}
@@ -601,7 +604,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                     <div className="flex justify-between"><span className="text-muted-foreground">Investimento em Tráfego</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.totalGasto || 0) / current.vendasAprovadas : 0)}</span></div>
                     {!showLeads && <div className="flex justify-between"><span className="text-muted-foreground">Custo das Consultas</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.taxaFixa || 0) / current.vendasAprovadas : 0)}</span></div>}
                     {!showLeads && <div className="flex justify-between"><span className="text-muted-foreground">ManyChat</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.custoManychat || 0) / current.vendasAprovadas : 0)}</span></div>}
-                    <div className="flex justify-between"><span className="text-muted-foreground">Taxa Co-Produtor</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.coProdutor || 0) / current.vendasAprovadas : 0)}</span></div>
+                    {!hideCoProdutor && <div className="flex justify-between"><span className="text-muted-foreground">Taxa Co-Produtor</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.coProdutor || 0) / current.vendasAprovadas : 0)}</span></div>}
                     
                     <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
                       <span className="text-muted-foreground">CAC Total</span>

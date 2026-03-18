@@ -27,10 +27,9 @@ export function ProtectedRoute({ children, adminOnly = false }: ProtectedRoutePr
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle()
+      .in("role", ["admin", "super_admin", "gestor"] as any)
       .then(({ data }) => {
-        setIsAdmin(!!data);
+        setIsAdmin(!!data && data.length > 0);
         setCheckingRole(false);
       });
   }, [user, adminOnly]);
