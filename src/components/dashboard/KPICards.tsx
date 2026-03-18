@@ -207,12 +207,12 @@ function KPICard({
   return cardContent;
 }
 
-export function KPICards({ data, isLoading, comparison7d, comparison14d, trafficDaily, salesDaily, isSingleDay = false, clientView = false, showLeads = false }: KPICardsProps) {
+export function KPICards({ data, isLoading, comparison7d, comparison14d, trafficDaily, salesDaily, isSingleDay = false, clientView = false, showLeads = false, hideCoProdutor = false }: KPICardsProps) {
   const [showDetails, setShowDetails] = useState(false);
 
-  const current = calcMetrics(data, showLeads);
-  const comp7d = calcMetrics(comparison7d, showLeads);
-  const comp14d = calcMetrics(comparison14d, showLeads);
+  const current = calcMetrics(data, showLeads, hideCoProdutor);
+  const comp7d = calcMetrics(comparison7d, showLeads, hideCoProdutor);
+  const comp14d = calcMetrics(comparison14d, showLeads, hideCoProdutor);
 
   const products = data?.products || [];
   const mainProducts = products.filter(p => {
