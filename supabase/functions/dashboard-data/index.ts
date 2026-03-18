@@ -504,7 +504,7 @@ serve(async (req) => {
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_liquida,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor
         FROM ${config.greenSchema}
-        WHERE ${pFilter} ${salesDateFilter}
+        WHERE ${pFilter} ${salesDateFilter} ${salesPhoneFilter}
         GROUP BY "Data"::date
         ORDER BY "Data"::date DESC
       `, params);
