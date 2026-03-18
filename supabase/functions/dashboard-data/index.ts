@@ -611,8 +611,13 @@ serve(async (req) => {
         ? ` AND "Data"::date >= $1 AND "Data"::date <= $2`
         : '';
 
-      const pFilter = principalFilter(config, filters.principalProduct);
-      const apFilter = allProductsFilter(config, filters.principalProduct);
+      const isPanel = (filters as any).isAllNoFilter;
+      const pFilter = isPanel
+        ? `"Nome do produto" IN (${ALL_PRINCIPAL_PRODUCTS.map(p => `'${p}'`).join(',')})`
+        : principalFilter(config, filters.principalProduct);
+      const apFilter = isPanel
+        ? `"Nome do produto" NOT IN (${ALL_BUMP_PRODUCTS.map(p => `'${p}'`).join(',')})`
+        : allProductsFilter(config, filters.principalProduct);
 
       const principalSales = await queryExternalPG(`
         SELECT 
