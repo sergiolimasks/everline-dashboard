@@ -200,35 +200,56 @@ async function queryLeadsDaily(config: ProjectConfig, params: string[]): Promise
   return map;
 }
 
-// ========== PHONE-BASED SALES ATTRIBUTION ==========
-async function detectSalesPhoneColumn(config: ProjectConfig): Promise<string | null> {
-  const candidates = [
-    '"telefone"',
-    '"Telefone"',
-    '"Telefone do cliente"',
-    '"telefone_cliente"',
-    '"celular"',
-    '"Celular"',
-  ];
+// ========== PHONE + EMAIL SALES ATTRIBUTION ==========
 
-  for (const candidate of candidates) {
-    try {
-      await queryExternalPG(`SELECT ${candidate} FROM ${config.greenSchema} LIMIT 1`, []);
-      return candidate;
-    } catch {
-      // try next candidate
-    }
+// Detect columns via information_schema in a single query per schema
+async function getTableColumns(schemaAndTable: string): Promise<Set<string>> {
+  // schemaAndTable like "uelicon_database.controle_green" or "bd_ads_clientes.leads_..."
+  const parts = schemaAndTable.split('.');
+  const schema = parts[0];
+  const table = parts[1];
+  const rows = await queryExternalPG(
+    `SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2`,
+    [schema, table]
+  );
+  const cols = new Set<string>();
+  for (const r of rows as any[]) {
+    cols.add(String(r.column_name));
   }
+  return cols;
+}
 
+function findColumn(columns: Set<string>, candidates: string[]): string | null {
+  for (const c of candidates) {
+    if (columns.has(c)) return `"${c}"`;
+  }
   return null;
 }
+
+const PHONE_CANDIDATES = ['telefone', 'Telefone', 'Telefone do cliente', 'telefone_cliente', 'celular', 'Celular'];
+const EMAIL_CANDIDATES = ['Email do cliente', 'email', 'Email', 'e-mail', 'E-mail'];
 
 async function queryAttribution(config: ProjectConfig, params: string[]): Promise<any[]> {
   if (config.leadConfigs.length === 0) return [];
 
-  const salesPhoneColumn = await detectSalesPhoneColumn(config);
+  // Detect all columns in parallel (one query per table)
+  const allTables = [config.greenSchema, ...config.leadConfigs.map(lc => lc.table)];
+  const uniqueTables = [...new Set(allTables)];
+  const columnSets = await Promise.all(uniqueTables.map(t => getTableColumns(t)));
+  const tableColumns: Map<string, Set<string>> = new Map();
+  uniqueTables.forEach((t, i) => tableColumns.set(t, columnSets[i]));
+
+  const salesCols = tableColumns.get(config.greenSchema)!;
+  const salesPhoneColumn = findColumn(salesCols, PHONE_CANDIDATES);
   if (!salesPhoneColumn) {
     throw new Error('Nenhuma coluna de telefone encontrada na base de vendas');
+  }
+  const salesEmailColumn = findColumn(salesCols, EMAIL_CANDIDATES);
+
+  const leadEmailColumns: Map<string, string | null> = new Map();
+  for (const lc of config.leadConfigs) {
+    const cols = tableColumns.get(lc.table)!;
+    leadEmailColumns.set(lc.sourceName, findColumn(cols, EMAIL_CANDIDATES));
   }
 
   const salesDateFilter = params.length >= 2
@@ -236,21 +257,27 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
     : '';
   const pFilter = principalFilter(config, '');
 
+  // Build sales query with both phone and email
+  const emailSelectCol = salesEmailColumn ? `, LOWER(TRIM(${salesEmailColumn})) as email` : '';
+  const emailGroupBy = salesEmailColumn ? `, LOWER(TRIM(${salesEmailColumn}))` : '';
   const salesRows = await queryExternalPG(`
-    SELECT REGEXP_REPLACE(TRIM(${salesPhoneColumn}), '[^0-9]', '', 'g') as telefone,
+    SELECT REGEXP_REPLACE(TRIM(${salesPhoneColumn}), '[^0-9]', '', 'g') as telefone${emailSelectCol},
            COUNT(*) as vendas,
            SUM(COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0)) as receita_bruta,
            SUM(COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0)) as receita_liquida
     FROM ${config.greenSchema}
     WHERE ${pFilter} AND "Status da venda" IN ${APPROVED_STATUSES} ${salesDateFilter}
       AND ${salesPhoneColumn} IS NOT NULL AND TRIM(${salesPhoneColumn}) != ''
-    GROUP BY REGEXP_REPLACE(TRIM(${salesPhoneColumn}), '[^0-9]', '', 'g')
+    GROUP BY REGEXP_REPLACE(TRIM(${salesPhoneColumn}), '[^0-9]', '', 'g')${emailGroupBy}
   `, params);
 
-  const salesByPhone = new Map<string, { vendas: number; receita_bruta: number; receita_liquida: number }>();
+  interface SaleEntry { vendas: number; receita_bruta: number; receita_liquida: number; email?: string; phone: string }
+  const salesEntries: SaleEntry[] = [];
   for (const r of salesRows as any[]) {
     if (r.telefone) {
-      salesByPhone.set(String(r.telefone), {
+      salesEntries.push({
+        phone: String(r.telefone),
+        email: r.email ? String(r.email) : undefined,
         vendas: Number(r.vendas || 0),
         receita_bruta: Number(r.receita_bruta || 0),
         receita_liquida: Number(r.receita_liquida || 0),
@@ -258,6 +285,7 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
     }
   }
 
+  // Build phone sets per source
   const sourcePhones: Map<string, Set<string>> = new Map();
   for (const lc of config.leadConfigs) {
     const rows = await queryExternalPG(
@@ -271,6 +299,30 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
     sourcePhones.set(lc.sourceName, phones);
   }
 
+  // Build email sets per source (fallback) — columns already detected
+  const sourceEmails: Map<string, Set<string>> = new Map();
+  if (salesEmailColumn) {
+    const emailPromises = config.leadConfigs
+      .filter(lc => leadEmailColumns.get(lc.sourceName))
+      .map(async (lc) => {
+        const leadEmailCol = leadEmailColumns.get(lc.sourceName)!;
+        const rows = await queryExternalPG(
+          `SELECT DISTINCT LOWER(TRIM(${leadEmailCol})) as email FROM ${lc.table} WHERE ${leadEmailCol} IS NOT NULL AND TRIM(${leadEmailCol}) != ''`,
+          []
+        );
+        const emails = new Set<string>();
+        for (const r of rows as any[]) {
+          if (r.email) emails.add(String(r.email));
+        }
+        return { sourceName: lc.sourceName, emails };
+      });
+    const emailResults = await Promise.all(emailPromises);
+    for (const { sourceName, emails } of emailResults) {
+      sourceEmails.set(sourceName, emails);
+    }
+  }
+
+  // Count leads per source
   const leadCounts: Map<string, number> = new Map();
   for (const lc of config.leadConfigs) {
     const df = params.length >= 2
@@ -289,11 +341,21 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
   }
   attribution.set('Não identificado', { vendas: 0, receita_bruta: 0, receita_liquida: 0, leads: 0 });
 
-  for (const [phone, sale] of salesByPhone) {
-    const matchedSources: string[] = [];
+  for (const sale of salesEntries) {
+    // 1st pass: match by phone
+    let matchedSources: string[] = [];
     for (const [sourceName, phones] of sourcePhones) {
-      if (phones.has(phone)) {
+      if (phones.has(sale.phone)) {
         matchedSources.push(sourceName);
+      }
+    }
+
+    // 2nd pass: if no phone match, try email fallback
+    if (matchedSources.length === 0 && sale.email && sourceEmails.size > 0) {
+      for (const [sourceName, emails] of sourceEmails) {
+        if (emails.has(sale.email)) {
+          matchedSources.push(sourceName);
+        }
       }
     }
 
@@ -594,6 +656,14 @@ serve(async (req) => {
 
     } else if (endpoint === 'attribution') {
       data = await queryAttribution(config, params);
+    } else if (endpoint === 'debug_columns') {
+      const tables = [config.greenSchema, ...config.leadConfigs.map(lc => lc.table)];
+      const results: Record<string, string[]> = {};
+      for (const t of [...new Set(tables)]) {
+        const cols = await getTableColumns(t);
+        results[t] = [...cols];
+      }
+      data = [results];
     }
 
     return new Response(JSON.stringify({ data }, (_, v) => typeof v === 'bigint' ? Number(v) : v), {
