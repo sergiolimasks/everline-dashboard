@@ -146,12 +146,13 @@ function getProjectConfig(project: string): ProjectConfig {
   return PROJECTS[project] || PROJECTS['checkup'];
 }
 
-function getOfferFiltersForProject(config: ProjectConfig, offer: string): OfferFilters {
+function getOfferFiltersForProject(config: ProjectConfig, offer: string): OfferFilters & { isAllNoFilter?: boolean } {
   if (offer === 'all_no_filter') {
     return {
       metaWhere: '',
       principalProduct: '',
       useEmailLinkedBumps: false,
+      isAllNoFilter: true,
     };
   }
   if (offer && offer !== 'all' && config.offerFilters[offer]) {
@@ -163,6 +164,17 @@ function getOfferFiltersForProject(config: ProjectConfig, offer: string): OfferF
     useEmailLinkedBumps: false,
   };
 }
+
+// All principal products across ALL projects (for panel view)
+const ALL_PRINCIPAL_PRODUCTS = [
+  ...PROJECTS['checkup'].principalProducts,
+  ...PROJECTS['formacao-consultor'].principalProducts,
+];
+
+const ALL_BUMP_PRODUCTS = [
+  'Avaliação individual de um especialista',
+  'Check-up do CNPJ',
+];
 
 function principalFilter(config: ProjectConfig, productName: string): string {
   if (!productName) {
