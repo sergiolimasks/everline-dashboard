@@ -225,12 +225,6 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
   const [dateTo, setDateTo] = useState(todayStr);
   const [dateLabel, setDateLabel] = useState("Hoje");
 
-  const getWeekStartSunday = (referenceDate: Date) => {
-    const start = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
-    start.setDate(start.getDate() - start.getDay());
-    return start;
-  };
-
   const applyPreset = (preset: string) => {
     setDatePreset(preset);
     const now = new Date();
@@ -241,7 +235,7 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
         from = to = d; label = "Ontem"; break;
       }
       case "semana": {
-        from = getWeekStartSunday(now);
+        from = getWeekStart(now, 0);
         to = now;
         label = "Semana";
         break;
