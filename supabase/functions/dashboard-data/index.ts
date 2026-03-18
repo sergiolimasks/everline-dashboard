@@ -140,18 +140,6 @@ const PROJECTS: Record<string, ProjectConfig> = {
       { table: 'bd_ads_clientes.leads_uelicon_venancio_presencial', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"', phoneColumn: '"telefone"', sourceName: 'Presencial' },
     ],
   },
-  'nutri': {
-    metaTable: 'bd_ads_clientes.meta_uelicon_venancio',
-    linksTable: 'bd_ads_clientes.meta_uelicon_venancio_links',
-    greenSchema: 'uelicon_database.controle_green',
-    principalProducts: [],
-    bumpProducts: [],
-    taxaFixaPorVenda: 0,
-    custoManychat: 0,
-    defaultMetaWhere: ` AND UPPER(campanha) LIKE '%INSTAGRAM%'`,
-    offerFilters: {},
-    leadConfigs: [],
-  },
 };
 
 function getProjectConfig(project: string): ProjectConfig {
