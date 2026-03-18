@@ -163,6 +163,11 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
 
         {!clientView && (
           <>
+            {/* Attribution Table (leads projects only) */}
+            {config.showLeads && (
+              <AttributionTable data={attribution} isLoading={loadingAttribution} />
+            )}
+
             {/* Products Table */}
             <ProductsTable data={summary} isLoading={loadingSummary} allPrincipal={config.showLeads} />
 
