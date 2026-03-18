@@ -10,6 +10,8 @@ interface DateFilterProps {
   dateTo: string;
   onDateChange: (from: string, to: string) => void;
   weekStartDay?: number; // 0=Sun, 3=Wed, etc. Default 0
+  activePreset?: string | null;
+  onActivePresetChange?: (preset: string | null) => void;
 }
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
