@@ -442,6 +442,17 @@ serve(async (req) => {
       ? { ...config, leadConfigs: config.leadConfigs.filter(lc => filters.leadSources!.includes(lc.sourceName)) }
       : config;
 
+    // Build phone-based sales filter when a specific campaign is selected
+    let salesPhoneFilter = '';
+    if (filters.leadSources && filteredConfig.leadConfigs.length > 0) {
+      // Detect phone column in sales table
+      const salesCols = await getTableColumns(config.greenSchema);
+      const salesPhoneCol = findColumn(salesCols, PHONE_CANDIDATES);
+      if (salesPhoneCol) {
+        salesPhoneFilter = buildPhoneFilter(filteredConfig, salesPhoneCol);
+      }
+    }
+
     let dateFilter = '';
     const params: string[] = [];
 
