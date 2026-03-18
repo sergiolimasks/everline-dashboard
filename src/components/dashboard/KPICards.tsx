@@ -76,13 +76,14 @@ function calcMetrics(data: SummaryData | undefined, showLeads = false) {
   const vendasAprovDia = vendasAprovadas / diasAtivos;
   const vendasBumpDia = vendasBump / diasAtivos;
   const leadsDia = totalLeads / diasAtivos;
+  const cpl = totalLeads > 0 ? totalGasto / totalLeads : 0;
 
     return {
       gastoMeta, impostoMeta, totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
       taxaFixa, custoManychat, coProdutor, taxaGreen, lucro, roi, diasAtivos,
       cac, cacClient, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
       thumbStopRate, receitaPorVenda, receitaPorVendaLiquida, vendasAprovDia, vendasBumpDia,
-      totalLeads, taxaConvPaginaLeads, taxaInicioCheckoutLeads, taxaConvLeads, leadsDia,
+      totalLeads, taxaConvPaginaLeads, taxaInicioCheckoutLeads, taxaConvLeads, leadsDia, cpl,
     };
 }
 
@@ -399,7 +400,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
   return (
     <div className="space-y-4">
       {/* Fixed: Investimento, Vendas, Order Bumps, Lucro, ROI */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className={`grid grid-cols-2 ${showLeads ? 'md:grid-cols-6' : 'md:grid-cols-5'} gap-4`}>
         <KPICard
           label="Investimento Total" value={isLoading ? null : formatCurrency(current?.totalGasto || 0)}
           icon={DollarSign} color="text-chart-orange" isLoading={isLoading}
@@ -472,6 +473,14 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
           inlineComparison
           tooltipContent={roiTooltip}
         />
+        {showLeads && (
+          <KPICard
+            label="Custo por Lead" value={isLoading ? null : formatCurrency(current?.cpl || 0)}
+            icon={Users} color="text-chart-orange" isLoading={isLoading}
+            metricKey="cpl" current={current} comp7d={comp7d} comp14d={comp14d}
+            invertComparison inlineComparison formatValue={formatCurrency}
+          />
+        )}
       </div>
 
       {!clientView && (
