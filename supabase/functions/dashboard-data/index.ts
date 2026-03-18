@@ -656,6 +656,14 @@ serve(async (req) => {
 
     } else if (endpoint === 'attribution') {
       data = await queryAttribution(config, params);
+    } else if (endpoint === 'debug_columns') {
+      const tables = [config.greenSchema, ...config.leadConfigs.map(lc => lc.table)];
+      const results: Record<string, string[]> = {};
+      for (const t of [...new Set(tables)]) {
+        const cols = await getTableColumns(t);
+        results[t] = [...cols];
+      }
+      data = [results];
     }
 
     return new Response(JSON.stringify({ data }, (_, v) => typeof v === 'bigint' ? Number(v) : v), {
