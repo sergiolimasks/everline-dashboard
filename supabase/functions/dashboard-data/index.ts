@@ -221,10 +221,10 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
     GROUP BY REGEXP_REPLACE(TRIM("Telefone do cliente"), '[^0-9]', '', 'g')
   `, params);
 
-  const salesByEmail = new Map<string, { vendas: number; receita_bruta: number; receita_liquida: number }>();
+  const salesByPhone = new Map<string, { vendas: number; receita_bruta: number; receita_liquida: number }>();
   for (const r of salesRows as any[]) {
-    if (r.email) {
-      salesByEmail.set(String(r.email), {
+    if (r.telefone) {
+      salesByPhone.set(String(r.telefone), {
         vendas: Number(r.vendas || 0),
         receita_bruta: Number(r.receita_bruta || 0),
         receita_liquida: Number(r.receita_liquida || 0),
