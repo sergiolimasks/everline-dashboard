@@ -505,6 +505,25 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
             icon={Users} color="text-chart-orange" isLoading={isLoading}
             metricKey="cpl" current={current} comp7d={comp7d} comp14d={comp14d}
             invertComparison inlineComparison formatValue={formatCurrency}
+            tooltipContent={!isLoading ? (
+              <div className="space-y-3">
+                <div className="w-72 max-w-full p-3 pb-0">
+                  <p className="text-xs font-semibold mb-2 text-foreground">Fórmula do CPL</p>
+                  <div className="space-y-1.5 text-[11px]">
+                    <div className="bg-muted/50 rounded-md p-2 text-center font-mono text-xs text-foreground">
+                      CPL = Investimento Total ÷ Total de Leads
+                    </div>
+                    <div className="flex justify-between"><span className="text-destructive">Investimento Total</span><span className="font-medium text-destructive">{formatCurrency(current?.totalGasto || 0)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Total Leads</span><span className="font-medium text-foreground">{current?.totalLeads || 0}</span></div>
+                    <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
+                      <span className="text-muted-foreground">Custo por Lead</span>
+                      <span className="text-foreground">{formatCurrency(current?.cpl || 0)}</span>
+                    </div>
+                  </div>
+                </div>
+                {getSparkline("cpl")}
+              </div>
+            ) : undefined}
           />
         )}
       </div>
