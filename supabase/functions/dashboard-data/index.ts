@@ -271,11 +271,11 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
   }
   attribution.set('Não identificado', { vendas: 0, receita_bruta: 0, receita_liquida: 0, leads: 0 });
 
-  for (const [email, sale] of salesByEmail) {
-    // Find which sources this email belongs to
+  for (const [phone, sale] of salesByPhone) {
+    // Find which sources this phone belongs to
     const matchedSources: string[] = [];
-    for (const [sourceName, emails] of sourceEmails) {
-      if (emails.has(email)) {
+    for (const [sourceName, phones] of sourcePhones) {
+      if (phones.has(phone)) {
         matchedSources.push(sourceName);
       }
     }
