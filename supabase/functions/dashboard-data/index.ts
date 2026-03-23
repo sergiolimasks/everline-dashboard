@@ -398,7 +398,7 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
       const sourceName = filters.leadSources[0];
       const dateFilter = params.length >= 2 ? ` AND data::date >= $1 AND data::date <= $2` : '';
       const rows = await queryExternalPG(
-        `SELECT COALESCE(SUM(gasto), 0) as total_gasto FROM ${config.metaTable} WHERE 1=1 ${dateFilter} ${filters.metaWhere}`,
+        `SELECT COALESCE(SUM(gasto), 0) as total_gasto FROM ${config.metaTable} WHERE 1=1 ${dateFilter} ${filters.metaWhere} ${UNPAID_EXCLUSIONS}`,
         params
       );
       const gasto = Number((rows[0] as any)?.total_gasto || 0) * 1.125; // +12.5% tax
