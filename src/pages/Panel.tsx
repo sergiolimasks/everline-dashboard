@@ -538,6 +538,7 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
             <ClientCard client={client} isAdmin={isAdmin} isGestor={isGestor} clientView={effectiveClientView} dateFrom={dateFrom} dateTo={dateTo} dateLabel={dateLabel} />
           </div>
         ))}
+        <UnpaidAccountsTable />
       </div>
     );
   }
