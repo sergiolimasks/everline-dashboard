@@ -527,7 +527,7 @@ serve(async (req) => {
           SUM(gasto) as gasto,
           SUM(views_3s) as views_3s
         FROM ${config.metaTable}
-        WHERE 1=1 ${dateFilter} ${metaFilter}
+        WHERE 1=1 ${dateFilter} ${metaFilter} ${UNPAID_EXCLUSIONS}
         GROUP BY data::date
         ORDER BY data::date DESC
       `, params);
