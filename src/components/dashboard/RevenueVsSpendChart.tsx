@@ -35,6 +35,7 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientV
   const taxaFixaMap = new Map<string, number>();
   const vendasMap = new Map<string, number>();
   const coProdutorMap = new Map<string, number>();
+  const vendasCnpjMap = new Map<string, number>();
   (salesData || []).forEach((d) => {
     receitaMap.set(d.dia, (receitaMap.get(d.dia) || 0) + Number(d.receita_liquida));
     receitaBrutaMap.set(d.dia, (receitaBrutaMap.get(d.dia) || 0) + Number(d.receita_bruta || 0));
