@@ -142,6 +142,10 @@ const PROJECTS: Record<string, ProjectConfig> = {
   },
 };
 
+// Unpaid account exclusions — these accounts had spend that was NOT actually paid
+// so we exclude their raw gasto from all meta queries
+const UNPAID_EXCLUSIONS = ` AND NOT (conta = '1202066241345194' AND data::date >= '2026-03-10' AND data::date <= '2026-03-23')`;
+
 function getProjectConfig(project: string): ProjectConfig {
   return PROJECTS[project] || PROJECTS['checkup'];
 }
@@ -394,7 +398,7 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
       const sourceName = filters.leadSources[0];
       const dateFilter = params.length >= 2 ? ` AND data::date >= $1 AND data::date <= $2` : '';
       const rows = await queryExternalPG(
-        `SELECT COALESCE(SUM(gasto), 0) as total_gasto FROM ${config.metaTable} WHERE 1=1 ${dateFilter} ${filters.metaWhere}`,
+        `SELECT COALESCE(SUM(gasto), 0) as total_gasto FROM ${config.metaTable} WHERE 1=1 ${dateFilter} ${filters.metaWhere} ${UNPAID_EXCLUSIONS}`,
         params
       );
       const gasto = Number((rows[0] as any)?.total_gasto || 0) * 1.125; // +12.5% tax
@@ -523,7 +527,7 @@ serve(async (req) => {
           SUM(gasto) as gasto,
           SUM(views_3s) as views_3s
         FROM ${config.metaTable}
-        WHERE 1=1 ${dateFilter} ${metaFilter}
+        WHERE 1=1 ${dateFilter} ${metaFilter} ${UNPAID_EXCLUSIONS}
         GROUP BY data::date
         ORDER BY data::date DESC
       `, params);
@@ -605,7 +609,7 @@ serve(async (req) => {
           SUM(views_3s) as total_views_3s,
           COUNT(DISTINCT data::date) as dias_ativos
         FROM ${config.metaTable}
-        WHERE 1=1 ${dateFilter} ${metaFilter}
+        WHERE 1=1 ${dateFilter} ${metaFilter} ${UNPAID_EXCLUSIONS}
       `, params);
 
       const salesDateFilter = dateFrom && dateTo
@@ -715,7 +719,7 @@ serve(async (req) => {
           CASE WHEN SUM(impressoes) > 0 THEN (SUM(gasto) / SUM(impressoes)) * 1000 ELSE 0 END as cpm,
           CASE WHEN BOOL_OR(UPPER(status_campanha) = 'ACTIVE') THEN 'ACTIVE' ELSE MAX(status_campanha) END as status
         FROM ${config.metaTable}
-        WHERE 1=1 ${dateFilter} ${metaFilter}
+        WHERE 1=1 ${dateFilter} ${metaFilter} ${UNPAID_EXCLUSIONS}
         GROUP BY campanha
         ORDER BY SUM(gasto) DESC
       `, params);
@@ -742,7 +746,7 @@ serve(async (req) => {
           CASE WHEN SUM(impressoes) > 0 THEN (SUM(gasto) / SUM(impressoes)) * 1000 ELSE 0 END as cpm,
           CASE WHEN BOOL_OR(UPPER(status_anuncio) = 'ACTIVE') THEN 'ACTIVE' ELSE MAX(status_anuncio) END as status
         FROM ${config.metaTable}
-        WHERE 1=1 ${dateFilter} ${metaFilter}
+        WHERE 1=1 ${dateFilter} ${metaFilter} ${UNPAID_EXCLUSIONS}
         GROUP BY anuncio
         ORDER BY SUM(gasto) DESC
       `, params);
