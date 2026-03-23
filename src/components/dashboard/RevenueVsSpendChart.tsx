@@ -56,9 +56,11 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientV
       const receita = receitaMap.get(dia) || 0;
       const receitaBruta = receitaBrutaMap.get(dia) || 0;
 
+      const vendasCnpj = vendasCnpjMap.get(dia) || 0;
       const cacTotal = gastoMeta + taxaFixa + custoManychat + coProdutor;
-      const cac = vendas > 0 ? cacTotal / vendas : 0;
-      const receitaPorVenda = vendas > 0 ? receitaBruta / vendas : 0;
+      const vendasParaCac = vendas + vendasCnpj;
+      const cac = vendasParaCac > 0 ? cacTotal / vendasParaCac : 0;
+      const receitaPorVenda = vendasParaCac > 0 ? receitaBruta / vendasParaCac : 0;
 
       return {
         dia: formatDayMonth(dia),
