@@ -583,6 +583,7 @@ serve(async (req) => {
         return {
           dia: p.dia,
           vendas_aprovadas: vendas,
+          vendas_cnpj: vendasCnpj,
           receita_bruta: Number(p.receita_bruta || 0) + Number(bump.receita_bruta_bump || 0),
           receita_liquida: Number(p.receita_liquida || 0) + Number(bump.receita_liquida_bump || 0),
           taxa_fixa: taxaFixa,
