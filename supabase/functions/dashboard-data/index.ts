@@ -609,7 +609,7 @@ serve(async (req) => {
           SUM(views_3s) as total_views_3s,
           COUNT(DISTINCT data::date) as dias_ativos
         FROM ${config.metaTable}
-        WHERE 1=1 ${dateFilter} ${metaFilter}
+        WHERE 1=1 ${dateFilter} ${metaFilter} ${UNPAID_EXCLUSIONS}
       `, params);
 
       const salesDateFilter = dateFrom && dateTo
