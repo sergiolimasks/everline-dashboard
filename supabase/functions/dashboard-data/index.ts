@@ -746,7 +746,7 @@ serve(async (req) => {
           CASE WHEN SUM(impressoes) > 0 THEN (SUM(gasto) / SUM(impressoes)) * 1000 ELSE 0 END as cpm,
           CASE WHEN BOOL_OR(UPPER(status_anuncio) = 'ACTIVE') THEN 'ACTIVE' ELSE MAX(status_anuncio) END as status
         FROM ${config.metaTable}
-        WHERE 1=1 ${dateFilter} ${metaFilter}
+        WHERE 1=1 ${dateFilter} ${metaFilter} ${UNPAID_EXCLUSIONS}
         GROUP BY anuncio
         ORDER BY SUM(gasto) DESC
       `, params);
