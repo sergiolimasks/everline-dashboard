@@ -142,6 +142,10 @@ const PROJECTS: Record<string, ProjectConfig> = {
   },
 };
 
+// Unpaid account exclusions — these accounts had spend that was NOT actually paid
+// so we exclude their raw gasto from all meta queries
+const UNPAID_EXCLUSIONS = ` AND NOT (conta = '1202066241345194' AND data::date >= '2026-03-10' AND data::date <= '2026-03-23')`;
+
 function getProjectConfig(project: string): ProjectConfig {
   return PROJECTS[project] || PROJECTS['checkup'];
 }
