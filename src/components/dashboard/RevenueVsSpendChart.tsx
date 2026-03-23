@@ -42,6 +42,7 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientV
     taxaFixaMap.set(d.dia, (taxaFixaMap.get(d.dia) || 0) + Number(d.taxa_fixa));
     vendasMap.set(d.dia, (vendasMap.get(d.dia) || 0) + Number(d.vendas_aprovadas));
     coProdutorMap.set(d.dia, (coProdutorMap.get(d.dia) || 0) + Number(d.co_produtor || 0));
+    vendasCnpjMap.set(d.dia, (vendasCnpjMap.get(d.dia) || 0) + Number((d as any).vendas_cnpj || 0));
   });
 
   const allDays = new Set([...gastoMetaMap.keys(), ...receitaMap.keys()]);
