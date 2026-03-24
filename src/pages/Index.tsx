@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSummary, useTrafficDaily, useSalesDaily, useCampaigns, useAds, useComparison7d, useComparison14d, useSparklineTraffic, useSparklineSales, useAttribution } from "@/hooks/use-dashboard";
 import { usePageScroll, usePageState } from "@/hooks/use-page-state";
@@ -65,15 +65,22 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
   const { isGestor } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { slug } = useParams();
   const hideCoProdutor = isGestor && !clientView;
   const config = PROJECT_CONFIGS[projectKey] || PROJECT_CONFIGS['checkup'];
   const today = new Date();
   const stateKey = `report:${location.pathname}`;
+
+  const defaultDateFrom = clientView
+    ? formatDateString(new Date(today.getFullYear(), today.getMonth(), 1))
+    : formatDateString(getWeekStart(today, config.weekStartDay));
+  const defaultPreset = clientView ? 'Este mês' : 'Esta semana';
+
   const [filters, setFilters] = usePageState(stateKey, {
-    dateFrom: formatDateString(getWeekStart(today, config.weekStartDay)),
+    dateFrom: defaultDateFrom,
     dateTo: formatDateString(today),
     offer: 'all' as OfferType,
-    activePreset: 'Esta semana' as string | null,
+    activePreset: defaultPreset as string | null,
   });
   const { dateFrom, dateTo, offer, activePreset } = filters;
 
@@ -114,7 +121,7 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Back Button + Page Title */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/painel')} className="shrink-0">
+          <Button variant="ghost" size="icon" onClick={() => navigate(clientView && slug ? `/cliente/${slug}/painel` : '/painel')} className="shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-3xl md:text-4xl font-bold font-display text-primary tracking-tight">
