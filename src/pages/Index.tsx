@@ -65,15 +65,22 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
   const { isGestor } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { slug } = useParams();
   const hideCoProdutor = isGestor && !clientView;
   const config = PROJECT_CONFIGS[projectKey] || PROJECT_CONFIGS['checkup'];
   const today = new Date();
   const stateKey = `report:${location.pathname}`;
+
+  const defaultDateFrom = clientView
+    ? formatDateString(new Date(today.getFullYear(), today.getMonth(), 1))
+    : formatDateString(getWeekStart(today, config.weekStartDay));
+  const defaultPreset = clientView ? 'Este mês' : 'Esta semana';
+
   const [filters, setFilters] = usePageState(stateKey, {
-    dateFrom: formatDateString(getWeekStart(today, config.weekStartDay)),
+    dateFrom: defaultDateFrom,
     dateTo: formatDateString(today),
     offer: 'all' as OfferType,
-    activePreset: 'Esta semana' as string | null,
+    activePreset: defaultPreset as string | null,
   });
   const { dateFrom, dateTo, offer, activePreset } = filters;
 
