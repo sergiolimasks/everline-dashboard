@@ -59,8 +59,8 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientV
       const receitaBruta = receitaBrutaMap.get(dia) || 0;
 
       const vendasCnpj = vendasCnpjMap.get(dia) || 0;
-      const cacTotal = gastoMeta + taxaFixa + custoManychat + coProdutor;
       const vendasParaCac = vendas + vendasCnpj;
+      const cacTotal = gastoMeta + taxaFixa + custoManychat + coProdutor;
       const cac = vendasParaCac > 0 ? cacTotal / vendasParaCac : 0;
       const receitaPorVenda = vendasParaCac > 0 ? receitaBruta / vendasParaCac : 0;
 
