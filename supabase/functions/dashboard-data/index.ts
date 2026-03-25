@@ -113,7 +113,7 @@ const PROJECTS: Record<string, ProjectConfig> = {
     bumpProducts: [],
     taxaFixaPorVenda: 0,
     custoManychat: 0,
-    defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%50K-DEZ25%' OR UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%' OR UPPER(campanha) LIKE '%PRESENCIAL%')`,
+    defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%50K-DEZ25%' OR UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%' OR UPPER(campanha) LIKE '%PRESENCIAL%' OR UPPER(campanha) LIKE '%RMKT FORMACAO%' OR UPPER(campanha) LIKE '%RMKT FORMAÇÃO%')`,
     offerFilters: {
       aplicacao: {
         metaWhere: ` AND (UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%')`,
@@ -132,6 +132,11 @@ const PROJECTS: Record<string, ProjectConfig> = {
         principalProduct: '',
         useEmailLinkedBumps: false,
         leadSources: ['Presencial'],
+      },
+      rmkt: {
+        metaWhere: ` AND (UPPER(campanha) LIKE '%RMKT FORMACAO%' OR UPPER(campanha) LIKE '%RMKT FORMAÇÃO%')`,
+        principalProduct: '',
+        useEmailLinkedBumps: false,
       },
     },
     leadConfigs: [

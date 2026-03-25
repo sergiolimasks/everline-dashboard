@@ -52,6 +52,7 @@ const PROJECT_CONFIGS: Record<string, ProjectDashboardConfig> = {
       { value: 'aplicacao', label: 'Aplicação' },
       { value: '50k', label: 'Lançamento 50K' },
       { value: 'presencial', label: 'Presencial' },
+      { value: 'rmkt', label: 'RMKT Formação' },
     ],
   },
 };
