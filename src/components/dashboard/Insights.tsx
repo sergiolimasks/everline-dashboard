@@ -1,4 +1,5 @@
 import type { SummaryData, TrafficDaily, SalesDaily } from "@/lib/dashboard-api";
+import { calcCustoNotificacaoFromDaily } from "@/lib/date-utils";
 import { Lightbulb } from "lucide-react";
 
 interface InsightsProps {
