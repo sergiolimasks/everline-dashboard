@@ -1,6 +1,6 @@
 import { ComposedChart, Area, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceDot } from "recharts";
 import type { TrafficDaily, SalesDaily } from "@/lib/dashboard-api";
-import { formatDayMonth } from "@/lib/date-utils";
+import { formatDayMonth, getNotificacaoCostPerSale } from "@/lib/date-utils";
 
 interface FunnelChartProps {
   trafficData: TrafficDaily[] | undefined;
@@ -52,7 +52,7 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientV
       const gastoMeta = gastoMetaMap.get(dia) || 0;
       const taxaFixa = showLeads ? 0 : (taxaFixaMap.get(dia) || 0);
       const vendas = vendasMap.get(dia) || 0;
-      const custoManychat = showLeads ? 0 : vendas * 0.35;
+      const custoManychat = showLeads ? 0 : vendas * getNotificacaoCostPerSale(dia);
       const coProdutor = hideCoProdutor ? 0 : (coProdutorMap.get(dia) || 0);
       const custoTotal = gastoMeta + taxaFixa + custoManychat;
       const receita = receitaMap.get(dia) || 0;
@@ -118,7 +118,7 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientV
             )}
             {!showLeads && (
               <div className="flex justify-between gap-3">
-                <span>ManyChat</span>
+                <span>Notificação WhatsApp</span>
                 <span>{formatCurrency(data?.custoManychat || 0)}</span>
               </div>
             )}

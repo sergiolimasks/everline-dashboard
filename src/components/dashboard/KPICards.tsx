@@ -3,6 +3,7 @@ import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Target, BarChart3, 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SparklineTooltip } from "@/components/dashboard/SparklineTooltip";
 import type { SummaryData, TrafficDaily, SalesDaily } from "@/lib/dashboard-api";
+import { calcCustoNotificacaoFromDaily } from "@/lib/date-utils";
 
 interface KPICardsProps {
   data: SummaryData | undefined;
@@ -214,6 +215,17 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
   const comp7d = calcMetrics(comparison7d, showLeads, hideCoProdutor);
   const comp14d = calcMetrics(comparison14d, showLeads, hideCoProdutor);
 
+  // Override custoManychat with date-aware calculation when daily data available
+  if (current && salesDaily && salesDaily.length > 0 && !showLeads) {
+    const custoNotificacao = calcCustoNotificacaoFromDaily(salesDaily);
+    current.custoManychat = custoNotificacao;
+    current.lucro = current.receitaLiquida - current.totalGasto - current.taxaFixa - custoNotificacao;
+    const custoTotal = current.totalGasto + current.taxaFixa + custoNotificacao;
+    current.roi = custoTotal > 0 ? current.receitaLiquida / custoTotal : 0;
+    current.cac = current.vendasAprovadas > 0 ? (current.totalGasto + current.taxaFixa + custoNotificacao + current.coProdutor + current.taxaGreen) / current.vendasAprovadas : 0;
+    current.cacClient = current.vendasAprovadas > 0 ? (current.totalGasto + current.taxaFixa + custoNotificacao) / current.vendasAprovadas : 0;
+  }
+
   const products = data?.products || [];
   const mainProducts = products.filter(p => {
     // Heuristic: order bumps tend to have lower sales count than main product
@@ -268,13 +280,13 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
       <p className="text-xs font-semibold mb-2 text-foreground">Fórmula do ROI</p>
       <div className="space-y-2 text-[11px]">
         <div className="bg-muted/50 rounded-md p-2 text-center font-mono text-xs text-foreground">
-          ROI = Receita Líquida ÷ {showLeads ? 'Investimento' : '(Investimento + Consultas + ManyChat)'}
+          ROI = Receita Líquida ÷ {showLeads ? 'Investimento' : '(Investimento + Consultas + Notif. WhatsApp)'}
         </div>
         <div className="space-y-1.5">
           <div className="flex justify-between"><span className="text-primary">Receita Líquida</span><span className="font-medium text-primary">{formatCurrency(current?.receitaLiquida || 0)}</span></div>
           <div className="flex justify-between"><span className="text-destructive">Investimento</span><span className="font-medium text-destructive">{formatCurrency(current?.totalGasto || 0)}</span></div>
           {!showLeads && <div className="flex justify-between"><span className="text-destructive">Custo Consultas</span><span className="font-medium text-destructive">{formatCurrency(current?.taxaFixa || 0)}</span></div>}
-          {!showLeads && <div className="flex justify-between"><span className="text-destructive">ManyChat</span><span className="font-medium text-destructive">{formatCurrency(current?.custoManychat || 0)}</span></div>}
+          {!showLeads && <div className="flex justify-between"><span className="text-destructive">Notificação WhatsApp</span><span className="font-medium text-destructive">{formatCurrency(current?.custoManychat || 0)}</span></div>}
           <div className="border-t border-border pt-1.5">
             <div className="flex justify-between font-semibold">
               <span className="text-muted-foreground">Custo Total</span>
@@ -482,7 +494,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                 <div className="flex justify-between"><span className="text-primary">Receita Líquida</span><span className="font-medium text-primary">+ {formatCurrency(current?.receitaLiquida || 0)}</span></div>
                 <div className="flex justify-between"><span className="text-destructive">Investimento</span><span className="font-medium text-destructive">- {formatCurrency(current?.totalGasto || 0)}</span></div>
                 {!showLeads && <div className="flex justify-between"><span className="text-destructive">Custo Consultas</span><span className="font-medium text-destructive">- {formatCurrency(current?.taxaFixa || 0)}</span></div>}
-                {!showLeads && <div className="flex justify-between"><span className="text-destructive">ManyChat</span><span className="font-medium text-destructive">- {formatCurrency(current?.custoManychat || 0)}</span></div>}
+                {!showLeads && <div className="flex justify-between"><span className="text-destructive">Notificação WhatsApp</span><span className="font-medium text-destructive">- {formatCurrency(current?.custoManychat || 0)}</span></div>}
                 <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
                   <span className="text-muted-foreground">Lucro</span>
                   <span className={`${(current?.lucro || 0) >= 0 ? 'text-primary' : 'text-destructive'}`}>{formatCurrency(current?.lucro || 0)}</span>
@@ -563,15 +575,15 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
               )}
               {!showLeads && (
                 <KPICard
-                  label="ManyChat" value={isLoading ? null : formatCurrency(current?.custoManychat || 0)}
+                  label="Notificação WhatsApp" value={isLoading ? null : formatCurrency(current?.custoManychat || 0)}
                   icon={MessageCircle} color="text-chart-orange" isLoading={isLoading}
                   metricKey="custoManychat" current={current} comp7d={null} comp14d={null}
                   tooltipContent={!isLoading ? (
                     <div className="w-64 max-w-full p-3">
-                      <p className="text-xs font-semibold mb-2 text-foreground">Custo ManyChat</p>
+                      <p className="text-xs font-semibold mb-2 text-foreground">Custo Notificação WhatsApp</p>
                       <div className="space-y-1.5 text-[11px]">
                         <div className="flex justify-between"><span className="text-muted-foreground">Vendas principal</span><span className="font-medium text-foreground">{current?.vendasAprovadas || 0}</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">Custo por envio</span><span className="font-medium text-foreground">R$ 0,35</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Custo por envio</span><span className="font-medium text-foreground">R$ 0,35 (antes 20/03) / R$ 0,05 (após)</span></div>
                         <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
                           <span className="text-muted-foreground">Total</span>
                           <span className="text-foreground">{formatCurrency(current?.custoManychat || 0)}</span>
@@ -610,7 +622,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                    <div className="space-y-1.5 text-[11px]">
                     <div className="flex justify-between"><span className="text-muted-foreground">Investimento em Tráfego</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.totalGasto || 0) / current.vendasAprovadas : 0)}</span></div>
                      {!showLeads && <div className="flex justify-between"><span className="text-muted-foreground">Custo das Consultas</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.taxaFixa || 0) / current.vendasAprovadas : 0)}</span></div>}
-                     {!showLeads && <div className="flex justify-between"><span className="text-muted-foreground">ManyChat</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.custoManychat || 0) / current.vendasAprovadas : 0)}</span></div>}
+                     {!showLeads && <div className="flex justify-between"><span className="text-muted-foreground">Notificação WhatsApp</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.custoManychat || 0) / current.vendasAprovadas : 0)}</span></div>}
                      {!hideCoProdutor && <div className="flex justify-between"><span className="text-muted-foreground">Taxa Co-Produtor</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.coProdutor || 0) / current.vendasAprovadas : 0)}</span></div>}
                      {(current?.taxaGreen || 0) > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Taxa Greenn</span><span className="font-medium text-foreground">{formatCurrency((current?.vendasAprovadas || 0) > 0 ? (current?.taxaGreen || 0) / current.vendasAprovadas : 0)}</span></div>}
                      
