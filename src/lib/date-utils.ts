@@ -43,3 +43,23 @@ export function getWeekStart(referenceDate: Date, startDay = 0): Date {
   start.setDate(start.getDate() - diff);
   return start;
 }
+
+/**
+ * Returns the notification cost per sale for a given date.
+ * Before 2026-03-20: R$ 0.35
+ * From 2026-03-20 onwards: R$ 0.05
+ */
+export function getNotificacaoCostPerSale(dateStr: string): number {
+  return dateStr >= '2026-03-20' ? 0.05 : 0.35;
+}
+
+/**
+ * Computes total notification cost from daily sales data using date-aware pricing.
+ */
+export function calcCustoNotificacaoFromDaily(salesDaily: Array<{ dia: string; vendas_aprovadas: number }> | undefined): number {
+  if (!salesDaily) return 0;
+  return salesDaily.reduce((sum, d) => {
+    const vendas = Number(d.vendas_aprovadas || 0);
+    return sum + vendas * getNotificacaoCostPerSale(String(d.dia).slice(0, 10));
+  }, 0);
+}

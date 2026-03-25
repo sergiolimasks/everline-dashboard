@@ -118,7 +118,7 @@ export function RevenueVsSpendChart({ trafficData, salesData, isLoading, clientV
             )}
             {!showLeads && (
               <div className="flex justify-between gap-3">
-                <span>ManyChat</span>
+                <span>Notificação WhatsApp</span>
                 <span>{formatCurrency(data?.custoManychat || 0)}</span>
               </div>
             )}
