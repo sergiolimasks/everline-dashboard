@@ -215,6 +215,17 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
   const comp7d = calcMetrics(comparison7d, showLeads, hideCoProdutor);
   const comp14d = calcMetrics(comparison14d, showLeads, hideCoProdutor);
 
+  // Override custoManychat with date-aware calculation when daily data available
+  if (current && salesDaily && salesDaily.length > 0 && !showLeads) {
+    const custoNotificacao = calcCustoNotificacaoFromDaily(salesDaily);
+    current.custoManychat = custoNotificacao;
+    current.lucro = current.receitaLiquida - current.totalGasto - current.taxaFixa - custoNotificacao;
+    const custoTotal = current.totalGasto + current.taxaFixa + custoNotificacao;
+    current.roi = custoTotal > 0 ? current.receitaLiquida / custoTotal : 0;
+    current.cac = current.vendasAprovadas > 0 ? (current.totalGasto + current.taxaFixa + custoNotificacao + current.coProdutor + current.taxaGreen) / current.vendasAprovadas : 0;
+    current.cacClient = current.vendasAprovadas > 0 ? (current.totalGasto + current.taxaFixa + custoNotificacao) / current.vendasAprovadas : 0;
+  }
+
   const products = data?.products || [];
   const mainProducts = products.filter(p => {
     // Heuristic: order bumps tend to have lower sales count than main product
