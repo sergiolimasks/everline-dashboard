@@ -581,6 +581,13 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                   ) : undefined}
                 />
               )}
+              {(current?.taxaGreen || 0) > 0 && (
+                <KPICard
+                  label="Taxa Greenn" value={isLoading ? null : formatCurrency(current?.taxaGreen || 0)}
+                  icon={CreditCard} color="text-chart-orange" isLoading={isLoading}
+                  metricKey="taxaGreen" current={current} comp7d={null} comp14d={null}
+                />
+              )}
             </div>
           )}
 
