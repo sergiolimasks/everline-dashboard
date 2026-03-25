@@ -3,6 +3,7 @@ import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Target, BarChart3, 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SparklineTooltip } from "@/components/dashboard/SparklineTooltip";
 import type { SummaryData, TrafficDaily, SalesDaily } from "@/lib/dashboard-api";
+import { calcCustoNotificacaoFromDaily } from "@/lib/date-utils";
 
 interface KPICardsProps {
   data: SummaryData | undefined;
