@@ -27,7 +27,7 @@ export function Insights({ summary, trafficDaily, salesDaily, isLoading }: Insig
   const taxaFixa = Number(summary.sales?.taxa_fixa || 0);
   const coProdutor = Number(summary.sales?.co_produtor || 0);
   const receitaBruta = Number(summary.sales?.receita_bruta || 0);
-  const custoManychat = vendasAprovadas * 0.35;
+  const custoManychat = salesDaily ? calcCustoNotificacaoFromDaily(salesDaily) : vendasAprovadas * 0.35;
   const lucro = receitaLiquida - totalGasto - taxaFixa - custoManychat;
   const custoTotal = totalGasto + taxaFixa + custoManychat;
   const roi = custoTotal > 0 ? receitaLiquida / custoTotal : 0;
