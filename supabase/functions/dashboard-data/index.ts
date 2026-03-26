@@ -895,6 +895,7 @@ serve(async (req) => {
           repasse: tmbParcelas.repasse,
           repasse_coprodutor: tmbParcelas.repasse_coprodutor,
           taxa_tmb: tmbParcelas.taxa_tmb,
+          por_parcela: tmbParcelas.por_parcela,
         } : null,
       }];
 
