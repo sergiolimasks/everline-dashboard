@@ -24,6 +24,8 @@ interface KPICardsProps {
   clientView?: boolean;
   showLeads?: boolean;
   hideCoProdutor?: boolean;
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 function formatCurrency(value: number) {
