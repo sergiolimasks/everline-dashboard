@@ -775,25 +775,58 @@ function buildTmbEmailFilter(filteredConfig: ProjectConfig): string {
       const vendasPrincipal = Number((principalSales[0] as any)?.vendas_aprovadas || 0);
       const vendasCnpj = Number(bumpSalesRow?.vendas_cnpj || 0);
       const taxaFixaTotal = config.taxaFixaPorVenda > 0 ? (vendasPrincipal + vendasCnpj) * config.taxaFixaPorVenda : 0;
-      const receitaBrutaTotal = Number((principalSales[0] as any)?.receita_bruta || 0) + Number(bumpSalesRow?.receita_bruta_bump || 0);
-      const receitaLiquidaTotal = Number((principalSales[0] as any)?.receita_liquida || 0) + Number(bumpSalesRow?.receita_liquida_bump || 0);
-      const coProdutorTotal = isPanel ? panelCoProdutorTotal : (Number((principalSales[0] as any)?.co_produtor || 0) + Number(bumpSalesRow?.co_produtor_bump || 0));
+      let receitaBrutaTotal = Number((principalSales[0] as any)?.receita_bruta || 0) + Number(bumpSalesRow?.receita_bruta_bump || 0);
+      let receitaLiquidaTotal = Number((principalSales[0] as any)?.receita_liquida || 0) + Number(bumpSalesRow?.receita_liquida_bump || 0);
+      let coProdutorTotal = isPanel ? panelCoProdutorTotal : (Number((principalSales[0] as any)?.co_produtor || 0) + Number(bumpSalesRow?.co_produtor_bump || 0));
       const taxaGreenTotal = Number((principalSales[0] as any)?.taxa_green || 0) + Number(bumpSalesRow?.taxa_green_bump || 0);
 
+      // TMB sales (parcela=0) — merge into totals
+      let tmbSummary = { vendas: 0, repasse: 0, repasse_coprodutor: 0, taxa_tmb: 0, valor_total: 0 };
+      let tmbParcelas = { total_parcelas: 0, valor_total: 0, repasse: 0, repasse_coprodutor: 0, taxa_tmb: 0 };
+      if (config.tmbTable && !isPanel) {
+        const tmbEmailFilter = filters.leadSources ? buildTmbEmailFilter(filteredConfig) : '';
+        [tmbSummary, tmbParcelas] = await Promise.all([
+          queryTmbSalesSummary(config.tmbTable, params, tmbEmailFilter),
+          queryTmbParcelas(config.tmbTable, params),
+        ]);
+        receitaBrutaTotal += tmbSummary.valor_total;
+        receitaLiquidaTotal += tmbSummary.repasse;
+        coProdutorTotal += tmbSummary.repasse_coprodutor;
+      }
+
       const totalLeads = await queryLeadsTotal(filteredConfig, params);
+
+      // Add TMB products to products list if there are TMB sales
+      const productsArr = products as any[];
+      if (tmbSummary.vendas > 0) {
+        productsArr.push({
+          produto: 'Formação Consultor 360 (TMB)',
+          vendas_aprovadas: tmbSummary.vendas,
+          receita_bruta: tmbSummary.valor_total,
+          receita_liquida: tmbSummary.repasse,
+        });
+      }
 
       data = [{
         traffic: { ...(traffic[0] as any), total_leads: totalLeads },
         sales: {
-          vendas_aprovadas: vendasPrincipal,
+          vendas_aprovadas: vendasPrincipal + tmbSummary.vendas,
           vendas_bump: Number(bumpSalesRow?.vendas_bump || 0),
           receita_bruta: receitaBrutaTotal,
           receita_liquida: receitaLiquidaTotal,
           taxa_fixa: taxaFixaTotal,
           co_produtor: coProdutorTotal,
           taxa_green: taxaGreenTotal,
+          taxa_tmb: tmbSummary.taxa_tmb,
         },
-        products,
+        products: productsArr,
+        parcelas: tmbParcelas.total_parcelas > 0 ? {
+          total_parcelas: tmbParcelas.total_parcelas,
+          valor_total: tmbParcelas.valor_total,
+          repasse: tmbParcelas.repasse,
+          repasse_coprodutor: tmbParcelas.repasse_coprodutor,
+          taxa_tmb: tmbParcelas.taxa_tmb,
+        } : null,
       }];
 
     } else if (endpoint === 'campaigns') {
