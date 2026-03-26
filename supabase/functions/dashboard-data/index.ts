@@ -160,7 +160,7 @@ function getProjectConfig(project: string): ProjectConfig {
 function getOfferFiltersForProject(config: ProjectConfig, offer: string): OfferFilters & { isAllNoFilter?: boolean } {
   if (offer === 'all_no_filter') {
     return {
-      metaWhere: '',
+      metaWhere: config.defaultMetaWhere,
       principalProduct: '',
       useEmailLinkedBumps: false,
       isAllNoFilter: true,
