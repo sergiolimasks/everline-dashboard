@@ -823,14 +823,14 @@ serve(async (req) => {
         bumpSalesRow = bumpSales[0] || bumpSalesRow;
       }
 
-      // For panel view: get co_produtor from ALL products (including bumps)
+      // For panel view: get co_produtor from all products in this project (including bumps)
       let panelCoProdutorTotal = 0;
       if (isPanel) {
         const allSales = await queryExternalPG(`
           SELECT 
             SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor_all
           FROM ${config.greenSchema}
-          WHERE 1=1 ${salesDateFilter} ${salesPhoneFilter}
+          WHERE ${apFilter} ${salesDateFilter} ${salesPhoneFilter}
         `, params);
         panelCoProdutorTotal = Number((allSales[0] as any)?.co_produtor_all || 0);
       }
