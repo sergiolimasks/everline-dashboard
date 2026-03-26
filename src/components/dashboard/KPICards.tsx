@@ -219,7 +219,7 @@ function KPICard({
   return cardContent;
 }
 
-export function KPICards({ data, isLoading, comparison7d, comparison14d, trafficDaily, salesDaily, isSingleDay = false, clientView = false, showLeads = false, hideCoProdutor = false }: KPICardsProps) {
+export function KPICards({ data, isLoading, comparison7d, comparison14d, trafficDaily, salesDaily, isSingleDay = false, clientView = false, showLeads = false, hideCoProdutor = false, dateFrom, dateTo }: KPICardsProps) {
   const [showDetails, setShowDetails] = useState(false);
 
   const current = calcMetrics(data, showLeads, hideCoProdutor);
@@ -227,8 +227,15 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
   const comp14d = calcMetrics(comparison14d, showLeads, hideCoProdutor);
 
   // Override custoManychat with date-aware calculation when daily data available
+  // Filter salesDaily to only include dates within the summary period (dateFrom-dateTo)
   if (current && salesDaily && salesDaily.length > 0 && !showLeads) {
-    const custoNotificacao = calcCustoNotificacaoFromDaily(salesDaily);
+    const filteredSalesDaily = (dateFrom && dateTo)
+      ? salesDaily.filter(d => {
+          const dia = String(d.dia).slice(0, 10);
+          return dia >= dateFrom && dia <= dateTo;
+        })
+      : salesDaily;
+    const custoNotificacao = calcCustoNotificacaoFromDaily(filteredSalesDaily);
     current.custoManychat = custoNotificacao;
     current.lucro = current.receitaLiquida - current.totalGasto - current.taxaFixa - custoNotificacao;
     const custoTotal = current.totalGasto + current.taxaFixa + custoNotificacao;
