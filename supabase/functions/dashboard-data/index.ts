@@ -419,7 +419,8 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
   }
   attribution.set('Não identificado', { vendas: 0, receita_bruta: 0, receita_liquida: 0, leads: 0, gasto: 0 });
 
-  for (const sale of salesEntries) {
+  // Helper to attribute a sale entry
+  function attributeSale(sale: SaleEntry) {
     // 1st pass: match by phone
     let matchedSources: string[] = [];
     for (const [sourceName, phones] of sourcePhones) {
@@ -449,6 +450,56 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
         entry.vendas += sale.vendas * weight;
         entry.receita_bruta += sale.receita_bruta * weight;
         entry.receita_liquida += sale.receita_liquida * weight;
+      }
+    }
+  }
+
+  // Attribute Greenn sales
+  for (const sale of salesEntries) {
+    attributeSale(sale);
+  }
+
+  // Attribute TMB sales (parcela = 0 only) if tmbTable is configured
+  if (config.tmbTable) {
+    const tmbDateFilter = params.length >= 2 ? ` AND data_pagamento::date >= $1 AND data_pagamento::date <= $2` : '';
+    const tmbRows = await queryExternalPG(`
+      SELECT LOWER(TRIM(cliente_email)) as email,
+             COUNT(*) as vendas,
+             COALESCE(SUM(valor_total), 0) as receita_bruta,
+             COALESCE(SUM(repasse), 0) as receita_liquida
+      FROM ${config.tmbTable}
+      WHERE parcela = 0 AND status_pagamento IN ${TMB_PAID_STATUSES} ${tmbDateFilter}
+        AND cliente_email IS NOT NULL AND TRIM(cliente_email) != ''
+      GROUP BY LOWER(TRIM(cliente_email))
+    `, params);
+
+    for (const r of tmbRows as any[]) {
+      const email = r.email ? String(r.email) : undefined;
+      if (!email) continue;
+      // TMB sales match by email only (no phone column)
+      let matchedSources: string[] = [];
+      for (const [sourceName, emails] of sourceEmails) {
+        if (emails.has(email)) {
+          matchedSources.push(sourceName);
+        }
+      }
+      const vendas = Number(r.vendas || 0);
+      const receita_bruta = Number(r.receita_bruta || 0);
+      const receita_liquida = Number(r.receita_liquida || 0);
+
+      if (matchedSources.length === 0) {
+        const entry = attribution.get('Não identificado')!;
+        entry.vendas += vendas;
+        entry.receita_bruta += receita_bruta;
+        entry.receita_liquida += receita_liquida;
+      } else {
+        const weight = 1 / matchedSources.length;
+        for (const src of matchedSources) {
+          const entry = attribution.get(src)!;
+          entry.vendas += vendas * weight;
+          entry.receita_bruta += receita_bruta * weight;
+          entry.receita_liquida += receita_liquida * weight;
+        }
       }
     }
   }
