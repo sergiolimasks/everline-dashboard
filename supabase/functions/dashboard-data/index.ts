@@ -642,7 +642,7 @@ serve(async (req) => {
     if (endpoint === 'traffic_daily') {
       const trafficRows = await queryExternalPG(`
         SELECT 
-          data::date as dia,
+          TO_CHAR(data::date, 'YYYY-MM-DD') as dia,
           SUM(impressoes) as impressoes,
           SUM(alcance) as alcance,
           SUM(cliques) as cliques,
