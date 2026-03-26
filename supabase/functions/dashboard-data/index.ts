@@ -604,13 +604,18 @@ async function queryTmbParcelas(tmbTable: string, params: string[]): Promise<{ t
 }
 
 // Build TMB email filter based on lead sources
-function buildTmbEmailFilter(filteredConfig: ProjectConfig): string {
+async function buildTmbEmailFilter(filteredConfig: ProjectConfig): Promise<string> {
   if (filteredConfig.leadConfigs.length === 0) return '';
-  const unions = filteredConfig.leadConfigs.map(lc => {
-    const emailCol = `"email"`;
-    return `SELECT DISTINCT LOWER(TRIM(${emailCol})) as email FROM ${lc.table} WHERE ${emailCol} IS NOT NULL AND TRIM(${emailCol}) != ''`;
-  }).join(' UNION ');
-  return ` AND LOWER(TRIM(cliente_email)) IN (${unions})`;
+  const parts: string[] = [];
+  for (const lc of filteredConfig.leadConfigs) {
+    const cols = await getTableColumns(lc.table);
+    const emailCol = findColumn(cols, EMAIL_CANDIDATES);
+    if (emailCol) {
+      parts.push(`SELECT DISTINCT LOWER(TRIM(${emailCol})) as email FROM ${lc.table} WHERE ${emailCol} IS NOT NULL AND TRIM(${emailCol}) != ''`);
+    }
+  }
+  if (parts.length === 0) return '';
+  return ` AND LOWER(TRIM(cliente_email)) IN (${parts.join(' UNION ')})`;
 }
 
 serve(async (req) => {
