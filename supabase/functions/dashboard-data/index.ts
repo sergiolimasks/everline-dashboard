@@ -551,7 +551,7 @@ async function queryTmbSalesDaily(tmbTable: string, params: string[], emailFilte
   const dateFilter = params.length >= 2 ? ` AND data_pagamento::date >= $1 AND data_pagamento::date <= $2` : '';
   const rows = await queryExternalPG(`
     SELECT 
-      data_pagamento::date as dia,
+      TO_CHAR(data_pagamento::date, 'YYYY-MM-DD') as dia,
       COUNT(*) as vendas,
       COALESCE(SUM(repasse), 0) as repasse,
       COALESCE(SUM(repasse_coprodutor), 0) as repasse_coprodutor,
