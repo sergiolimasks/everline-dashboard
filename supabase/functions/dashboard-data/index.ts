@@ -851,7 +851,7 @@ serve(async (req) => {
 
       // TMB sales (parcela=0) — merge into totals
       let tmbSummary = { vendas: 0, repasse: 0, repasse_coprodutor: 0, taxa_tmb: 0, valor_total: 0 };
-      let tmbParcelas = { total_parcelas: 0, valor_total: 0, repasse: 0, repasse_coprodutor: 0, taxa_tmb: 0 };
+      let tmbParcelas: { total_parcelas: number; valor_total: number; repasse: number; repasse_coprodutor: number; taxa_tmb: number; por_parcela: any[] } = { total_parcelas: 0, valor_total: 0, repasse: 0, repasse_coprodutor: 0, taxa_tmb: 0, por_parcela: [] };
       if (config.tmbTable && !isPanel) {
         const tmbEmailFilter = filters.leadSources ? buildTmbEmailFilter(filteredConfig) : '';
         [tmbSummary, tmbParcelas] = await Promise.all([
@@ -895,6 +895,7 @@ serve(async (req) => {
           repasse: tmbParcelas.repasse,
           repasse_coprodutor: tmbParcelas.repasse_coprodutor,
           taxa_tmb: tmbParcelas.taxa_tmb,
+          por_parcela: tmbParcelas.por_parcela,
         } : null,
       }];
 
