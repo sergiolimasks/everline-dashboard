@@ -22,6 +22,7 @@ export interface SummaryData {
     taxa_fixa: number;
     co_produtor: number;
     taxa_green: number;
+    taxa_tmb: number;
   };
   products: Array<{
     produto: string;
@@ -29,6 +30,13 @@ export interface SummaryData {
     receita_bruta: number;
     receita_liquida: number;
   }>;
+  parcelas?: {
+    total_parcelas: number;
+    valor_total: number;
+    repasse: number;
+    repasse_coprodutor: number;
+    taxa_tmb: number;
+  } | null;
 }
 
 export interface TrafficDaily {
