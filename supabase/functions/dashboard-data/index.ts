@@ -545,6 +545,7 @@ function buildTmbEmailFilter(filteredConfig: ProjectConfig): string {
   return ` AND LOWER(TRIM(cliente_email)) IN (${unions})`;
 }
 
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
