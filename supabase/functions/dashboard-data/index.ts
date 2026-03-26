@@ -654,19 +654,41 @@ function buildTmbEmailFilter(filteredConfig: ProjectConfig): string {
         bumpMap.set(String(b.dia), b);
       }
 
-      data = (principalRows as any[]).map(p => {
-        const bump = bumpMap.get(String(p.dia)) || { receita_bruta_bump: 0, receita_liquida_bump: 0, co_produtor_bump: 0, vendas_cnpj: 0 };
-        const vendas = Number(p.vendas_aprovadas || 0);
+      // Merge Greenn daily data
+      const allDays = new Set<string>();
+      for (const p of principalRows as any[]) allDays.add(String(p.dia).slice(0, 10));
+
+      const greenMap = new Map();
+      for (const p of principalRows as any[]) {
+        const key = String(p.dia).slice(0, 10);
+        greenMap.set(key, p);
+      }
+
+      // TMB daily data (parcela=0 only)
+      let tmbDailyMap = new Map();
+      if (config.tmbTable) {
+        const tmbEmailFilter = filters.leadSources ? buildTmbEmailFilter(filteredConfig) : '';
+        tmbDailyMap = await queryTmbSalesDaily(config.tmbTable, params, tmbEmailFilter);
+        for (const k of tmbDailyMap.keys()) allDays.add(k);
+      }
+
+      const sortedDays = [...allDays].sort((a, b) => b.localeCompare(a));
+      data = sortedDays.map(day => {
+        const g = greenMap.get(day);
+        const bump = bumpMap.get(day) || { receita_bruta_bump: 0, receita_liquida_bump: 0, co_produtor_bump: 0, vendas_cnpj: 0 };
+        const tmb = tmbDailyMap.get(day) || { vendas: 0, repasse: 0, repasse_coprodutor: 0, taxa_tmb: 0, valor_total: 0 };
+        const greenVendas = Number(g?.vendas_aprovadas || 0);
         const vendasCnpj = Number(bump.vendas_cnpj || 0);
-        const taxaFixa = config.taxaFixaPorVenda > 0 ? (vendas + vendasCnpj) * config.taxaFixaPorVenda : 0;
+        const taxaFixa = config.taxaFixaPorVenda > 0 ? (greenVendas + vendasCnpj) * config.taxaFixaPorVenda : 0;
         return {
-          dia: p.dia,
-          vendas_aprovadas: vendas,
+          dia: day,
+          vendas_aprovadas: greenVendas + tmb.vendas,
           vendas_cnpj: vendasCnpj,
-          receita_bruta: Number(p.receita_bruta || 0) + Number(bump.receita_bruta_bump || 0),
-          receita_liquida: Number(p.receita_liquida || 0) + Number(bump.receita_liquida_bump || 0),
+          receita_bruta: Number(g?.receita_bruta || 0) + Number(bump.receita_bruta_bump || 0) + tmb.valor_total,
+          receita_liquida: Number(g?.receita_liquida || 0) + Number(bump.receita_liquida_bump || 0) + tmb.repasse,
           taxa_fixa: taxaFixa,
-          co_produtor: Number(p.co_produtor || 0) + Number(bump.co_produtor_bump || 0),
+          co_produtor: Number(g?.co_produtor || 0) + Number(bump.co_produtor_bump || 0) + tmb.repasse_coprodutor,
+          taxa_tmb: tmb.taxa_tmb,
         };
       });
 
