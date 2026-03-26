@@ -48,6 +48,7 @@ interface ProjectConfig {
   defaultMetaWhere: string;
   offerFilters: Record<string, OfferFilters>;
   leadConfigs: LeadTableConfig[];
+  tmbTable?: string; // optional TMB sales table
 }
 
 interface OfferFilters {
@@ -113,6 +114,7 @@ const PROJECTS: Record<string, ProjectConfig> = {
     bumpProducts: [],
     taxaFixaPorVenda: 0,
     custoManychat: 0,
+    tmbTable: 'uelicon_database.controle_tmb',
     defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%50K-DEZ25%' OR UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%' OR UPPER(campanha) LIKE '%PRESENCIAL%' OR UPPER(campanha) LIKE '%RMKT FORMACAO%' OR UPPER(campanha) LIKE '%RMKT FORMAÇÃO%')`,
     offerFilters: {
       aplicacao: {
@@ -474,6 +476,75 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
   return result;
 }
 
+const TMB_PAID_STATUSES = `('Efetivado','Recebido')`;
+
+// Query TMB new sales (parcela = 0) summary
+async function queryTmbSalesSummary(tmbTable: string, params: string[], emailFilter: string): Promise<{ vendas: number; repasse: number; repasse_coprodutor: number; taxa_tmb: number; valor_total: number }> {
+  const dateFilter = params.length >= 2 ? ` AND data_pagamento::date >= $1 AND data_pagamento::date <= $2` : '';
+  const rows = await queryExternalPG(`
+    SELECT 
+      COUNT(*) as vendas,
+      COALESCE(SUM(repasse), 0) as repasse,
+      COALESCE(SUM(repasse_coprodutor), 0) as repasse_coprodutor,
+      COALESCE(SUM(taxa_tmb), 0) as taxa_tmb,
+      COALESCE(SUM(valor_total), 0) as valor_total
+    FROM ${tmbTable}
+    WHERE parcela = 0 AND status_pagamento IN ${TMB_PAID_STATUSES} ${dateFilter} ${emailFilter}
+  `, params);
+  const r = rows[0] as any;
+  return { vendas: Number(r?.vendas || 0), repasse: Number(r?.repasse || 0), repasse_coprodutor: Number(r?.repasse_coprodutor || 0), taxa_tmb: Number(r?.taxa_tmb || 0), valor_total: Number(r?.valor_total || 0) };
+}
+
+// Query TMB new sales (parcela = 0) daily
+async function queryTmbSalesDaily(tmbTable: string, params: string[], emailFilter: string): Promise<Map<string, { vendas: number; repasse: number; repasse_coprodutor: number; taxa_tmb: number; valor_total: number }>> {
+  const dateFilter = params.length >= 2 ? ` AND data_pagamento::date >= $1 AND data_pagamento::date <= $2` : '';
+  const rows = await queryExternalPG(`
+    SELECT 
+      data_pagamento::date as dia,
+      COUNT(*) as vendas,
+      COALESCE(SUM(repasse), 0) as repasse,
+      COALESCE(SUM(repasse_coprodutor), 0) as repasse_coprodutor,
+      COALESCE(SUM(taxa_tmb), 0) as taxa_tmb,
+      COALESCE(SUM(valor_total), 0) as valor_total
+    FROM ${tmbTable}
+    WHERE parcela = 0 AND status_pagamento IN ${TMB_PAID_STATUSES} ${dateFilter} ${emailFilter}
+    GROUP BY data_pagamento::date
+  `, params);
+  const map = new Map();
+  for (const r of rows as any[]) {
+    const key = String(r.dia).slice(0, 10);
+    map.set(key, { vendas: Number(r.vendas || 0), repasse: Number(r.repasse || 0), repasse_coprodutor: Number(r.repasse_coprodutor || 0), taxa_tmb: Number(r.taxa_tmb || 0), valor_total: Number(r.valor_total || 0) });
+  }
+  return map;
+}
+
+// Query TMB parcelas (parcela > 0) summary
+async function queryTmbParcelas(tmbTable: string, params: string[]): Promise<{ total_parcelas: number; valor_total: number; repasse: number; repasse_coprodutor: number; taxa_tmb: number }> {
+  const dateFilter = params.length >= 2 ? ` AND data_pagamento::date >= $1 AND data_pagamento::date <= $2` : '';
+  const rows = await queryExternalPG(`
+    SELECT 
+      COUNT(*) as total_parcelas,
+      COALESCE(SUM(valor_total), 0) as valor_total,
+      COALESCE(SUM(repasse), 0) as repasse,
+      COALESCE(SUM(repasse_coprodutor), 0) as repasse_coprodutor,
+      COALESCE(SUM(taxa_tmb), 0) as taxa_tmb
+    FROM ${tmbTable}
+    WHERE parcela > 0 AND status_pagamento IN ${TMB_PAID_STATUSES} ${dateFilter}
+  `, params);
+  const r = rows[0] as any;
+  return { total_parcelas: Number(r?.total_parcelas || 0), valor_total: Number(r?.valor_total || 0), repasse: Number(r?.repasse || 0), repasse_coprodutor: Number(r?.repasse_coprodutor || 0), taxa_tmb: Number(r?.taxa_tmb || 0) };
+}
+
+// Build TMB email filter based on lead sources
+function buildTmbEmailFilter(filteredConfig: ProjectConfig): string {
+  if (filteredConfig.leadConfigs.length === 0) return '';
+  const unions = filteredConfig.leadConfigs.map(lc => {
+    const emailCol = `"email"`;
+    return `SELECT DISTINCT LOWER(TRIM(${emailCol})) as email FROM ${lc.table} WHERE ${emailCol} IS NOT NULL AND TRIM(${emailCol}) != ''`;
+  }).join(' UNION ');
+  return ` AND LOWER(TRIM(cliente_email)) IN (${unions})`;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -584,19 +655,41 @@ serve(async (req) => {
         bumpMap.set(String(b.dia), b);
       }
 
-      data = (principalRows as any[]).map(p => {
-        const bump = bumpMap.get(String(p.dia)) || { receita_bruta_bump: 0, receita_liquida_bump: 0, co_produtor_bump: 0, vendas_cnpj: 0 };
-        const vendas = Number(p.vendas_aprovadas || 0);
+      // Merge Greenn daily data
+      const allDays = new Set<string>();
+      for (const p of principalRows as any[]) allDays.add(String(p.dia).slice(0, 10));
+
+      const greenMap = new Map();
+      for (const p of principalRows as any[]) {
+        const key = String(p.dia).slice(0, 10);
+        greenMap.set(key, p);
+      }
+
+      // TMB daily data (parcela=0 only)
+      let tmbDailyMap = new Map();
+      if (config.tmbTable) {
+        const tmbEmailFilter = filters.leadSources ? buildTmbEmailFilter(filteredConfig) : '';
+        tmbDailyMap = await queryTmbSalesDaily(config.tmbTable, params, tmbEmailFilter);
+        for (const k of tmbDailyMap.keys()) allDays.add(k);
+      }
+
+      const sortedDays = [...allDays].sort((a, b) => b.localeCompare(a));
+      data = sortedDays.map(day => {
+        const g = greenMap.get(day);
+        const bump = bumpMap.get(day) || { receita_bruta_bump: 0, receita_liquida_bump: 0, co_produtor_bump: 0, vendas_cnpj: 0 };
+        const tmb = tmbDailyMap.get(day) || { vendas: 0, repasse: 0, repasse_coprodutor: 0, taxa_tmb: 0, valor_total: 0 };
+        const greenVendas = Number(g?.vendas_aprovadas || 0);
         const vendasCnpj = Number(bump.vendas_cnpj || 0);
-        const taxaFixa = config.taxaFixaPorVenda > 0 ? (vendas + vendasCnpj) * config.taxaFixaPorVenda : 0;
+        const taxaFixa = config.taxaFixaPorVenda > 0 ? (greenVendas + vendasCnpj) * config.taxaFixaPorVenda : 0;
         return {
-          dia: p.dia,
-          vendas_aprovadas: vendas,
+          dia: day,
+          vendas_aprovadas: greenVendas + tmb.vendas,
           vendas_cnpj: vendasCnpj,
-          receita_bruta: Number(p.receita_bruta || 0) + Number(bump.receita_bruta_bump || 0),
-          receita_liquida: Number(p.receita_liquida || 0) + Number(bump.receita_liquida_bump || 0),
+          receita_bruta: Number(g?.receita_bruta || 0) + Number(bump.receita_bruta_bump || 0) + tmb.valor_total,
+          receita_liquida: Number(g?.receita_liquida || 0) + Number(bump.receita_liquida_bump || 0) + tmb.repasse,
           taxa_fixa: taxaFixa,
-          co_produtor: Number(p.co_produtor || 0) + Number(bump.co_produtor_bump || 0),
+          co_produtor: Number(g?.co_produtor || 0) + Number(bump.co_produtor_bump || 0) + tmb.repasse_coprodutor,
+          taxa_tmb: tmb.taxa_tmb,
         };
       });
 
@@ -683,25 +776,58 @@ serve(async (req) => {
       const vendasPrincipal = Number((principalSales[0] as any)?.vendas_aprovadas || 0);
       const vendasCnpj = Number(bumpSalesRow?.vendas_cnpj || 0);
       const taxaFixaTotal = config.taxaFixaPorVenda > 0 ? (vendasPrincipal + vendasCnpj) * config.taxaFixaPorVenda : 0;
-      const receitaBrutaTotal = Number((principalSales[0] as any)?.receita_bruta || 0) + Number(bumpSalesRow?.receita_bruta_bump || 0);
-      const receitaLiquidaTotal = Number((principalSales[0] as any)?.receita_liquida || 0) + Number(bumpSalesRow?.receita_liquida_bump || 0);
-      const coProdutorTotal = isPanel ? panelCoProdutorTotal : (Number((principalSales[0] as any)?.co_produtor || 0) + Number(bumpSalesRow?.co_produtor_bump || 0));
+      let receitaBrutaTotal = Number((principalSales[0] as any)?.receita_bruta || 0) + Number(bumpSalesRow?.receita_bruta_bump || 0);
+      let receitaLiquidaTotal = Number((principalSales[0] as any)?.receita_liquida || 0) + Number(bumpSalesRow?.receita_liquida_bump || 0);
+      let coProdutorTotal = isPanel ? panelCoProdutorTotal : (Number((principalSales[0] as any)?.co_produtor || 0) + Number(bumpSalesRow?.co_produtor_bump || 0));
       const taxaGreenTotal = Number((principalSales[0] as any)?.taxa_green || 0) + Number(bumpSalesRow?.taxa_green_bump || 0);
 
+      // TMB sales (parcela=0) — merge into totals
+      let tmbSummary = { vendas: 0, repasse: 0, repasse_coprodutor: 0, taxa_tmb: 0, valor_total: 0 };
+      let tmbParcelas = { total_parcelas: 0, valor_total: 0, repasse: 0, repasse_coprodutor: 0, taxa_tmb: 0 };
+      if (config.tmbTable && !isPanel) {
+        const tmbEmailFilter = filters.leadSources ? buildTmbEmailFilter(filteredConfig) : '';
+        [tmbSummary, tmbParcelas] = await Promise.all([
+          queryTmbSalesSummary(config.tmbTable, params, tmbEmailFilter),
+          queryTmbParcelas(config.tmbTable, params),
+        ]);
+        receitaBrutaTotal += tmbSummary.valor_total;
+        receitaLiquidaTotal += tmbSummary.repasse;
+        coProdutorTotal += tmbSummary.repasse_coprodutor;
+      }
+
       const totalLeads = await queryLeadsTotal(filteredConfig, params);
+
+      // Add TMB products to products list if there are TMB sales
+      const productsArr = products as any[];
+      if (tmbSummary.vendas > 0) {
+        productsArr.push({
+          produto: 'Formação Consultor 360 (TMB)',
+          vendas_aprovadas: tmbSummary.vendas,
+          receita_bruta: tmbSummary.valor_total,
+          receita_liquida: tmbSummary.repasse,
+        });
+      }
 
       data = [{
         traffic: { ...(traffic[0] as any), total_leads: totalLeads },
         sales: {
-          vendas_aprovadas: vendasPrincipal,
+          vendas_aprovadas: vendasPrincipal + tmbSummary.vendas,
           vendas_bump: Number(bumpSalesRow?.vendas_bump || 0),
           receita_bruta: receitaBrutaTotal,
           receita_liquida: receitaLiquidaTotal,
           taxa_fixa: taxaFixaTotal,
           co_produtor: coProdutorTotal,
           taxa_green: taxaGreenTotal,
+          taxa_tmb: tmbSummary.taxa_tmb,
         },
-        products,
+        products: productsArr,
+        parcelas: tmbParcelas.total_parcelas > 0 ? {
+          total_parcelas: tmbParcelas.total_parcelas,
+          valor_total: tmbParcelas.valor_total,
+          repasse: tmbParcelas.repasse,
+          repasse_coprodutor: tmbParcelas.repasse_coprodutor,
+          taxa_tmb: tmbParcelas.taxa_tmb,
+        } : null,
       }];
 
     } else if (endpoint === 'campaigns') {

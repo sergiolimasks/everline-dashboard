@@ -5,6 +5,14 @@ import { SparklineTooltip } from "@/components/dashboard/SparklineTooltip";
 import type { SummaryData, TrafficDaily, SalesDaily } from "@/lib/dashboard-api";
 import { calcCustoNotificacaoFromDaily } from "@/lib/date-utils";
 
+interface ParcelasData {
+  total_parcelas: number;
+  valor_total: number;
+  repasse: number;
+  repasse_coprodutor: number;
+  taxa_tmb: number;
+}
+
 interface KPICardsProps {
   data: SummaryData | undefined;
   isLoading: boolean;
@@ -53,6 +61,7 @@ function calcMetrics(data: SummaryData | undefined, showLeads = false, hideCoPro
   const custoManychat = showLeads ? 0 : vendasAprovadas * 0.35;
   const coProdutor = hideCoProdutor ? 0 : Number(sales?.co_produtor || 0);
   const taxaGreen = Number(sales?.taxa_green || 0);
+  const taxaTmb = Number(sales?.taxa_tmb || 0);
   const diasAtivos = Number(traffic?.dias_ativos || 1);
 
   const lucro = receitaLiquida - totalGasto - taxaFixa - custoManychat;
@@ -82,7 +91,7 @@ function calcMetrics(data: SummaryData | undefined, showLeads = false, hideCoPro
 
     return {
       gastoMeta, impostoMeta, totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
-      taxaFixa, custoManychat, coProdutor, taxaGreen, lucro, roi, diasAtivos,
+      taxaFixa, custoManychat, coProdutor, taxaGreen, taxaTmb, lucro, roi, diasAtivos,
       cac, cacClient, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
       thumbStopRate, receitaPorVenda, receitaPorVendaLiquida, vendasAprovDia, vendasBumpDia,
       totalLeads, taxaConvPaginaLeads, taxaInicioCheckoutLeads, taxaConvLeads, leadsDia, cpl,
@@ -600,6 +609,46 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                   metricKey="taxaGreen" current={current} comp7d={null} comp14d={null}
                 />
               )}
+              {(current?.taxaTmb || 0) > 0 && (
+                <KPICard
+                  label="Taxa TMB" value={isLoading ? null : formatCurrency(current?.taxaTmb || 0)}
+                  icon={CreditCard} color="text-chart-red" isLoading={isLoading}
+                  metricKey="taxaTmb" current={current} comp7d={null} comp14d={null}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Parcelas TMB card */}
+          {data?.parcelas && data.parcelas.total_parcelas > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <KPICard
+                label="Parcelas Pagas" value={isLoading ? null : String(data.parcelas.total_parcelas)}
+                icon={CreditCard} color="text-chart-blue" isLoading={isLoading}
+                metricKey="" current={null} comp7d={null} comp14d={null}
+                tooltipContent={(
+                  <div className="w-72 max-w-full p-3">
+                    <p className="text-xs font-semibold mb-2 text-foreground">Detalhes das Parcelas (TMB)</p>
+                    <div className="space-y-1.5 text-[11px]">
+                      <div className="flex justify-between"><span className="text-muted-foreground">Parcelas Pagas</span><span className="font-medium text-foreground">{data.parcelas.total_parcelas}</span></div>
+                      <div className="flex justify-between"><span className="text-primary">Faturamento Parcelas</span><span className="font-medium text-primary">{formatCurrency(data.parcelas.valor_total)}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Repasse (Líquido)</span><span className="font-medium text-foreground">{formatCurrency(data.parcelas.repasse)}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Co-Produtor</span><span className="font-medium text-foreground">{formatCurrency(data.parcelas.repasse_coprodutor)}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Taxa TMB</span><span className="font-medium text-foreground">{formatCurrency(data.parcelas.taxa_tmb)}</span></div>
+                    </div>
+                  </div>
+                )}
+              />
+              <KPICard
+                label="Faturamento Parcelas" value={isLoading ? null : formatCurrency(data.parcelas.valor_total)}
+                icon={DollarSign} color="text-chart-green" isLoading={isLoading}
+                metricKey="" current={null} comp7d={null} comp14d={null}
+              />
+              <KPICard
+                label="Repasse Parcelas" value={isLoading ? null : formatCurrency(data.parcelas.repasse)}
+                icon={TrendingUp} color="text-primary" isLoading={isLoading}
+                metricKey="" current={null} comp7d={null} comp14d={null}
+              />
             </div>
           )}
 
