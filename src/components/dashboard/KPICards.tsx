@@ -53,6 +53,7 @@ function calcMetrics(data: SummaryData | undefined, showLeads = false, hideCoPro
   const custoManychat = showLeads ? 0 : vendasAprovadas * 0.35;
   const coProdutor = hideCoProdutor ? 0 : Number(sales?.co_produtor || 0);
   const taxaGreen = Number(sales?.taxa_green || 0);
+  const taxaTmb = Number(sales?.taxa_tmb || 0);
   const diasAtivos = Number(traffic?.dias_ativos || 1);
 
   const lucro = receitaLiquida - totalGasto - taxaFixa - custoManychat;
