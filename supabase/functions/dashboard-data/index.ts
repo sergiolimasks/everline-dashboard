@@ -741,7 +741,7 @@ serve(async (req) => {
       // TMB daily data (parcela=0 only)
       let tmbDailyMap = new Map();
       if (config.tmbTable) {
-        const tmbEmailFilter = filters.leadSources ? buildTmbEmailFilter(filteredConfig) : '';
+        const tmbEmailFilter = filters.leadSources ? await buildTmbEmailFilter(filteredConfig) : '';
         tmbDailyMap = await queryTmbSalesDaily(config.tmbTable, params, tmbEmailFilter);
         for (const k of tmbDailyMap.keys()) allDays.add(k);
       }
