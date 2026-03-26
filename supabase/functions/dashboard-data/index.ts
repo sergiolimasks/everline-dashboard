@@ -858,7 +858,7 @@ serve(async (req) => {
       let tmbSummary = { vendas: 0, repasse: 0, repasse_coprodutor: 0, taxa_tmb: 0, valor_total: 0 };
       let tmbParcelas: { total_parcelas: number; valor_total: number; repasse: number; repasse_coprodutor: number; taxa_tmb: number; por_parcela: any[] } = { total_parcelas: 0, valor_total: 0, repasse: 0, repasse_coprodutor: 0, taxa_tmb: 0, por_parcela: [] };
       if (config.tmbTable && !isPanel) {
-        const tmbEmailFilter = filters.leadSources ? buildTmbEmailFilter(filteredConfig) : '';
+        const tmbEmailFilter = filters.leadSources ? await buildTmbEmailFilter(filteredConfig) : '';
         [tmbSummary, tmbParcelas] = await Promise.all([
           queryTmbSalesSummary(config.tmbTable, params, tmbEmailFilter),
           queryTmbParcelas(config.tmbTable, params),
