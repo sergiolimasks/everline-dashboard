@@ -48,6 +48,7 @@ interface ProjectConfig {
   defaultMetaWhere: string;
   offerFilters: Record<string, OfferFilters>;
   leadConfigs: LeadTableConfig[];
+  tmbTable?: string; // optional TMB sales table
 }
 
 interface OfferFilters {
