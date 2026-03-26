@@ -476,7 +476,75 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
   return result;
 }
 
-serve(async (req) => {
+const TMB_PAID_STATUSES = `('Efetivado','Recebido')`;
+
+// Query TMB new sales (parcela = 0) summary
+async function queryTmbSalesSummary(tmbTable: string, params: string[], emailFilter: string): Promise<{ vendas: number; repasse: number; repasse_coprodutor: number; taxa_tmb: number; valor_total: number }> {
+  const dateFilter = params.length >= 2 ? ` AND data_pagamento::date >= $1 AND data_pagamento::date <= $2` : '';
+  const rows = await queryExternalPG(`
+    SELECT 
+      COUNT(*) as vendas,
+      COALESCE(SUM(repasse), 0) as repasse,
+      COALESCE(SUM(repasse_coprodutor), 0) as repasse_coprodutor,
+      COALESCE(SUM(taxa_tmb), 0) as taxa_tmb,
+      COALESCE(SUM(valor_total), 0) as valor_total
+    FROM ${tmbTable}
+    WHERE parcela = 0 AND status_pagamento IN ${TMB_PAID_STATUSES} ${dateFilter} ${emailFilter}
+  `, params);
+  const r = rows[0] as any;
+  return { vendas: Number(r?.vendas || 0), repasse: Number(r?.repasse || 0), repasse_coprodutor: Number(r?.repasse_coprodutor || 0), taxa_tmb: Number(r?.taxa_tmb || 0), valor_total: Number(r?.valor_total || 0) };
+}
+
+// Query TMB new sales (parcela = 0) daily
+async function queryTmbSalesDaily(tmbTable: string, params: string[], emailFilter: string): Promise<Map<string, { vendas: number; repasse: number; repasse_coprodutor: number; taxa_tmb: number; valor_total: number }>> {
+  const dateFilter = params.length >= 2 ? ` AND data_pagamento::date >= $1 AND data_pagamento::date <= $2` : '';
+  const rows = await queryExternalPG(`
+    SELECT 
+      data_pagamento::date as dia,
+      COUNT(*) as vendas,
+      COALESCE(SUM(repasse), 0) as repasse,
+      COALESCE(SUM(repasse_coprodutor), 0) as repasse_coprodutor,
+      COALESCE(SUM(taxa_tmb), 0) as taxa_tmb,
+      COALESCE(SUM(valor_total), 0) as valor_total
+    FROM ${tmbTable}
+    WHERE parcela = 0 AND status_pagamento IN ${TMB_PAID_STATUSES} ${dateFilter} ${emailFilter}
+    GROUP BY data_pagamento::date
+  `, params);
+  const map = new Map();
+  for (const r of rows as any[]) {
+    const key = String(r.dia).slice(0, 10);
+    map.set(key, { vendas: Number(r.vendas || 0), repasse: Number(r.repasse || 0), repasse_coprodutor: Number(r.repasse_coprodutor || 0), taxa_tmb: Number(r.taxa_tmb || 0), valor_total: Number(r.valor_total || 0) });
+  }
+  return map;
+}
+
+// Query TMB parcelas (parcela > 0) summary
+async function queryTmbParcelas(tmbTable: string, params: string[]): Promise<{ total_parcelas: number; valor_total: number; repasse: number; repasse_coprodutor: number; taxa_tmb: number }> {
+  const dateFilter = params.length >= 2 ? ` AND data_pagamento::date >= $1 AND data_pagamento::date <= $2` : '';
+  const rows = await queryExternalPG(`
+    SELECT 
+      COUNT(*) as total_parcelas,
+      COALESCE(SUM(valor_total), 0) as valor_total,
+      COALESCE(SUM(repasse), 0) as repasse,
+      COALESCE(SUM(repasse_coprodutor), 0) as repasse_coprodutor,
+      COALESCE(SUM(taxa_tmb), 0) as taxa_tmb
+    FROM ${tmbTable}
+    WHERE parcela > 0 AND status_pagamento IN ${TMB_PAID_STATUSES} ${dateFilter}
+  `, params);
+  const r = rows[0] as any;
+  return { total_parcelas: Number(r?.total_parcelas || 0), valor_total: Number(r?.valor_total || 0), repasse: Number(r?.repasse || 0), repasse_coprodutor: Number(r?.repasse_coprodutor || 0), taxa_tmb: Number(r?.taxa_tmb || 0) };
+}
+
+// Build TMB email filter based on lead sources
+function buildTmbEmailFilter(filteredConfig: ProjectConfig): string {
+  if (filteredConfig.leadConfigs.length === 0) return '';
+  const unions = filteredConfig.leadConfigs.map(lc => {
+    const emailCol = `"email"`;
+    return `SELECT DISTINCT LOWER(TRIM(${emailCol})) as email FROM ${lc.table} WHERE ${emailCol} IS NOT NULL AND TRIM(${emailCol}) != ''`;
+  }).join(' UNION ');
+  return ` AND LOWER(TRIM(cliente_email)) IN (${unions})`;
+}
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
