@@ -100,21 +100,50 @@ function CacTooltip({ gastoMeta, imposto, custoConsultas, custoManychat, gastoTo
 }
 
 function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, dateLabel }: { client: ClientWithOffers; isAdmin: boolean; isGestor?: boolean; clientView?: boolean; dateFrom: string; dateTo: string; dateLabel: string }) {
-  const { data: summary, isLoading } = useSummary(dateFrom, dateTo, "all_no_filter");
+  // Fetch per-project summaries to apply correct cost formulas
+  const hasCheckup = client.offers.some(o => o.offer_slug !== 'formacao-consultor');
+  const hasFormacao = client.offers.some(o => o.offer_slug === 'formacao-consultor');
+  
+  const { data: summaryCheckup, isLoading: loadingCheckup } = useSummary(dateFrom, dateTo, "all_no_filter", "checkup");
+  const { data: summaryFormacao, isLoading: loadingFormacao } = useSummary(dateFrom, dateTo, "all_no_filter", "formacao-consultor");
+  
+  const isLoading = loadingCheckup || loadingFormacao;
 
-  const gastoMeta = Number(summary?.traffic?.total_gasto || 0);
-  const imposto = gastoMeta * 0.125;
-  const vendasAprovadas = Number(summary?.sales?.vendas_aprovadas || 0);
-  const custoConsultas = Number(summary?.sales?.taxa_fixa || 0);
-  const custoManychat = vendasAprovadas * 0.35;
-  const coProdutor = Number(summary?.sales?.co_produtor || 0);
-  const gastoTotal = gastoMeta + imposto + custoConsultas + custoManychat;
-  const receitaLiquida = Number(summary?.sales?.receita_liquida || 0);
+  // Checkup metrics (has consultas + manychat costs)
+  const ckGasto = Number(summaryCheckup?.traffic?.total_gasto || 0);
+  const ckImposto = ckGasto * 0.125;
+  const ckVendas = Number(summaryCheckup?.sales?.vendas_aprovadas || 0);
+  const ckConsultas = Number(summaryCheckup?.sales?.taxa_fixa || 0);
+  const ckManychat = ckVendas * 0.35;
+  const ckReceitaLiquida = Number(summaryCheckup?.sales?.receita_liquida || 0);
+  const ckCoProdutor = Number(summaryCheckup?.sales?.co_produtor || 0);
+  const ckGastoTotal = ckGasto + ckImposto + ckConsultas + ckManychat;
+  const ckLucro = ckReceitaLiquida - ckGastoTotal;
+
+  // Formação metrics (no consultas, no manychat)
+  const fmGasto = Number(summaryFormacao?.traffic?.total_gasto || 0);
+  const fmImposto = fmGasto * 0.125;
+  const fmVendas = Number(summaryFormacao?.sales?.vendas_aprovadas || 0);
+  const fmReceitaLiquida = Number(summaryFormacao?.sales?.receita_liquida || 0);
+  const fmCoProdutor = Number(summaryFormacao?.sales?.co_produtor || 0);
+  const fmTaxaTmb = Number(summaryFormacao?.sales?.taxa_green || 0); // taxa_tmb from TMB gateway
+  const fmGastoTotal = fmGasto + fmImposto;
+  const fmLucro = fmReceitaLiquida - fmGastoTotal;
+
+  // Combined totals
+  const gastoMeta = ckGasto + fmGasto;
+  const imposto = ckImposto + fmImposto;
+  const vendasAprovadas = ckVendas + fmVendas;
+  const custoConsultas = ckConsultas;
+  const custoManychat = ckManychat;
+  const gastoTotal = ckGastoTotal + fmGastoTotal;
+  const receitaLiquida = ckReceitaLiquida + fmReceitaLiquida;
+  const coProdutor = ckCoProdutor + fmCoProdutor;
   const faturamentoAgencia = coProdutor;
   const faturamentoCliente = receitaLiquida;
-  const lucroCliente = faturamentoCliente - gastoTotal;
+  const lucroCliente = ckLucro + fmLucro;
   const cac = vendasAprovadas > 0 ? gastoTotal / vendasAprovadas : 0;
-  const products = summary?.products || [];
+  const products = [...(summaryCheckup?.products || []), ...(summaryFormacao?.products || [])];
 
   const kpis = [
     {
