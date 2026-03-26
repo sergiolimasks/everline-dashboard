@@ -628,13 +628,14 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                 metricKey="" current={null} comp7d={null} comp14d={null}
                 tooltipContent={(
                   <div className="w-72 max-w-full p-3">
-                    <p className="text-xs font-semibold mb-2 text-foreground">Detalhes das Parcelas (TMB)</p>
+                    <p className="text-xs font-semibold mb-2 text-foreground">Parcelas Pagas por Número</p>
                     <div className="space-y-1.5 text-[11px]">
-                      <div className="flex justify-between"><span className="text-muted-foreground">Parcelas Pagas</span><span className="font-medium text-foreground">{data.parcelas.total_parcelas}</span></div>
-                      <div className="flex justify-between"><span className="text-primary">Faturamento Parcelas</span><span className="font-medium text-primary">{formatCurrency(data.parcelas.valor_total)}</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">Repasse (Líquido)</span><span className="font-medium text-foreground">{formatCurrency(data.parcelas.repasse)}</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">Co-Produtor</span><span className="font-medium text-foreground">{formatCurrency(data.parcelas.repasse_coprodutor)}</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">Taxa TMB</span><span className="font-medium text-foreground">{formatCurrency(data.parcelas.taxa_tmb)}</span></div>
+                      {(data.parcelas.por_parcela || []).map(p => (
+                        <div key={p.parcela} className="flex justify-between">
+                          <span className="text-muted-foreground">Parcela {p.parcela}</span>
+                          <span className="font-medium text-foreground">{p.quantidade}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -643,11 +644,37 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                 label="Faturamento Parcelas" value={isLoading ? null : formatCurrency(data.parcelas.valor_total)}
                 icon={DollarSign} color="text-chart-green" isLoading={isLoading}
                 metricKey="" current={null} comp7d={null} comp14d={null}
+                tooltipContent={(
+                  <div className="w-72 max-w-full p-3">
+                    <p className="text-xs font-semibold mb-2 text-foreground">Faturamento por Parcela</p>
+                    <div className="space-y-1.5 text-[11px]">
+                      {(data.parcelas.por_parcela || []).map(p => (
+                        <div key={p.parcela} className="flex justify-between">
+                          <span className="text-muted-foreground">Parcela {p.parcela}</span>
+                          <span className="font-medium text-primary">{formatCurrency(p.valor_total)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               />
               <KPICard
                 label="Repasse Parcelas" value={isLoading ? null : formatCurrency(data.parcelas.repasse)}
                 icon={TrendingUp} color="text-primary" isLoading={isLoading}
                 metricKey="" current={null} comp7d={null} comp14d={null}
+                tooltipContent={(
+                  <div className="w-72 max-w-full p-3">
+                    <p className="text-xs font-semibold mb-2 text-foreground">Repasse por Parcela</p>
+                    <div className="space-y-1.5 text-[11px]">
+                      {(data.parcelas.por_parcela || []).map(p => (
+                        <div key={p.parcela} className="flex justify-between">
+                          <span className="text-muted-foreground">Parcela {p.parcela}</span>
+                          <span className="font-medium text-foreground">{formatCurrency(p.repasse)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               />
             </div>
           )}

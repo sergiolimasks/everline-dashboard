@@ -569,21 +569,38 @@ async function queryTmbSalesDaily(tmbTable: string, params: string[], emailFilte
   return map;
 }
 
-// Query TMB parcelas (parcela > 0) summary
-async function queryTmbParcelas(tmbTable: string, params: string[]): Promise<{ total_parcelas: number; valor_total: number; repasse: number; repasse_coprodutor: number; taxa_tmb: number }> {
+// Query TMB parcelas (parcela > 0) summary with per-installment breakdown
+async function queryTmbParcelas(tmbTable: string, params: string[]): Promise<{ total_parcelas: number; valor_total: number; repasse: number; repasse_coprodutor: number; taxa_tmb: number; por_parcela: Array<{ parcela: number; quantidade: number; valor_total: number; repasse: number; repasse_coprodutor: number; taxa_tmb: number }> }> {
   const dateFilter = params.length >= 2 ? ` AND data_pagamento::date >= $1 AND data_pagamento::date <= $2` : '';
   const rows = await queryExternalPG(`
     SELECT 
-      COUNT(*) as total_parcelas,
+      parcela,
+      COUNT(*) as quantidade,
       COALESCE(SUM(valor_total), 0) as valor_total,
       COALESCE(SUM(repasse), 0) as repasse,
       COALESCE(SUM(repasse_coprodutor), 0) as repasse_coprodutor,
       COALESCE(SUM(taxa_tmb), 0) as taxa_tmb
     FROM ${tmbTable}
     WHERE parcela > 0 AND status_pagamento IN ${TMB_PAID_STATUSES} ${dateFilter}
+    GROUP BY parcela
+    ORDER BY parcela
   `, params);
-  const r = rows[0] as any;
-  return { total_parcelas: Number(r?.total_parcelas || 0), valor_total: Number(r?.valor_total || 0), repasse: Number(r?.repasse || 0), repasse_coprodutor: Number(r?.repasse_coprodutor || 0), taxa_tmb: Number(r?.taxa_tmb || 0) };
+  let total_parcelas = 0, valor_total = 0, repasse = 0, repasse_coprodutor = 0, taxa_tmb = 0;
+  const por_parcela: Array<{ parcela: number; quantidade: number; valor_total: number; repasse: number; repasse_coprodutor: number; taxa_tmb: number }> = [];
+  for (const r of rows as any[]) {
+    const qty = Number(r.quantidade || 0);
+    const vt = Number(r.valor_total || 0);
+    const rp = Number(r.repasse || 0);
+    const rc = Number(r.repasse_coprodutor || 0);
+    const tt = Number(r.taxa_tmb || 0);
+    total_parcelas += qty;
+    valor_total += vt;
+    repasse += rp;
+    repasse_coprodutor += rc;
+    taxa_tmb += tt;
+    por_parcela.push({ parcela: Number(r.parcela), quantidade: qty, valor_total: vt, repasse: rp, repasse_coprodutor: rc, taxa_tmb: tt });
+  }
+  return { total_parcelas, valor_total, repasse, repasse_coprodutor, taxa_tmb, por_parcela };
 }
 
 // Build TMB email filter based on lead sources
