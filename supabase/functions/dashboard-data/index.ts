@@ -604,13 +604,18 @@ async function queryTmbParcelas(tmbTable: string, params: string[]): Promise<{ t
 }
 
 // Build TMB email filter based on lead sources
-function buildTmbEmailFilter(filteredConfig: ProjectConfig): string {
+async function buildTmbEmailFilter(filteredConfig: ProjectConfig): Promise<string> {
   if (filteredConfig.leadConfigs.length === 0) return '';
-  const unions = filteredConfig.leadConfigs.map(lc => {
-    const emailCol = `"email"`;
-    return `SELECT DISTINCT LOWER(TRIM(${emailCol})) as email FROM ${lc.table} WHERE ${emailCol} IS NOT NULL AND TRIM(${emailCol}) != ''`;
-  }).join(' UNION ');
-  return ` AND LOWER(TRIM(cliente_email)) IN (${unions})`;
+  const parts: string[] = [];
+  for (const lc of filteredConfig.leadConfigs) {
+    const cols = await getTableColumns(lc.table);
+    const emailCol = findColumn(cols, EMAIL_CANDIDATES);
+    if (emailCol) {
+      parts.push(`SELECT DISTINCT LOWER(TRIM(${emailCol})) as email FROM ${lc.table} WHERE ${emailCol} IS NOT NULL AND TRIM(${emailCol}) != ''`);
+    }
+  }
+  if (parts.length === 0) return '';
+  return ` AND LOWER(TRIM(cliente_email)) IN (${parts.join(' UNION ')})`;
 }
 
 serve(async (req) => {
@@ -736,7 +741,7 @@ serve(async (req) => {
       // TMB daily data (parcela=0 only)
       let tmbDailyMap = new Map();
       if (config.tmbTable) {
-        const tmbEmailFilter = filters.leadSources ? buildTmbEmailFilter(filteredConfig) : '';
+        const tmbEmailFilter = filters.leadSources ? await buildTmbEmailFilter(filteredConfig) : '';
         tmbDailyMap = await queryTmbSalesDaily(config.tmbTable, params, tmbEmailFilter);
         for (const k of tmbDailyMap.keys()) allDays.add(k);
       }
@@ -853,7 +858,7 @@ serve(async (req) => {
       let tmbSummary = { vendas: 0, repasse: 0, repasse_coprodutor: 0, taxa_tmb: 0, valor_total: 0 };
       let tmbParcelas: { total_parcelas: number; valor_total: number; repasse: number; repasse_coprodutor: number; taxa_tmb: number; por_parcela: any[] } = { total_parcelas: 0, valor_total: 0, repasse: 0, repasse_coprodutor: 0, taxa_tmb: 0, por_parcela: [] };
       if (config.tmbTable && !isPanel) {
-        const tmbEmailFilter = filters.leadSources ? buildTmbEmailFilter(filteredConfig) : '';
+        const tmbEmailFilter = filters.leadSources ? await buildTmbEmailFilter(filteredConfig) : '';
         [tmbSummary, tmbParcelas] = await Promise.all([
           queryTmbSalesSummary(config.tmbTable, params, tmbEmailFilter),
           queryTmbParcelas(config.tmbTable, params),
