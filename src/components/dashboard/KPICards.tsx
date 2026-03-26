@@ -5,6 +5,14 @@ import { SparklineTooltip } from "@/components/dashboard/SparklineTooltip";
 import type { SummaryData, TrafficDaily, SalesDaily } from "@/lib/dashboard-api";
 import { calcCustoNotificacaoFromDaily } from "@/lib/date-utils";
 
+interface ParcelasData {
+  total_parcelas: number;
+  valor_total: number;
+  repasse: number;
+  repasse_coprodutor: number;
+  taxa_tmb: number;
+}
+
 interface KPICardsProps {
   data: SummaryData | undefined;
   isLoading: boolean;
