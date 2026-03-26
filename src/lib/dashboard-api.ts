@@ -36,6 +36,14 @@ export interface SummaryData {
     repasse: number;
     repasse_coprodutor: number;
     taxa_tmb: number;
+    por_parcela?: Array<{
+      parcela: number;
+      quantidade: number;
+      valor_total: number;
+      repasse: number;
+      repasse_coprodutor: number;
+      taxa_tmb: number;
+    }>;
   } | null;
 }
 
