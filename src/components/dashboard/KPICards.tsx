@@ -228,14 +228,28 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
 
   // Override custoManychat with date-aware calculation when daily data available
   // Filter salesDaily to only include dates within the summary period (dateFrom-dateTo)
-  if (current && salesDaily && salesDaily.length > 0 && !showLeads) {
-    const filteredSalesDaily = (dateFrom && dateTo)
-      ? salesDaily.filter(d => {
-          const dia = String(d.dia).slice(0, 10);
-          return dia >= dateFrom && dia <= dateTo;
-        })
-      : salesDaily;
-    const custoNotificacao = calcCustoNotificacaoFromDaily(filteredSalesDaily);
+  if (current && !showLeads) {
+    let custoNotificacao: number;
+    if (salesDaily && salesDaily.length > 0 && dateFrom && dateTo) {
+      const filteredSalesDaily = salesDaily.filter(d => {
+        const dia = String(d.dia).slice(0, 10);
+        return dia >= dateFrom && dia <= dateTo;
+      });
+      custoNotificacao = calcCustoNotificacaoFromDaily(filteredSalesDaily);
+    } else if (dateFrom && dateTo) {
+      // Fallback: if all dates are on one side of the cutoff, use simple multiplication
+      const cutoff = '2026-03-20';
+      if (dateFrom >= cutoff) {
+        custoNotificacao = current.vendasAprovadas * 0.05;
+      } else if (dateTo < cutoff) {
+        custoNotificacao = current.vendasAprovadas * 0.35;
+      } else {
+        // Mixed period without daily data - use old default
+        custoNotificacao = current.vendasAprovadas * 0.35;
+      }
+    } else {
+      custoNotificacao = current.vendasAprovadas * 0.05;
+    }
     current.custoManychat = custoNotificacao;
     current.lucro = current.receitaLiquida - current.totalGasto - current.taxaFixa - custoNotificacao;
     const custoTotal = current.totalGasto + current.taxaFixa + custoNotificacao;
