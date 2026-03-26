@@ -160,7 +160,7 @@ function getProjectConfig(project: string): ProjectConfig {
 function getOfferFiltersForProject(config: ProjectConfig, offer: string): OfferFilters & { isAllNoFilter?: boolean } {
   if (offer === 'all_no_filter') {
     return {
-      metaWhere: '',
+      metaWhere: config.defaultMetaWhere,
       principalProduct: '',
       useEmailLinkedBumps: false,
       isAllNoFilter: true,
@@ -789,10 +789,10 @@ serve(async (req) => {
 
       const isPanel = (filters as any).isAllNoFilter;
       const pFilter = isPanel
-        ? `"Nome do produto" IN (${ALL_PRINCIPAL_PRODUCTS.map(p => `'${p}'`).join(',')})`
+        ? principalFilter(config, '')
         : principalFilter(config, filters.principalProduct);
       const apFilter = isPanel
-        ? `"Nome do produto" NOT IN (${ALL_BUMP_PRODUCTS.map(p => `'${p}'`).join(',')})`
+        ? allProductsFilter(config, '')
         : allProductsFilter(config, filters.principalProduct);
 
       const principalSales = await queryExternalPG(`
