@@ -83,7 +83,7 @@ function calcMetrics(data: SummaryData | undefined, showLeads = false, hideCoPro
 
     return {
       gastoMeta, impostoMeta, totalGasto, receitaBruta, receitaLiquida, vendasAprovadas, vendasBump,
-      taxaFixa, custoManychat, coProdutor, taxaGreen, lucro, roi, diasAtivos,
+      taxaFixa, custoManychat, coProdutor, taxaGreen, taxaTmb, lucro, roi, diasAtivos,
       cac, cacClient, cpc, ctr, cpm, taxaCarregamento, taxaConversaoPagina, taxaConversaoCheckout,
       thumbStopRate, receitaPorVenda, receitaPorVendaLiquida, vendasAprovDia, vendasBumpDia,
       totalLeads, taxaConvPaginaLeads, taxaInicioCheckoutLeads, taxaConvLeads, leadsDia, cpl,
