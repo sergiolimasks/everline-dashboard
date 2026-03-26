@@ -114,6 +114,7 @@ const PROJECTS: Record<string, ProjectConfig> = {
     bumpProducts: [],
     taxaFixaPorVenda: 0,
     custoManychat: 0,
+    tmbTable: 'uelicon_database.controle_tmb',
     defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%50K-DEZ25%' OR UPPER(campanha) LIKE '%LEADS APLICACAO%' OR UPPER(campanha) LIKE '%LEADS APLICAÇÃO%' OR UPPER(campanha) LIKE '%PRESENCIAL%' OR UPPER(campanha) LIKE '%RMKT FORMACAO%' OR UPPER(campanha) LIKE '%RMKT FORMAÇÃO%')`,
     offerFilters: {
       aplicacao: {
