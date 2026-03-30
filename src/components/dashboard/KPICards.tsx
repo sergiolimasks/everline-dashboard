@@ -347,7 +347,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
     }
   }
 
-  const sparklineConfigs: Record<string, { metricFn: (d: TrafficDaily) => number; format: (v: number) => string; label: string; isValidDay?: (d: TrafficDaily) => boolean; inverted?: boolean; disableEstimation?: boolean; lowOutlierFactor?: number; highOutlierFactor?: number; maxValue?: number }> = {
+  const sparklineConfigs: Record<string, { metricFn: (d: TrafficDaily) => number; format: (v: number) => string; label: string; isValidDay?: (d: TrafficDaily) => boolean; inverted?: boolean; disableEstimation?: boolean; lowOutlierFactor?: number; highOutlierFactor?: number; maxValue?: number; stabilizeLongGaps?: boolean }> = {
     cpc: {
       metricFn: (d) => d.cliques > 0 ? (d.gasto * 1.125) / d.cliques : 0,
       format: formatCurrency,
@@ -459,13 +459,14 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
       lowOutlierFactor: 0.6,
       highOutlierFactor: 1.55,
       maxValue: 1.0,
+      stabilizeLongGaps: true,
     },
   };
 
   function getSparkline(key: string) {
     const cfg = sparklineConfigs[key];
     if (!cfg) return undefined;
-    return <SparklineTooltip dailyData={dailyData} metricFn={cfg.metricFn} formatValue={cfg.format} label={cfg.label} isValidDay={cfg.isValidDay} inverted={cfg.inverted} disableEstimation={cfg.disableEstimation} lowOutlierFactor={cfg.lowOutlierFactor} highOutlierFactor={cfg.highOutlierFactor} maxValue={cfg.maxValue} />;
+    return <SparklineTooltip dailyData={dailyData} metricFn={cfg.metricFn} formatValue={cfg.format} label={cfg.label} isValidDay={cfg.isValidDay} inverted={cfg.inverted} disableEstimation={cfg.disableEstimation} lowOutlierFactor={cfg.lowOutlierFactor} highOutlierFactor={cfg.highOutlierFactor} maxValue={cfg.maxValue} stabilizeLongGaps={cfg.stabilizeLongGaps} />;
   }
 
   return (

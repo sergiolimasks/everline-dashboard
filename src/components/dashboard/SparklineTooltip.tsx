@@ -19,6 +19,8 @@ interface SparklineTooltipProps {
   highOutlierFactor?: number;
   /** Max value cap (e.g., 1.0 for percentages that can't exceed 100%) */
   maxValue?: number;
+  /** Smooth long estimated gaps so they stay aligned with surrounding real values */
+  stabilizeLongGaps?: boolean;
 }
 
 function formatDayLabel(dia: string) {
@@ -39,9 +41,10 @@ function interpolateGaps(
     disableEstimation?: boolean;
     lowOutlierFactor?: number;
     highOutlierFactor?: number;
+    stabilizeLongGaps?: boolean;
   }
 ): { dia: string; value: number; estimated: boolean }[] {
-  const { disableEstimation = false, lowOutlierFactor = 0, highOutlierFactor = 4 } = options || {};
+  const { disableEstimation = false, lowOutlierFactor = 0, highOutlierFactor = 4, stabilizeLongGaps = true } = options || {};
 
   if (disableEstimation) {
     return data.map((d) => ({ dia: d.dia, value: d.value, estimated: false }));
@@ -120,13 +123,17 @@ function interpolateGaps(
         const progress = (offset + 1) / (segmentLength + 1);
         estimated = startVal + (endVal - startVal) * progress;
 
-        if (sameAnchors) {
+        if (sameAnchors && !(stabilizeLongGaps && segmentLength >= 4)) {
           const direction = offset % 2 === 0 ? -1 : 1;
           estimated = estimated * (1 + direction * 0.015);
         }
       } else {
-        const direction = offset % 2 === 0 ? -1 : 1;
-        estimated = fallback * (1 + direction * 0.015);
+        if (stabilizeLongGaps && segmentLength >= 4) {
+          estimated = fallback;
+        } else {
+          const direction = offset % 2 === 0 ? -1 : 1;
+          estimated = fallback * (1 + direction * 0.015);
+        }
       }
 
       result[start + offset] = {
@@ -152,7 +159,7 @@ function CustomTooltipContent({ active, payload, avg, formatValue }: any) {
     <div className="bg-popover border border-border rounded-md px-2.5 py-1.5 shadow-lg text-[10px]">
       <p className="font-semibold text-foreground mb-0.5">
         {formatDayLabel(dia)}
-        {estimated && <span className="ml-1 text-yellow-400">≈ estimado</span>}
+        {estimated && <span className="ml-1 text-chart-yellow">≈ estimado</span>}
       </p>
       <p className="text-foreground">Valor: <span className="font-medium">{formatValue(value)}</span></p>
       <p className="text-muted-foreground">Média: <span className="font-medium">{formatValue(avg)}</span></p>
@@ -163,7 +170,19 @@ function CustomTooltipContent({ active, payload, avg, formatValue }: any) {
   );
 }
 
-export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isValidDay, inverted = false, disableEstimation = false, lowOutlierFactor = 0, highOutlierFactor = 4, maxValue }: SparklineTooltipProps) {
+export function SparklineTooltip({
+  dailyData,
+  metricFn,
+  formatValue,
+  label,
+  isValidDay,
+  inverted = false,
+  disableEstimation = false,
+  lowOutlierFactor = 0,
+  highOutlierFactor = 4,
+  maxValue,
+  stabilizeLongGaps = true,
+}: SparklineTooltipProps) {
   if (!dailyData || dailyData.length === 0) {
     return (
       <div className="w-72 max-w-full p-3">
@@ -185,16 +204,17 @@ export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isVa
     disableEstimation,
     lowOutlierFactor,
     highOutlierFactor,
+    stabilizeLongGaps,
   });
   if (maxValue !== undefined) {
-    chartData = chartData.map(d => ({ ...d, value: Math.min(d.value, maxValue) }));
+    chartData = chartData.map((d) => ({ ...d, value: Math.min(d.value, maxValue) }));
   }
-  const realValues = chartData.filter(d => !d.estimated).map(d => d.value);
+  const realValues = chartData.filter((d) => !d.estimated).map((d) => d.value);
   const avg = realValues.length > 0
     ? realValues.reduce((s, v) => s + v, 0) / realValues.length
     : chartData.reduce((s, d) => s + d.value, 0) / chartData.length;
 
-  const estimatedCount = chartData.filter(d => d.estimated).length;
+  const estimatedCount = chartData.filter((d) => d.estimated).length;
 
   return (
     <div className="w-80 max-w-full p-3" onClick={(e) => e.stopPropagation()}>
@@ -229,7 +249,7 @@ export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isVa
                       cx={cx}
                       cy={cy}
                       r={3}
-                      fill="hsl(45, 93%, 47%)"
+                      fill="hsl(var(--chart-yellow))"
                       stroke="hsl(var(--card))"
                       strokeWidth={1.5}
                     />
@@ -273,7 +293,7 @@ export function SparklineTooltip({ dailyData, metricFn, formatValue, label, isVa
         <span className="flex items-center gap-1"><span className={`w-2 h-2 rounded-full inline-block ${inverted ? 'bg-destructive' : 'bg-primary'}`} /> Acima</span>
         <span className="flex items-center gap-1"><span className={`w-2 h-2 rounded-full inline-block ${inverted ? 'bg-primary' : 'bg-destructive'}`} /> Abaixo</span>
         {estimatedCount > 0 && (
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full inline-block" style={{ background: 'hsl(45, 93%, 47%)' }} /> Estimado</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full inline-block" style={{ background: 'hsl(var(--chart-yellow))' }} /> Estimado</span>
         )}
       </div>
     </div>
