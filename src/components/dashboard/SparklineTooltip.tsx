@@ -19,6 +19,8 @@ interface SparklineTooltipProps {
   highOutlierFactor?: number;
   /** Max value cap (e.g., 1.0 for percentages that can't exceed 100%) */
   maxValue?: number;
+  /** Smooth long estimated gaps so they stay aligned with surrounding real values */
+  stabilizeLongGaps?: boolean;
 }
 
 function formatDayLabel(dia: string) {
