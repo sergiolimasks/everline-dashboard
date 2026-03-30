@@ -459,6 +459,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
       lowOutlierFactor: 0.6,
       highOutlierFactor: 1.55,
       maxValue: 1.0,
+      stabilizeLongGaps: true,
     },
   };
 
