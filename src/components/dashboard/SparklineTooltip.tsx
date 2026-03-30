@@ -123,13 +123,17 @@ function interpolateGaps(
         const progress = (offset + 1) / (segmentLength + 1);
         estimated = startVal + (endVal - startVal) * progress;
 
-        if (sameAnchors) {
+        if (sameAnchors && !(stabilizeLongGaps && segmentLength >= 4)) {
           const direction = offset % 2 === 0 ? -1 : 1;
           estimated = estimated * (1 + direction * 0.015);
         }
       } else {
-        const direction = offset % 2 === 0 ? -1 : 1;
-        estimated = fallback * (1 + direction * 0.015);
+        if (stabilizeLongGaps && segmentLength >= 4) {
+          estimated = fallback;
+        } else {
+          const direction = offset % 2 === 0 ? -1 : 1;
+          estimated = fallback * (1 + direction * 0.015);
+        }
       }
 
       result[start + offset] = {
