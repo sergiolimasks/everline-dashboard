@@ -21,6 +21,8 @@ interface KPICardsProps {
   comparison14d?: SummaryData;
   trafficDaily?: TrafficDaily[];
   salesDaily?: SalesDaily[];
+  rangeTrafficDaily?: TrafficDaily[];
+  rangeSalesDaily?: SalesDaily[];
   isSingleDay?: boolean;
   clientView?: boolean;
   showLeads?: boolean;
@@ -220,7 +222,7 @@ function KPICard({
   return cardContent;
 }
 
-export function KPICards({ data, isLoading, comparison7d, comparison14d, trafficDaily, salesDaily, isSingleDay = false, clientView = false, showLeads = false, hideCoProdutor = false, dateFrom, dateTo }: KPICardsProps) {
+export function KPICards({ data, isLoading, comparison7d, comparison14d, trafficDaily, salesDaily, rangeTrafficDaily, rangeSalesDaily, isSingleDay = false, clientView = false, showLeads = false, hideCoProdutor = false, dateFrom, dateTo }: KPICardsProps) {
   const [showDetails, setShowDetails] = useState(false);
 
   const current = calcMetrics(data, showLeads, hideCoProdutor);
@@ -339,6 +341,8 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
 
   // Sparkline metric extractors for traffic daily
   const dailyData = trafficDaily || [];
+  const rangeDailyData = rangeTrafficDaily || dailyData;
+  const rangeSalesData = rangeSalesDaily || salesDaily;
 
   // Build a map of salesDaily by date for merging with traffic data
   const salesByDate = new Map<string, SalesDaily>();
@@ -348,14 +352,14 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
     }
   }
 
-  const estimatedCheckoutByDate = estimateCheckoutSeries(dailyData, salesDaily);
+  const estimatedCheckoutByDate = estimateCheckoutSeries(rangeDailyData, rangeSalesData);
   const getAdjustedCheckouts = (d: TrafficDaily) => getEstimatedCheckoutsForDay(estimatedCheckoutByDate, d);
 
-  if (current && !showLeads && dateFrom && dateTo && dailyData.length > 0) {
-    const inRangeDaily = dailyData.filter((d) => isDateInRange(d.dia, dateFrom, dateTo));
+  if (current && !showLeads && dateFrom && dateTo && rangeDailyData.length > 0) {
+    const inRangeDaily = rangeDailyData.filter((d) => isDateInRange(d.dia, dateFrom, dateTo));
     if (inRangeDaily.length > 0) {
-      const totalViewsInRange = inRangeDaily.reduce((sum, d) => sum + Number(d.views_pagina || 0), 0);
-      const totalLeadsInRange = inRangeDaily.reduce((sum, d) => sum + Number(d.leads || 0), 0);
+      const totalViewsInRange = Number(data?.traffic?.total_views || 0);
+      const totalLeadsInRange = Number(data?.traffic?.total_leads || 0);
       const totalCheckoutsInRange = inRangeDaily.reduce((sum, d) => sum + getAdjustedCheckouts(d), 0);
 
       current.taxaConversaoPagina = totalViewsInRange > 0 ? totalCheckoutsInRange / totalViewsInRange : 0;
