@@ -347,7 +347,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
     }
   }
 
-  const sparklineConfigs: Record<string, { metricFn: (d: TrafficDaily) => number; format: (v: number) => string; label: string; isValidDay?: (d: TrafficDaily) => boolean; inverted?: boolean; disableEstimation?: boolean; lowOutlierFactor?: number; highOutlierFactor?: number; maxValue?: number }> = {
+  const sparklineConfigs: Record<string, { metricFn: (d: TrafficDaily) => number; format: (v: number) => string; label: string; isValidDay?: (d: TrafficDaily) => boolean; inverted?: boolean; disableEstimation?: boolean; lowOutlierFactor?: number; highOutlierFactor?: number; maxValue?: number; stabilizeLongGaps?: boolean }> = {
     cpc: {
       metricFn: (d) => d.cliques > 0 ? (d.gasto * 1.125) / d.cliques : 0,
       format: formatCurrency,

@@ -41,9 +41,10 @@ function interpolateGaps(
     disableEstimation?: boolean;
     lowOutlierFactor?: number;
     highOutlierFactor?: number;
+    stabilizeLongGaps?: boolean;
   }
 ): { dia: string; value: number; estimated: boolean }[] {
-  const { disableEstimation = false, lowOutlierFactor = 0, highOutlierFactor = 4 } = options || {};
+  const { disableEstimation = false, lowOutlierFactor = 0, highOutlierFactor = 4, stabilizeLongGaps = true } = options || {};
 
   if (disableEstimation) {
     return data.map((d) => ({ dia: d.dia, value: d.value, estimated: false }));
