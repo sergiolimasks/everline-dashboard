@@ -1,5 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from "recharts";
 import type { TrafficDaily, SalesDaily, SummaryData } from "@/lib/dashboard-api";
+import { estimateCheckoutSeries, getEstimatedCheckoutsForDay, isDateInRange } from "@/lib/checkout-estimation";
 
 interface TrafficChartProps {
   data: TrafficDaily[] | undefined;
@@ -7,6 +8,8 @@ interface TrafficChartProps {
   summaryData?: SummaryData;
   isLoading: boolean;
   showLeads?: boolean;
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 function formatNumber(value: number) {
@@ -27,7 +30,7 @@ const FUNNEL_COLORS_LEADS = [
   'hsl(160, 84%, 44%)',   // Vendas
 ];
 
-export function TrafficChart({ data, salesData, isLoading, summaryData, showLeads = false }: TrafficChartProps) {
+export function TrafficChart({ data, salesData, isLoading, summaryData, showLeads = false, dateFrom, dateTo }: TrafficChartProps) {
   if (isLoading) {
     return (
       <div className="chart-container">
@@ -42,6 +45,14 @@ export function TrafficChart({ data, salesData, isLoading, summaryData, showLead
   const totalCheckouts = Number(summaryData?.traffic?.total_checkouts || 0);
   const totalVendas = Number(summaryData?.sales?.vendas_aprovadas || 0);
   const totalLeads = Number(summaryData?.traffic?.total_leads || 0);
+
+  const estimatedCheckoutByDate = estimateCheckoutSeries(data, salesData);
+  const adjustedTotalCheckouts = !showLeads && data && data.length > 0
+    ? data
+        .filter((d) => isDateInRange(d.dia, dateFrom, dateTo))
+        .reduce((sum, d) => sum + getEstimatedCheckoutsForDay(estimatedCheckoutByDate, d), 0)
+    : 0;
+  const effectiveTotalCheckouts = !showLeads && adjustedTotalCheckouts > 0 ? adjustedTotalCheckouts : totalCheckouts;
 
   let funnelData: Array<{ etapa: string; valor: number; taxaAnterior: string; pctTopo: string }>;
 
@@ -58,8 +69,8 @@ export function TrafficChart({ data, salesData, isLoading, summaryData, showLead
     funnelData = [
       { etapa: 'Cliques Link', valor: totalCliquesLink, taxaAnterior: '', pctTopo: '' },
       { etapa: 'Views Página', valor: totalViews, taxaAnterior: totalCliquesLink > 0 ? ((totalViews / totalCliquesLink) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalViews / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
-      { etapa: 'Iniciou Checkout', valor: totalCheckouts, taxaAnterior: totalViews > 0 ? ((totalCheckouts / totalViews) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalCheckouts / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
-      { etapa: 'Vendas', valor: totalVendas, taxaAnterior: totalCheckouts > 0 ? ((totalVendas / totalCheckouts) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalVendas / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
+      { etapa: 'Iniciou Checkout', valor: effectiveTotalCheckouts, taxaAnterior: totalViews > 0 ? ((effectiveTotalCheckouts / totalViews) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((effectiveTotalCheckouts / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
+      { etapa: 'Vendas', valor: totalVendas, taxaAnterior: effectiveTotalCheckouts > 0 ? ((totalVendas / effectiveTotalCheckouts) * 100).toFixed(1) + '%' : '0%', pctTopo: totalCliquesLink > 0 ? ((totalVendas / totalCliquesLink) * 100).toFixed(1) + '%' : '0%' },
     ];
   }
 

@@ -4,6 +4,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { SparklineTooltip } from "@/components/dashboard/SparklineTooltip";
 import type { SummaryData, TrafficDaily, SalesDaily } from "@/lib/dashboard-api";
 import { calcCustoNotificacaoFromDaily } from "@/lib/date-utils";
+import { estimateCheckoutSeries, getEstimatedCheckoutsForDay, isDateInRange } from "@/lib/checkout-estimation";
 
 interface ParcelasData {
   total_parcelas: number;
@@ -347,6 +348,22 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
     }
   }
 
+  const estimatedCheckoutByDate = estimateCheckoutSeries(dailyData, salesDaily);
+  const getAdjustedCheckouts = (d: TrafficDaily) => getEstimatedCheckoutsForDay(estimatedCheckoutByDate, d);
+
+  if (current && !showLeads && dateFrom && dateTo && dailyData.length > 0) {
+    const inRangeDaily = dailyData.filter((d) => isDateInRange(d.dia, dateFrom, dateTo));
+    if (inRangeDaily.length > 0) {
+      const totalViewsInRange = inRangeDaily.reduce((sum, d) => sum + Number(d.views_pagina || 0), 0);
+      const totalLeadsInRange = inRangeDaily.reduce((sum, d) => sum + Number(d.leads || 0), 0);
+      const totalCheckoutsInRange = inRangeDaily.reduce((sum, d) => sum + getAdjustedCheckouts(d), 0);
+
+      current.taxaConversaoPagina = totalViewsInRange > 0 ? totalCheckoutsInRange / totalViewsInRange : 0;
+      current.taxaConversaoCheckout = totalCheckoutsInRange > 0 ? current.vendasAprovadas / totalCheckoutsInRange : 0;
+      current.taxaInicioCheckoutLeads = totalLeadsInRange > 0 ? totalCheckoutsInRange / totalLeadsInRange : 0;
+    }
+  }
+
   const sparklineConfigs: Record<string, { metricFn: (d: TrafficDaily) => number; format: (v: number) => string; label: string; isValidDay?: (d: TrafficDaily) => boolean; inverted?: boolean; disableEstimation?: boolean; lowOutlierFactor?: number; highOutlierFactor?: number; maxValue?: number; stabilizeLongGaps?: boolean }> = {
     cpc: {
       metricFn: (d) => d.cliques > 0 ? (d.gasto * 1.125) / d.cliques : 0,
@@ -389,18 +406,24 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
       maxValue: 1.0,
     },
     taxaConversaoPagina: {
-      metricFn: (d) => d.views_pagina > 0 ? d.checkouts / d.views_pagina : 0,
+      metricFn: (d) => {
+        const adjustedCheckouts = getAdjustedCheckouts(d);
+        return d.views_pagina > 0 ? adjustedCheckouts / d.views_pagina : 0;
+      },
       format: formatPercent,
       label: "Iniciou Checkout",
-      isValidDay: (d) => d.views_pagina > 0 && d.checkouts > 0,
+      isValidDay: (d) => d.views_pagina > 0 && getAdjustedCheckouts(d) > 0,
       lowOutlierFactor: 0.45,
       maxValue: 1.0,
     },
     taxaInicioCheckoutLeads: {
-      metricFn: (d) => (d.leads || 0) > 0 ? d.checkouts / (d.leads || 1) : 0,
+      metricFn: (d) => {
+        const adjustedCheckouts = getAdjustedCheckouts(d);
+        return (d.leads || 0) > 0 ? adjustedCheckouts / (d.leads || 1) : 0;
+      },
       format: formatPercent,
       label: "Iniciou Checkout (de Leads)",
-      isValidDay: (d) => (d.leads || 0) > 0 && d.checkouts > 0,
+      isValidDay: (d) => (d.leads || 0) > 0 && getAdjustedCheckouts(d) > 0,
       lowOutlierFactor: 0.45,
       maxValue: 1.0,
     },
@@ -432,7 +455,8 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
     },
     taxaConversaoCheckout: {
       metricFn: (d) => {
-        if (d.checkouts <= 0) return 0;
+        const adjustedCheckouts = getAdjustedCheckouts(d);
+        if (adjustedCheckouts <= 0) return 0;
 
         const dateKey = String(d.dia).slice(0, 10);
         const sale = salesByDate.get(dateKey);
@@ -442,19 +466,20 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
         }
 
         if (sale) {
-          return sale.vendas_aprovadas / d.checkouts;
+          return sale.vendas_aprovadas / adjustedCheckouts;
         }
 
-        return d.compras / d.checkouts;
+        return d.compras / adjustedCheckouts;
       },
       format: formatPercent,
       label: "Tx Conv. Checkout",
       isValidDay: (d) => {
+        const adjustedCheckouts = getAdjustedCheckouts(d);
         const dateKey = String(d.dia).slice(0, 10);
         const sale = salesByDate.get(dateKey);
-        if (isSingleDay && dateKey === String(dailyData[dailyData.length - 1]?.dia).slice(0, 10)) return d.checkouts > 0;
-        if (sale) return d.checkouts > 0 && sale.vendas_aprovadas > 0;
-        return d.checkouts > 0 && d.compras > 0;
+        if (isSingleDay && dateKey === String(dailyData[dailyData.length - 1]?.dia).slice(0, 10)) return adjustedCheckouts > 0;
+        if (sale) return adjustedCheckouts > 0 && sale.vendas_aprovadas > 0;
+        return adjustedCheckouts > 0 && d.compras > 0;
       },
       lowOutlierFactor: 0.6,
       highOutlierFactor: 1.55,
