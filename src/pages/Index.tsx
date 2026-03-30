@@ -188,7 +188,7 @@ const Index = ({ clientView = false, projectKey = 'checkup' }: IndexProps) => {
         {/* Charts Row */}
         {!clientView && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <TrafficChart data={trafficDaily} salesData={salesDaily} isLoading={loadingTraffic} summaryData={summary} showLeads={config.showLeads} />
+            <TrafficChart data={trafficDaily} salesData={salesDaily} isLoading={loadingTraffic} summaryData={summary} showLeads={config.showLeads} dateFrom={dateFrom} dateTo={dateTo} />
             <SalesChart data={salesDaily} isLoading={loadingSales} />
           </div>
         )}
