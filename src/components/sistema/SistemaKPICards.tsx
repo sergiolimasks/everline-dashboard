@@ -46,7 +46,7 @@ export function SistemaKPICards({ data, isLoading, clientView = false }: { data:
     { label: 'Impressões', value: formatNumber(data.totalImpressoes), icon: Eye, accent: 'text-muted-foreground' },
   ];
 
-  const clientKeys = ['Leads', 'Investimento', 'CPL'];
+  const clientKeys = ['Leads', 'Investimento', 'CPL', 'Preço de Venda'];
   const cards = clientView ? allCards.filter(c => clientKeys.includes(c.label)) : allCards;
 
   return (
