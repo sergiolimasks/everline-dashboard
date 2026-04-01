@@ -10,14 +10,12 @@ const corsHeaders = {
 const APPROVED_STATUSES = `('paid','Paid','approved','Aprovada','aprovada','Completa','completa')`;
 
 async function queryExternalPG(sql: string, params: unknown[] = []) {
-  const client = new Client({
-    hostname: "72.60.51.200",
-    port: 5432,
-    database: "postgres",
-    user: "postgres",
-    password: "REDACTED_PG_PASS",
-    tls: { enabled: false },
-  });
+  const connectionString = Deno.env.get("EXTERNAL_PG_CONNECTION_STRING");
+  if (!connectionString) {
+    throw new Error("Missing EXTERNAL_PG_CONNECTION_STRING secret");
+  }
+
+  const client = new Client(connectionString);
   await client.connect();
   try {
     const result = await client.queryObject(sql, params);
@@ -46,6 +44,7 @@ interface ProjectConfig {
   taxaFixaPorVenda: number;
   custoManychat: number;
   defaultMetaWhere: string;
+  metaAccountWhere?: string;
   offerFilters: Record<string, OfferFilters>;
   leadConfigs: LeadTableConfig[];
   tmbTable?: string; // optional TMB sales table
@@ -188,6 +187,7 @@ const PROJECTS: Record<string, ProjectConfig> = {
     bumpProducts: [],
     taxaFixaPorVenda: 0,
     custoManychat: 0,
+    metaAccountWhere: ` AND conta = '1923955018204700'`,
     defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%INSTAGRAM C1%' OR UPPER(campanha) LIKE '%INSTAGRAM C2%' OR UPPER(campanha) LIKE '%INSTAGRAM C3%')`,
     offerFilters: {
       'c1': {
@@ -247,6 +247,10 @@ function getOfferFiltersForProject(config: ProjectConfig, offer: string): OfferF
     principalProduct: '',
     useEmailLinkedBumps: false,
   };
+}
+
+function buildMetaWhereClause(config: ProjectConfig, dateFilter: string, metaFilter: string): string {
+  return `WHERE 1=1 ${dateFilter} ${metaFilter}${config.metaAccountWhere || ''} ${UNPAID_EXCLUSIONS}`;
 }
 
 // All principal products across ALL projects (for panel view)
@@ -478,7 +482,7 @@ async function queryAttribution(config: ProjectConfig, params: string[]): Promis
       const sourceName = filters.leadSources[0];
       const dateFilter = params.length >= 2 ? ` AND data::date >= $1 AND data::date <= $2` : '';
       const rows = await queryExternalPG(
-        `SELECT COALESCE(SUM(gasto), 0) as total_gasto FROM ${config.metaTable} WHERE 1=1 ${dateFilter} ${filters.metaWhere} ${UNPAID_EXCLUSIONS}`,
+        `SELECT COALESCE(SUM(gasto), 0) as total_gasto FROM ${config.metaTable} ${buildMetaWhereClause(config, dateFilter, filters.metaWhere)}`,
         params
       );
       const gasto = Number((rows[0] as any)?.total_gasto || 0) * 1.125; // +12.5% tax
@@ -750,7 +754,7 @@ serve(async (req) => {
           SUM(views_3s) as views_3s,
           COALESCE(SUM(leads), 0) as meta_leads
         FROM ${config.metaTable}
-        WHERE 1=1 ${dateFilter} ${metaFilter} ${UNPAID_EXCLUSIONS}
+        ${buildMetaWhereClause(config, dateFilter, metaFilter)}
         GROUP BY data::date
         ORDER BY data::date DESC
       `, params);
@@ -856,7 +860,7 @@ serve(async (req) => {
           SUM(views_3s) as total_views_3s,
           COUNT(DISTINCT data::date) as dias_ativos
         FROM ${config.metaTable}
-        WHERE 1=1 ${dateFilter} ${metaFilter} ${UNPAID_EXCLUSIONS}
+        ${buildMetaWhereClause(config, dateFilter, metaFilter)}
       `, params);
 
       const salesDateFilter = dateFrom && dateTo
@@ -1004,7 +1008,7 @@ serve(async (req) => {
           CASE WHEN SUM(impressoes) > 0 THEN SUM(views_3s)::numeric / SUM(impressoes) ELSE 0 END as tsr,
           CASE WHEN BOOL_OR(UPPER(status_campanha) = 'ACTIVE') THEN 'ACTIVE' ELSE MAX(status_campanha) END as status
         FROM ${config.metaTable}
-        WHERE 1=1 ${dateFilter} ${metaFilter} ${UNPAID_EXCLUSIONS}
+        ${buildMetaWhereClause(config, dateFilter, metaFilter)}
         GROUP BY campanha
         ORDER BY SUM(gasto) DESC
       `, params);
@@ -1032,7 +1036,7 @@ serve(async (req) => {
           CASE WHEN SUM(impressoes) > 0 THEN (SUM(gasto) / SUM(impressoes)) * 1000 ELSE 0 END as cpm,
           CASE WHEN BOOL_OR(UPPER(status_anuncio) = 'ACTIVE') THEN 'ACTIVE' ELSE MAX(status_anuncio) END as status
         FROM ${config.metaTable}
-        WHERE 1=1 ${dateFilter} ${metaFilter} ${UNPAID_EXCLUSIONS}
+        ${buildMetaWhereClause(config, dateFilter, metaFilter)}
         GROUP BY anuncio
         ORDER BY SUM(gasto) DESC
       `, params);
