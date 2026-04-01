@@ -187,32 +187,34 @@ function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, d
         <h2 className="text-xl font-bold font-display text-foreground">{client.name}</h2>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        {kpis.map((kpi) => {
-          const card = (
-            <div className={`rounded-xl border border-border bg-card p-4 space-y-2 ${kpi.tooltip ? "cursor-pointer" : ""}`}>
-              <div className="flex items-center gap-2">
-                <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
-                <p className="text-xs text-muted-foreground truncate">{kpi.label}</p>
+      {hasSalesDashboards && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {kpis.map((kpi) => {
+            const card = (
+              <div className={`rounded-xl border border-border bg-card p-4 space-y-2 ${kpi.tooltip ? "cursor-pointer" : ""}`}>
+                <div className="flex items-center gap-2">
+                  <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
+                  <p className="text-xs text-muted-foreground truncate">{kpi.label}</p>
+                </div>
+                <p className={`text-lg font-bold ${kpi.color}`}>
+                  {isLoading ? "..." : kpi.value}
+                </p>
               </div>
-              <p className={`text-lg font-bold ${kpi.color}`}>
-                {isLoading ? "..." : kpi.value}
-              </p>
-            </div>
-          );
-
-          if (kpi.tooltip) {
-            return (
-              <HoverCard key={kpi.label} openDelay={100} closeDelay={100}>
-                <HoverCardTrigger asChild>{card}</HoverCardTrigger>
-                <HoverCardContent className="w-72">{kpi.tooltip}</HoverCardContent>
-              </HoverCard>
             );
-          }
 
-          return <div key={kpi.label}>{card}</div>;
-        })}
-      </div>
+            if (kpi.tooltip) {
+              return (
+                <HoverCard key={kpi.label} openDelay={100} closeDelay={100}>
+                  <HoverCardTrigger asChild>{card}</HoverCardTrigger>
+                  <HoverCardContent className="w-72">{kpi.tooltip}</HoverCardContent>
+                </HoverCard>
+              );
+            }
+
+            return <div key={kpi.label}>{card}</div>;
+          })}
+        </div>
+      )}
 
       <div className="space-y-2">
         <p className="text-sm font-medium text-muted-foreground">Relatórios</p>
