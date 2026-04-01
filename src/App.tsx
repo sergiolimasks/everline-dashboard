@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Panel from "./pages/Panel";
 import Index from "./pages/Index";
 import SistemaLeads from "./pages/SistemaLeads";
+import Distribuicao from "./pages/Distribuicao";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
