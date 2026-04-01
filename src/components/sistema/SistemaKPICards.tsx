@@ -32,11 +32,13 @@ export function SistemaKPICards({ data, isLoading, clientView = false }: { data:
   const cpc = data.totalCliquesLink > 0 ? data.totalGasto / data.totalCliquesLink : 0;
   const ctr = data.totalImpressoes > 0 ? (data.totalCliquesLink / data.totalImpressoes) * 100 : 0;
   const taxaConversao = data.totalCliquesLink > 0 ? (data.totalLeads / data.totalCliquesLink) * 100 : 0;
+  const precoVenda = cpl * 2;
 
   const allCards = [
     { label: 'Leads', value: formatNumber(data.totalLeads), icon: Users, accent: 'text-primary' },
     { label: 'Investimento', value: formatCurrency(data.totalGasto), icon: DollarSign, accent: 'text-destructive' },
     { label: 'CPL', value: formatCurrency(cpl), icon: DollarSign, accent: 'text-accent-foreground' },
+    { label: 'Preço de Venda', value: formatCurrency(precoVenda), icon: DollarSign, accent: 'text-primary' },
     { label: 'CPC', value: formatCurrency(cpc), icon: MousePointerClick, accent: 'text-muted-foreground' },
     { label: 'CTR', value: `${ctr.toFixed(2)}%`, icon: MousePointerClick, accent: 'text-primary' },
     { label: 'Taxa Conversão', value: `${taxaConversao.toFixed(2)}%`, icon: Eye, accent: 'text-primary' },
@@ -44,7 +46,7 @@ export function SistemaKPICards({ data, isLoading, clientView = false }: { data:
     { label: 'Impressões', value: formatNumber(data.totalImpressoes), icon: Eye, accent: 'text-muted-foreground' },
   ];
 
-  const clientKeys = ['Leads', 'Investimento', 'CPL'];
+  const clientKeys = ['Leads', 'Investimento', 'CPL', 'Preço de Venda'];
   const cards = clientView ? allCards.filter(c => clientKeys.includes(c.label)) : allCards;
 
   return (
