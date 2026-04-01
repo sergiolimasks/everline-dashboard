@@ -104,7 +104,7 @@ export function DistribuicaoCampaignsTable({ data, isLoading }: { data: Campaign
               <td className="text-right font-display">{formatCurrency(totals.gasto)}</td>
               <td className="text-right">{formatNumber(totals.impressoes)}</td>
               <td className="text-right">{formatNumber(totals.alcance)}</td>
-              <td className="text-right">{formatNumber(totals.cliquesLink)}</td>
+              <td className="text-right">{formatNumber(totals.cliques)}</td>
               <td className="text-right">{formatCurrency(totalCpc)}</td>
               <td className="text-right">{formatCurrency(totalCpm)}</td>
               <td className="text-right">{totalTsr.toFixed(2)}%</td>
