@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Panel from "./pages/Panel";
 import Index from "./pages/Index";
+import SistemaLeads from "./pages/SistemaLeads";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -35,6 +36,8 @@ const App = () => (
             <Route path="/interno/uelicon/formacao-consultor" element={<ProtectedRoute adminOnly><Index projectKey="formacao-consultor" /></ProtectedRoute>} />
             <Route path="/cliente/:slug/checkup-performance" element={<ProtectedRoute><Index clientView /></ProtectedRoute>} />
             <Route path="/cliente/:slug/formacao-consultor" element={<ProtectedRoute><Index clientView projectKey="formacao-consultor" /></ProtectedRoute>} />
+            <Route path="/interno/uelicon/sistema-leads" element={<ProtectedRoute adminOnly><SistemaLeads /></ProtectedRoute>} />
+            <Route path="/cliente/:slug/sistema-leads" element={<ProtectedRoute><SistemaLeads /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

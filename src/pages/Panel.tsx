@@ -217,6 +217,8 @@ function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, d
             // Map offer_slug to dashboard route
             const dashboardPath = offer.offer_slug === 'formacao-consultor'
               ? 'formacao-consultor'
+              : offer.offer_slug === 'sistema-leads'
+              ? 'sistema-leads'
               : 'checkup-performance';
             const reportHref = clientView
               ? `/cliente/${client.slug}/${dashboardPath}`
