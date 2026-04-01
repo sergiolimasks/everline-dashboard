@@ -219,6 +219,8 @@ function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, d
               ? 'formacao-consultor'
               : offer.offer_slug === 'sistema-leads'
               ? 'sistema-leads'
+              : offer.offer_slug === 'distribuicao'
+              ? 'distribuicao'
               : 'checkup-performance';
             const reportHref = clientView
               ? `/cliente/${client.slug}/${dashboardPath}`
