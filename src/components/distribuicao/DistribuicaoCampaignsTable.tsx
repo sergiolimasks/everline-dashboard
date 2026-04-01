@@ -39,7 +39,7 @@ export function DistribuicaoCampaignsTable({ data, isLoading }: { data: Campaign
     return acc;
   }, { gasto: 0, impressoes: 0, alcance: 0, cliques: 0, views3s: 0 });
 
-  const totalCpc = totals.cliquesLink > 0 ? totals.gasto / totals.cliquesLink : 0;
+  const totalCpc = totals.cliques > 0 ? totals.gasto / totals.cliques : 0;
   const totalCpm = totals.impressoes > 0 ? (totals.gasto / totals.impressoes) * 1000 : 0;
   // Weighted average frequency from campaign-level data (matches Meta)
   const totalImpCamp = campaigns.reduce((s, c) => s + Number(c.impressoes || 0), 0);
