@@ -77,9 +77,21 @@ export function SistemaCreativesTable({ data, isLoading }: { data: AdData[] | un
               return (
                 <tr key={i}>
                   <td className="font-medium max-w-xs">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <StatusIndicator status={a.status} />
-                      <span className="truncate">{a.anuncio}</span>
+                      {a.link ? (
+                        <a
+                          href={a.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-primary hover:text-primary/80 transition-colors"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{a.anuncio}</span>
+                        </a>
+                      ) : (
+                        <span className="truncate">{a.anuncio}</span>
+                      )}
                     </div>
                   </td>
                   <td className="text-right font-display font-semibold">{formatCurrency(gasto)}</td>
@@ -88,15 +100,6 @@ export function SistemaCreativesTable({ data, isLoading }: { data: AdData[] | un
                   <td className="text-right">{ctr.toFixed(2)}%</td>
                   <td className="text-right">{tsr.toFixed(2)}%</td>
                   <td className="text-right">{formatCurrency(cpc)}</td>
-                  <td className="text-center">
-                    {a.link ? (
-                      <a href={a.link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs">
-                        Ver ▸
-                      </a>
-                    ) : (
-                      <span className="text-muted-foreground text-xs">—</span>
-                    )}
-                  </td>
                 </tr>
               );
             })}
