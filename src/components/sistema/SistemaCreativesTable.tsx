@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ExternalLink } from "lucide-react";
 import type { AdData } from "@/lib/dashboard-api";
 
 function formatCurrency(v: number) {
