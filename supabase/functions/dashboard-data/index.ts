@@ -147,6 +147,39 @@ const PROJECTS: Record<string, ProjectConfig> = {
       { table: 'bd_ads_clientes.leads_uelicon_venancio_presencial', dateColumn: '"Data"', countExpression: 'DISTINCT "telefone"', phoneColumn: '"telefone"', sourceName: 'Presencial' },
     ],
   },
+  'sistema-leads': {
+    metaTable: 'bd_ads_clientes.meta_uelicon_venancio',
+    linksTable: 'bd_ads_clientes.meta_uelicon_venancio_links',
+    greenSchema: 'uelicon_database.controle_green',
+    principalProducts: [],
+    bumpProducts: [],
+    taxaFixaPorVenda: 0,
+    custoManychat: 0,
+    defaultMetaWhere: ` AND UPPER(campanha) LIKE '%SISTEMA%'`,
+    offerFilters: {
+      'consulta-form': {
+        metaWhere: ` AND UPPER(campanha) LIKE '%SISTEMA%' AND UPPER(campanha) LIKE '%CONSULTA FORM%'`,
+        principalProduct: '',
+        useEmailLinkedBumps: false,
+      },
+      'consulta-quiz': {
+        metaWhere: ` AND UPPER(campanha) LIKE '%SISTEMA%' AND UPPER(campanha) LIKE '%CONSULTA QUIZ%'`,
+        principalProduct: '',
+        useEmailLinkedBumps: false,
+      },
+      'rating': {
+        metaWhere: ` AND UPPER(campanha) LIKE '%SISTEMA%' AND UPPER(campanha) LIKE '%RATING%'`,
+        principalProduct: '',
+        useEmailLinkedBumps: false,
+      },
+      'limpa-nome': {
+        metaWhere: ` AND UPPER(campanha) LIKE '%SISTEMA%' AND UPPER(campanha) LIKE '%LIMPA NOME%'`,
+        principalProduct: '',
+        useEmailLinkedBumps: false,
+      },
+    },
+    leadConfigs: [],
+  },
 };
 
 // Unpaid account exclusions — these accounts had spend that was NOT actually paid
