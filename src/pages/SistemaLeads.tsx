@@ -22,6 +22,7 @@ const SUB_FILTERS = [
 
 const SistemaLeads = ({ clientView = false }: { clientView?: boolean }) => {
   const navigate = useNavigate();
+  const { slug } = useParams();
   const queryClient = useQueryClient();
   const today = new Date();
   const stateKey = 'report:sistema-leads';

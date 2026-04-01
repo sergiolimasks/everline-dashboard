@@ -20,6 +20,7 @@ const SUB_FILTERS = [
 
 const Distribuicao = ({ clientView = false }: { clientView?: boolean }) => {
   const navigate = useNavigate();
+  const { slug } = useParams();
   const queryClient = useQueryClient();
   const today = new Date();
   const stateKey = 'report:distribuicao';
