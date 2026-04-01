@@ -719,7 +719,8 @@ serve(async (req) => {
           SUM(compras) as compras,
           SUM(valor_compras) as valor_compras,
           SUM(gasto) as gasto,
-          SUM(views_3s) as views_3s
+          SUM(views_3s) as views_3s,
+          COALESCE(SUM(leads), 0) as meta_leads
         FROM ${config.metaTable}
         WHERE 1=1 ${dateFilter} ${metaFilter} ${UNPAID_EXCLUSIONS}
         GROUP BY data::date
@@ -729,7 +730,9 @@ serve(async (req) => {
       const leadsMap = await queryLeadsDaily(filteredConfig, params);
       data = (trafficRows as any[]).map(row => ({
         ...row,
-        leads: leadsMap.get(String(row.dia).slice(0, 10)) || 0,
+        leads: project === 'sistema-leads'
+          ? Number(row.meta_leads || 0)
+          : (leadsMap.get(String(row.dia).slice(0, 10)) || 0),
       }));
 
     } else if (endpoint === 'sales_daily') {
@@ -965,6 +968,7 @@ serve(async (req) => {
           COALESCE(SUM(endform), 0) as endform,
           COALESCE(SUM(lead_aplicacao), 0) as lead_aplicacao,
           COALESCE(SUM(lead_presencial), 0) as lead_presencial,
+          COALESCE(SUM(leads), 0) as meta_leads,
           CASE WHEN SUM(cliques) > 0 THEN SUM(gasto) / SUM(cliques) ELSE 0 END as cpc,
           CASE WHEN SUM(impressoes) > 0 THEN (SUM(gasto) / SUM(impressoes)) * 1000 ELSE 0 END as cpm,
           CASE WHEN BOOL_OR(UPPER(status_campanha) = 'ACTIVE') THEN 'ACTIVE' ELSE MAX(status_campanha) END as status
@@ -990,6 +994,7 @@ serve(async (req) => {
           COALESCE(SUM(endform), 0) as endform,
           COALESCE(SUM(lead_aplicacao), 0) as lead_aplicacao,
           COALESCE(SUM(lead_presencial), 0) as lead_presencial,
+          COALESCE(SUM(leads), 0) as meta_leads,
           CASE WHEN SUM(impressoes) > 0 THEN SUM(cliques)::numeric / SUM(impressoes) ELSE 0 END as ctr,
           CASE WHEN SUM(impressoes) > 0 THEN SUM(views_3s)::numeric / SUM(impressoes) ELSE 0 END as thumb_stop_rate,
           CASE WHEN SUM(cliques) > 0 THEN SUM(gasto) / SUM(cliques) ELSE 0 END as cpc,
