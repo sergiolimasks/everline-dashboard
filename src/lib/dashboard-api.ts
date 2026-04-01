@@ -88,6 +88,7 @@ export interface CampaignData {
   endform?: number;
   lead_aplicacao?: number;
   lead_presencial?: number;
+  meta_leads?: number;
 }
 
 export interface AdData {
@@ -110,6 +111,7 @@ export interface AdData {
   endform?: number;
   lead_aplicacao?: number;
   lead_presencial?: number;
+  meta_leads?: number;
 }
 
 async function fetchDashboard<T>(endpoint: string, dateFrom?: string, dateTo?: string, offer?: string, project?: string): Promise<T[]> {

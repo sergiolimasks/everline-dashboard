@@ -31,7 +31,7 @@ export function SistemaCampaignsTable({ data, isLoading }: { data: CampaignData[
   const hasMore = campaigns.length > INITIAL;
 
   // Use "compras" from Meta as lead count for SISTEMA campaigns
-  const getLeads = (c: CampaignData) => Number(c.compras || 0) + Number(c.endform || 0);
+  const getLeads = (c: CampaignData) => Number(c.meta_leads || 0);
 
   const totals = campaigns.reduce((acc, c) => {
     acc.gasto += Number(c.gasto);

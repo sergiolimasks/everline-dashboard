@@ -54,7 +54,7 @@ const SistemaLeads = () => {
     if (!trafficDaily) return null;
     const filtered = trafficDaily.filter(d => d.dia >= dateFrom && d.dia <= dateTo);
     return {
-      totalLeads: filtered.reduce((s, d) => s + Number(d.compras || 0), 0),
+      totalLeads: filtered.reduce((s, d) => s + Number(d.leads || 0), 0),
       totalGasto: filtered.reduce((s, d) => s + Number(d.gasto || 0), 0),
       totalCliquesLink: filtered.reduce((s, d) => s + Number(d.cliques_link || 0), 0),
       totalImpressoes: filtered.reduce((s, d) => s + Number(d.impressoes || 0), 0),
