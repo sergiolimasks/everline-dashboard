@@ -34,10 +34,10 @@ export function DistribuicaoCampaignsTable({ data, isLoading }: { data: Campaign
     acc.gasto += Number(c.gasto);
     acc.impressoes += Number(c.impressoes);
     acc.alcance += Number(c.alcance);
-    acc.cliquesLink += Number(c.cliques_link);
+    acc.cliques += Number(c.cliques);
     acc.views3s += Number(c.views_3s || 0);
     return acc;
-  }, { gasto: 0, impressoes: 0, alcance: 0, cliquesLink: 0, views3s: 0 });
+  }, { gasto: 0, impressoes: 0, alcance: 0, cliques: 0, views3s: 0 });
 
   const totalCpc = totals.cliquesLink > 0 ? totals.gasto / totals.cliquesLink : 0;
   const totalCpm = totals.impressoes > 0 ? (totals.gasto / totals.impressoes) * 1000 : 0;
