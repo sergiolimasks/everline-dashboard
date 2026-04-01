@@ -34,12 +34,12 @@ export function DistribuicaoCampaignsTable({ data, isLoading }: { data: Campaign
     acc.gasto += Number(c.gasto);
     acc.impressoes += Number(c.impressoes);
     acc.alcance += Number(c.alcance);
-    acc.cliquesLink += Number(c.cliques_link);
+    acc.cliques += Number(c.cliques);
     acc.views3s += Number(c.views_3s || 0);
     return acc;
-  }, { gasto: 0, impressoes: 0, alcance: 0, cliquesLink: 0, views3s: 0 });
+  }, { gasto: 0, impressoes: 0, alcance: 0, cliques: 0, views3s: 0 });
 
-  const totalCpc = totals.cliquesLink > 0 ? totals.gasto / totals.cliquesLink : 0;
+  const totalCpc = totals.cliques > 0 ? totals.gasto / totals.cliques : 0;
   const totalCpm = totals.impressoes > 0 ? (totals.gasto / totals.impressoes) * 1000 : 0;
   // Weighted average frequency from campaign-level data (matches Meta)
   const totalImpCamp = campaigns.reduce((s, c) => s + Number(c.impressoes || 0), 0);
@@ -89,7 +89,7 @@ export function DistribuicaoCampaignsTable({ data, isLoading }: { data: Campaign
                   <td className="text-right font-display font-semibold">{formatCurrency(gasto)}</td>
                   <td className="text-right">{formatNumber(impressoes)}</td>
                   <td className="text-right">{formatNumber(alcance)}</td>
-                  <td className="text-right">{formatNumber(Number(c.cliques_link))}</td>
+                  <td className="text-right">{formatNumber(Number(c.cliques))}</td>
                   <td className="text-right">{formatCurrency(cpc)}</td>
                   <td className="text-right">{formatCurrency(cpm)}</td>
                   <td className="text-right">{tsr.toFixed(2)}%</td>
@@ -104,7 +104,7 @@ export function DistribuicaoCampaignsTable({ data, isLoading }: { data: Campaign
               <td className="text-right font-display">{formatCurrency(totals.gasto)}</td>
               <td className="text-right">{formatNumber(totals.impressoes)}</td>
               <td className="text-right">{formatNumber(totals.alcance)}</td>
-              <td className="text-right">{formatNumber(totals.cliquesLink)}</td>
+              <td className="text-right">{formatNumber(totals.cliques)}</td>
               <td className="text-right">{formatCurrency(totalCpc)}</td>
               <td className="text-right">{formatCurrency(totalCpm)}</td>
               <td className="text-right">{totalTsr.toFixed(2)}%</td>

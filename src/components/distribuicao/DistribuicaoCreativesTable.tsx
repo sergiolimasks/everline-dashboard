@@ -35,12 +35,12 @@ export function DistribuicaoCreativesTable({ data, isLoading }: { data: AdData[]
     acc.gasto += Number(a.gasto);
     acc.impressoes += Number(a.impressoes);
     acc.alcance += Number(a.alcance);
-    acc.cliquesLink += Number(a.cliques_link);
+    acc.cliques += Number(a.cliques);
     acc.views3s += Number(a.views_3s);
     return acc;
-  }, { gasto: 0, impressoes: 0, alcance: 0, cliquesLink: 0, views3s: 0 });
+  }, { gasto: 0, impressoes: 0, alcance: 0, cliques: 0, views3s: 0 });
 
-  const totalCpc = totals.cliquesLink > 0 ? totals.gasto / totals.cliquesLink : 0;
+  const totalCpc = totals.cliques > 0 ? totals.gasto / totals.cliques : 0;
   const totalCpm = totals.impressoes > 0 ? (totals.gasto / totals.impressoes) * 1000 : 0;
   const totalTsr = totals.impressoes > 0 ? (totals.views3s / totals.impressoes) * 100 : 0;
 
