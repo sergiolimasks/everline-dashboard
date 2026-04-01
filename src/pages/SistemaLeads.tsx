@@ -87,7 +87,7 @@ const SistemaLeads = ({ clientView = false }: { clientView?: boolean }) => {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Back + Title */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/painel')} className="shrink-0">
+          <Button variant="ghost" size="icon" onClick={() => navigate(clientView && slug ? `/cliente/${slug}/painel` : '/painel')} className="shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-3xl md:text-4xl font-bold font-display text-primary tracking-tight">
