@@ -570,6 +570,11 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
   function renderClients() {
     if (loading) return <div className="text-center py-12 text-muted-foreground">Carregando...</div>;
     if (clients.length === 0) return <div className="text-center py-12 text-muted-foreground">Nenhum cliente cadastrado.</div>;
+
+    const hasSalesDashboards = clients.some((client) =>
+      client.offers.some((offer) => !["sistema-leads", "distribuicao"].includes(offer.offer_slug))
+    );
+
     return (
       <div className="space-y-8">
         {clients.map((client) => (
@@ -577,7 +582,7 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
             <ClientCard client={client} isAdmin={isAdmin} isGestor={isGestor} clientView={effectiveClientView} dateFrom={dateFrom} dateTo={dateTo} dateLabel={dateLabel} />
           </div>
         ))}
-        <UnpaidAccountsTable />
+        {hasSalesDashboards && <UnpaidAccountsTable />}
       </div>
     );
   }
