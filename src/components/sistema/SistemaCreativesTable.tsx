@@ -63,7 +63,7 @@ export function SistemaCreativesTable({ data, isLoading }: { data: AdData[] | un
               <th className="text-right">CTR</th>
               <th className="text-right">TSR</th>
               <th className="text-right">CPC</th>
-              <th className="text-center">Link</th>
+              
             </tr>
           </thead>
           <tbody>
