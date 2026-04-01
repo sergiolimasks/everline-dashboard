@@ -993,12 +993,15 @@ serve(async (req) => {
           SUM(compras) as compras,
           SUM(valor_compras) as valor_compras,
           SUM(gasto) as gasto,
+          SUM(views_3s) as views_3s,
           COALESCE(SUM(endform), 0) as endform,
           COALESCE(SUM(lead_aplicacao), 0) as lead_aplicacao,
           COALESCE(SUM(lead_presencial), 0) as lead_presencial,
           COALESCE(SUM(leads), 0) as meta_leads,
           CASE WHEN SUM(cliques) > 0 THEN SUM(gasto) / SUM(cliques) ELSE 0 END as cpc,
           CASE WHEN SUM(impressoes) > 0 THEN (SUM(gasto) / SUM(impressoes)) * 1000 ELSE 0 END as cpm,
+          CASE WHEN SUM(alcance) > 0 THEN SUM(impressoes)::numeric / SUM(alcance) ELSE 0 END as frequencia,
+          CASE WHEN SUM(impressoes) > 0 THEN SUM(views_3s)::numeric / SUM(impressoes) ELSE 0 END as tsr,
           CASE WHEN BOOL_OR(UPPER(status_campanha) = 'ACTIVE') THEN 'ACTIVE' ELSE MAX(status_campanha) END as status
         FROM ${config.metaTable}
         WHERE 1=1 ${dateFilter} ${metaFilter} ${UNPAID_EXCLUSIONS}
