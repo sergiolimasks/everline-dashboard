@@ -199,6 +199,18 @@ function getOfferFiltersForProject(config: ProjectConfig, offer: string): OfferF
       isAllNoFilter: true,
     };
   }
+  // Support multi-select offers (comma-separated) with OR logic
+  if (offer && offer !== 'all' && offer.includes(',')) {
+    const keys = offer.split(',').filter(k => config.offerFilters[k]);
+    if (keys.length > 0) {
+      const orClauses = keys.map(k => `(1=1 ${config.offerFilters[k].metaWhere})`);
+      return {
+        metaWhere: ` AND (${orClauses.join(' OR ')})`,
+        principalProduct: '',
+        useEmailLinkedBumps: false,
+      };
+    }
+  }
   if (offer && offer !== 'all' && config.offerFilters[offer]) {
     return config.offerFilters[offer];
   }
