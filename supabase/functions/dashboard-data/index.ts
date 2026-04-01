@@ -289,6 +289,7 @@ function bumpFilter(config: ProjectConfig, productName: string): string {
 function allProductsFilter(config: ProjectConfig, productName: string): string {
   if (!productName) {
     const allNames = [...config.principalProducts, ...config.bumpProducts].map(p => `'${p}'`).join(',');
+    if (!allNames) return `1=0`;
     return `"Nome do produto" IN (${allNames})`;
   }
   return `("Nome do produto" = '${productName}' OR ${bumpFilter(config, productName)})`;
