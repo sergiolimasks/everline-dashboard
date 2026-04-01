@@ -153,7 +153,7 @@ const SistemaLeads = ({ clientView = false }: { clientView?: boolean }) => {
         />
 
         {/* KPIs */}
-        <SistemaKPICards data={kpis} isLoading={loadingTraffic} />
+        <SistemaKPICards data={kpis} isLoading={loadingTraffic} clientView={clientView} />
 
         {/* Chart */}
         <SistemaLeadsChart data={trafficDaily} isLoading={loadingTraffic} dateFrom={dateFrom} dateTo={dateTo} />
