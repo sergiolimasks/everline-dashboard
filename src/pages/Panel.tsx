@@ -100,6 +100,10 @@ function CacTooltip({ gastoMeta, imposto, custoConsultas, custoManychat, gastoTo
 }
 
 function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, dateLabel }: { client: ClientWithOffers; isAdmin: boolean; isGestor?: boolean; clientView?: boolean; dateFrom: string; dateTo: string; dateLabel: string }) {
+  // Check if this client card has any sales-related dashboards (checkup/formacao)
+  const salesSlugs = ['checkup-performance', 'formacao-consultor'];
+  const hasSalesDashboards = client.offers.some(o => salesSlugs.includes(o.offer_slug) || (!['sistema-leads', 'distribuicao'].includes(o.offer_slug)));
+  
   // Fetch per-project summaries to apply correct cost formulas
   const hasCheckup = client.offers.some(o => o.offer_slug !== 'formacao-consultor');
   const hasFormacao = client.offers.some(o => o.offer_slug === 'formacao-consultor');
