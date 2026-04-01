@@ -188,10 +188,10 @@ const PROJECTS: Record<string, ProjectConfig> = {
     bumpProducts: [],
     taxaFixaPorVenda: 0,
     custoManychat: 0,
-    defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%INSTAGRAM C1%' OR UPPER(campanha) LIKE '%INSTAGRAM C2%' OR UPPER(campanha) LIKE '%INSTAGRAM C3%')`,
+    defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%INSTAGRAM C1%' OR UPPER(campanha) LIKE '%INSTAGRAM C2%' OR UPPER(campanha) LIKE '%INSTAGRAM C3%' OR UPPER(campanha) LIKE '%POST DO INSTAGRAM:%')`,
     offerFilters: {
       'c1': {
-        metaWhere: ` AND UPPER(campanha) LIKE '%INSTAGRAM C1%'`,
+        metaWhere: ` AND (UPPER(campanha) LIKE '%INSTAGRAM C1%' OR UPPER(campanha) LIKE '%POST DO INSTAGRAM:%')`,
         principalProduct: '',
         useEmailLinkedBumps: false,
       },
