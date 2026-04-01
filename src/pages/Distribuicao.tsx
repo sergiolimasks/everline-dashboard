@@ -47,16 +47,15 @@ const Distribuicao = ({ clientView = false }: { clientView?: boolean }) => {
   const { data: ads, isLoading: loadingAds } = useAds(dateFrom, dateTo, offerParam, 'distribuicao');
 
   const kpis = useMemo(() => {
-    if (!trafficDaily) return null;
-    const filtered = trafficDaily.filter(d => d.dia >= dateFrom && d.dia <= dateTo);
+    if (!campaigns || campaigns.length === 0) return null;
     return {
-      totalGasto: filtered.reduce((s, d) => s + Number(d.gasto || 0), 0),
-      totalImpressoes: filtered.reduce((s, d) => s + Number(d.impressoes || 0), 0),
-      totalAlcance: filtered.reduce((s, d) => s + Number(d.alcance || 0), 0),
-      totalCliquesLink: filtered.reduce((s, d) => s + Number(d.cliques_link || 0), 0),
-      totalViews3s: filtered.reduce((s, d) => s + Number(d.views_3s || 0), 0),
+      totalGasto: campaigns.reduce((s, c) => s + Number(c.gasto || 0), 0),
+      totalImpressoes: campaigns.reduce((s, c) => s + Number(c.impressoes || 0), 0),
+      totalAlcance: campaigns.reduce((s, c) => s + Number(c.alcance || 0), 0),
+      totalCliquesLink: campaigns.reduce((s, c) => s + Number(c.cliques || 0), 0),
+      totalViews3s: campaigns.reduce((s, c) => s + Number(c.views_3s || 0), 0),
     };
-  }, [trafficDaily, dateFrom, dateTo]);
+  }, [campaigns]);
 
   const toggleFilter = (key: string) => {
     setFilters(current => {
