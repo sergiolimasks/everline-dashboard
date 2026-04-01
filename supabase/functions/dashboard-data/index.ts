@@ -10,14 +10,12 @@ const corsHeaders = {
 const APPROVED_STATUSES = `('paid','Paid','approved','Aprovada','aprovada','Completa','completa')`;
 
 async function queryExternalPG(sql: string, params: unknown[] = []) {
-  const client = new Client({
-    hostname: "72.60.51.200",
-    port: 5432,
-    database: "postgres",
-    user: "postgres",
-    password: "REDACTED_PG_PASS",
-    tls: { enabled: false },
-  });
+  const connectionString = Deno.env.get("EXTERNAL_PG_CONNECTION_STRING");
+  if (!connectionString) {
+    throw new Error("Missing EXTERNAL_PG_CONNECTION_STRING secret");
+  }
+
+  const client = new Client(connectionString);
   await client.connect();
   try {
     const result = await client.queryObject(sql, params);
