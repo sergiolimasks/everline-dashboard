@@ -100,6 +100,10 @@ function CacTooltip({ gastoMeta, imposto, custoConsultas, custoManychat, gastoTo
 }
 
 function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, dateLabel }: { client: ClientWithOffers; isAdmin: boolean; isGestor?: boolean; clientView?: boolean; dateFrom: string; dateTo: string; dateLabel: string }) {
+  // Check if this client card has any sales-related dashboards (checkup/formacao)
+  const salesSlugs = ['checkup-performance', 'formacao-consultor'];
+  const hasSalesDashboards = client.offers.some(o => salesSlugs.includes(o.offer_slug) || (!['sistema-leads', 'distribuicao'].includes(o.offer_slug)));
+  
   // Fetch per-project summaries to apply correct cost formulas
   const hasCheckup = client.offers.some(o => o.offer_slug !== 'formacao-consultor');
   const hasFormacao = client.offers.some(o => o.offer_slug === 'formacao-consultor');
@@ -183,32 +187,34 @@ function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, d
         <h2 className="text-xl font-bold font-display text-foreground">{client.name}</h2>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        {kpis.map((kpi) => {
-          const card = (
-            <div className={`rounded-xl border border-border bg-card p-4 space-y-2 ${kpi.tooltip ? "cursor-pointer" : ""}`}>
-              <div className="flex items-center gap-2">
-                <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
-                <p className="text-xs text-muted-foreground truncate">{kpi.label}</p>
+      {hasSalesDashboards && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {kpis.map((kpi) => {
+            const card = (
+              <div className={`rounded-xl border border-border bg-card p-4 space-y-2 ${kpi.tooltip ? "cursor-pointer" : ""}`}>
+                <div className="flex items-center gap-2">
+                  <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
+                  <p className="text-xs text-muted-foreground truncate">{kpi.label}</p>
+                </div>
+                <p className={`text-lg font-bold ${kpi.color}`}>
+                  {isLoading ? "..." : kpi.value}
+                </p>
               </div>
-              <p className={`text-lg font-bold ${kpi.color}`}>
-                {isLoading ? "..." : kpi.value}
-              </p>
-            </div>
-          );
-
-          if (kpi.tooltip) {
-            return (
-              <HoverCard key={kpi.label} openDelay={100} closeDelay={100}>
-                <HoverCardTrigger asChild>{card}</HoverCardTrigger>
-                <HoverCardContent className="w-72">{kpi.tooltip}</HoverCardContent>
-              </HoverCard>
             );
-          }
 
-          return <div key={kpi.label}>{card}</div>;
-        })}
-      </div>
+            if (kpi.tooltip) {
+              return (
+                <HoverCard key={kpi.label} openDelay={100} closeDelay={100}>
+                  <HoverCardTrigger asChild>{card}</HoverCardTrigger>
+                  <HoverCardContent className="w-72">{kpi.tooltip}</HoverCardContent>
+                </HoverCard>
+              );
+            }
+
+            return <div key={kpi.label}>{card}</div>;
+          })}
+        </div>
+      )}
 
       <div className="space-y-2">
         <p className="text-sm font-medium text-muted-foreground">Relatórios</p>
