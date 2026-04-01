@@ -90,7 +90,7 @@ const SistemaLeads = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-3xl md:text-4xl font-bold font-display text-primary tracking-tight">
-            Sistema — Captação de Leads
+            Sistema — Venda de Leads
           </h1>
         </div>
 
