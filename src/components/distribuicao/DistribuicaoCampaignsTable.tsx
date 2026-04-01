@@ -41,7 +41,11 @@ export function DistribuicaoCampaignsTable({ data, isLoading }: { data: Campaign
 
   const totalCpc = totals.cliquesLink > 0 ? totals.gasto / totals.cliquesLink : 0;
   const totalCpm = totals.impressoes > 0 ? (totals.gasto / totals.impressoes) * 1000 : 0;
-  const totalFreq = totals.alcance > 0 ? totals.impressoes / totals.alcance : 0;
+  // Weighted average frequency from campaign-level data (matches Meta)
+  const totalImpCamp = campaigns.reduce((s, c) => s + Number(c.impressoes || 0), 0);
+  const totalFreq = totalImpCamp > 0
+    ? campaigns.reduce((s, c) => s + Number(c.frequencia || 0) * Number(c.impressoes || 0), 0) / totalImpCamp
+    : 0;
   const totalTsr = totals.impressoes > 0 ? (totals.views3s / totals.impressoes) * 100 : 0;
 
   return (
