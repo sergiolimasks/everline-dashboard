@@ -84,6 +84,9 @@ export interface CampaignData {
   gasto: number;
   cpc: number;
   cpm: number;
+  views_3s?: number;
+  frequencia?: number;
+  tsr?: number;
   status?: string;
   endform?: number;
   lead_aplicacao?: number;
