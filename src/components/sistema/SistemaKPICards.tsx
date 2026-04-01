@@ -32,6 +32,7 @@ export function SistemaKPICards({ data, isLoading, clientView = false }: { data:
   const cpc = data.totalCliquesLink > 0 ? data.totalGasto / data.totalCliquesLink : 0;
   const ctr = data.totalImpressoes > 0 ? (data.totalCliquesLink / data.totalImpressoes) * 100 : 0;
   const taxaConversao = data.totalCliquesLink > 0 ? (data.totalLeads / data.totalCliquesLink) * 100 : 0;
+  const precoVenda = cpl * 2;
 
   const allCards = [
     { label: 'Leads', value: formatNumber(data.totalLeads), icon: Users, accent: 'text-primary' },
