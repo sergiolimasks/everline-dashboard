@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTrafficDaily, useCampaigns, useAds } from "@/hooks/use-dashboard";
 import { usePageScroll, usePageState } from "@/hooks/use-page-state";
 import { formatDateString, getWeekStart } from "@/lib/date-utils";
