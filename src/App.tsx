@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Panel from "./pages/Panel";
 import Index from "./pages/Index";
+import SistemaLeads from "./pages/SistemaLeads";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
