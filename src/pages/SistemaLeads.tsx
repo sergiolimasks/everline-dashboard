@@ -156,7 +156,7 @@ const SistemaLeads = ({ clientView = false }: { clientView?: boolean }) => {
         <SistemaKPICards data={kpis} isLoading={loadingTraffic} clientView={clientView} />
 
         {/* Chart */}
-        {!clientView && <SistemaLeadsChart data={trafficDaily} isLoading={loadingTraffic} dateFrom={dateFrom} dateTo={dateTo} />}
+        <SistemaLeadsChart data={trafficDaily} isLoading={loadingTraffic} dateFrom={dateFrom} dateTo={dateTo} />
 
         {/* Campaigns Table */}
         {!clientView && <SistemaCampaignsTable data={campaigns} isLoading={loadingCampaigns} />}
