@@ -1,4 +1,5 @@
 import { Eye, MousePointerClick, DollarSign, Repeat, Radio } from "lucide-react";
+import type { CampaignData } from "@/lib/dashboard-api";
 
 interface KPIData {
   totalGasto: number;
@@ -16,7 +17,7 @@ function formatNumber(v: number) {
   return v.toLocaleString('pt-BR');
 }
 
-export function DistribuicaoKPICards({ data, isLoading, clientView = false }: { data: KPIData | null; isLoading: boolean; clientView?: boolean }) {
+export function DistribuicaoKPICards({ data, isLoading, clientView = false, campaigns }: { data: KPIData | null; isLoading: boolean; clientView?: boolean; campaigns?: CampaignData[] }) {
   if (isLoading || !data) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -30,7 +31,19 @@ export function DistribuicaoKPICards({ data, isLoading, clientView = false }: { 
   const cpc = data.totalCliquesLink > 0 ? data.totalGasto / data.totalCliquesLink : 0;
   const cpm = data.totalImpressoes > 0 ? (data.totalGasto / data.totalImpressoes) * 1000 : 0;
   const tsr = data.totalImpressoes > 0 ? (data.totalViews3s / data.totalImpressoes) * 100 : 0;
-  const frequencia = data.totalAlcance > 0 ? data.totalImpressoes / data.totalAlcance : 0;
+
+  // Weighted average frequency from campaign-level data (matches Meta's calculation)
+  let frequencia = data.totalAlcance > 0 ? data.totalImpressoes / data.totalAlcance : 0;
+  if (campaigns && campaigns.length > 0) {
+    const totalImpCamp = campaigns.reduce((s, c) => s + Number(c.impressoes || 0), 0);
+    if (totalImpCamp > 0) {
+      frequencia = campaigns.reduce((s, c) => {
+        const imp = Number(c.impressoes || 0);
+        const freq = Number(c.frequencia || 0);
+        return s + freq * imp;
+      }, 0) / totalImpCamp;
+    }
+  }
 
   const allCards = [
     { label: 'Investimento', value: formatCurrency(data.totalGasto), icon: DollarSign, accent: 'text-destructive' },

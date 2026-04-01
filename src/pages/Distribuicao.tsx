@@ -149,7 +149,7 @@ const Distribuicao = ({ clientView = false }: { clientView?: boolean }) => {
         />
 
         {/* KPIs */}
-        <DistribuicaoKPICards data={kpis} isLoading={loadingTraffic} clientView={clientView} />
+        <DistribuicaoKPICards data={kpis} isLoading={loadingTraffic} clientView={clientView} campaigns={campaigns} />
 
         {/* Chart */}
         <DistribuicaoChart data={trafficDaily} isLoading={loadingTraffic} dateFrom={dateFrom} dateTo={dateTo} />
