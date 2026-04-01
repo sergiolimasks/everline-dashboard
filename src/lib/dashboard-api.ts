@@ -88,8 +88,6 @@ export interface CampaignData {
   endform?: number;
   lead_aplicacao?: number;
   lead_presencial?: number;
-}
-
   meta_leads?: number;
 }
 
