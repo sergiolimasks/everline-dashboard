@@ -38,6 +38,7 @@ export function SistemaKPICards({ data, isLoading, clientView = false }: { data:
     { label: 'Leads', value: formatNumber(data.totalLeads), icon: Users, accent: 'text-primary' },
     { label: 'Investimento', value: formatCurrency(data.totalGasto), icon: DollarSign, accent: 'text-destructive' },
     { label: 'CPL', value: formatCurrency(cpl), icon: DollarSign, accent: 'text-accent-foreground' },
+    { label: 'Preço de Venda', value: formatCurrency(precoVenda), icon: DollarSign, accent: 'text-primary' },
     { label: 'CPC', value: formatCurrency(cpc), icon: MousePointerClick, accent: 'text-muted-foreground' },
     { label: 'CTR', value: `${ctr.toFixed(2)}%`, icon: MousePointerClick, accent: 'text-primary' },
     { label: 'Taxa Conversão', value: `${taxaConversao.toFixed(2)}%`, icon: Eye, accent: 'text-primary' },
