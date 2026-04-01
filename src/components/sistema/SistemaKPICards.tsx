@@ -17,7 +17,7 @@ function formatNumber(v: number) {
   return v.toLocaleString('pt-BR');
 }
 
-export function SistemaKPICards({ data, isLoading }: { data: KPIData | null; isLoading: boolean }) {
+export function SistemaKPICards({ data, isLoading, clientView = false }: { data: KPIData | null; isLoading: boolean; clientView?: boolean }) {
   if (isLoading || !data) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -33,7 +33,7 @@ export function SistemaKPICards({ data, isLoading }: { data: KPIData | null; isL
   const ctr = data.totalImpressoes > 0 ? (data.totalCliquesLink / data.totalImpressoes) * 100 : 0;
   const taxaConversao = data.totalCliquesLink > 0 ? (data.totalLeads / data.totalCliquesLink) * 100 : 0;
 
-  const cards = [
+  const allCards = [
     { label: 'Leads', value: formatNumber(data.totalLeads), icon: Users, accent: 'text-primary' },
     { label: 'Investimento', value: formatCurrency(data.totalGasto), icon: DollarSign, accent: 'text-destructive' },
     { label: 'CPL', value: formatCurrency(cpl), icon: DollarSign, accent: 'text-accent-foreground' },
@@ -43,6 +43,9 @@ export function SistemaKPICards({ data, isLoading }: { data: KPIData | null; isL
     { label: 'Cliques no Link', value: formatNumber(data.totalCliquesLink), icon: MousePointerClick, accent: 'text-muted-foreground' },
     { label: 'Impressões', value: formatNumber(data.totalImpressoes), icon: Eye, accent: 'text-muted-foreground' },
   ];
+
+  const clientKeys = ['Leads', 'Investimento', 'CPL'];
+  const cards = clientView ? allCards.filter(c => clientKeys.includes(c.label)) : allCards;
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
