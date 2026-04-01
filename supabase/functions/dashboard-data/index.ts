@@ -180,6 +180,34 @@ const PROJECTS: Record<string, ProjectConfig> = {
     },
     leadConfigs: [],
   },
+  'distribuicao': {
+    metaTable: 'bd_ads_clientes.meta_uelicon_venancio',
+    linksTable: 'bd_ads_clientes.meta_uelicon_venancio_links',
+    greenSchema: 'uelicon_database.controle_green',
+    principalProducts: [],
+    bumpProducts: [],
+    taxaFixaPorVenda: 0,
+    custoManychat: 0,
+    defaultMetaWhere: ` AND (UPPER(campanha) LIKE '%INSTAGRAM C1%' OR UPPER(campanha) LIKE '%INSTAGRAM C2%' OR UPPER(campanha) LIKE '%INSTAGRAM C3%')`,
+    offerFilters: {
+      'c1': {
+        metaWhere: ` AND UPPER(campanha) LIKE '%INSTAGRAM C1%'`,
+        principalProduct: '',
+        useEmailLinkedBumps: false,
+      },
+      'c2': {
+        metaWhere: ` AND UPPER(campanha) LIKE '%INSTAGRAM C2%'`,
+        principalProduct: '',
+        useEmailLinkedBumps: false,
+      },
+      'c3': {
+        metaWhere: ` AND UPPER(campanha) LIKE '%INSTAGRAM C3%'`,
+        principalProduct: '',
+        useEmailLinkedBumps: false,
+      },
+    },
+    leadConfigs: [],
+  },
 };
 
 // Unpaid account exclusions — these accounts had spend that was NOT actually paid
