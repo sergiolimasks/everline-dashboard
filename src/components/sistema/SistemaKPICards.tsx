@@ -17,7 +17,7 @@ function formatNumber(v: number) {
   return v.toLocaleString('pt-BR');
 }
 
-export function SistemaKPICards({ data, isLoading }: { data: KPIData | null; isLoading: boolean }) {
+export function SistemaKPICards({ data, isLoading, clientView = false }: { data: KPIData | null; isLoading: boolean; clientView?: boolean }) {
   if (isLoading || !data) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
