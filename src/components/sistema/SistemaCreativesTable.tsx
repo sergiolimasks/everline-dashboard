@@ -30,7 +30,7 @@ export function SistemaCreativesTable({ data, isLoading }: { data: AdData[] | un
   const visible = showAll ? ads : ads.slice(0, INITIAL);
   const hasMore = ads.length > INITIAL;
 
-  const getLeads = (a: AdData) => Number(a.compras || 0) + Number(a.endform || 0);
+  const getLeads = (a: AdData) => Number(a.meta_leads || 0);
 
   const totals = ads.reduce((acc, a) => {
     acc.gasto += Number(a.gasto);

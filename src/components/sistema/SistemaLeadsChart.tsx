@@ -17,7 +17,7 @@ export function SistemaLeadsChart({ data, isLoading, dateFrom, dateTo }: Props) 
       .sort((a, b) => a.dia.localeCompare(b.dia))
       .map(d => ({
         dia: d.dia.slice(5), // MM-DD
-        leads: Number(d.compras || 0),
+        leads: Number(d.leads || 0),
         gasto: Number(d.gasto || 0),
         cliques: Number(d.cliques_link || 0),
       }));
