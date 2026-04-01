@@ -10,12 +10,14 @@ const corsHeaders = {
 const APPROVED_STATUSES = `('paid','Paid','approved','Aprovada','aprovada','Completa','completa')`;
 
 async function queryExternalPG(sql: string, params: unknown[] = []) {
-  const connectionString = Deno.env.get("EXTERNAL_PG_CONNECTION_STRING");
-  if (!connectionString) {
-    throw new Error("Missing EXTERNAL_PG_CONNECTION_STRING secret");
-  }
-
-  const client = new Client(connectionString);
+  const client = new Client({
+    hostname: "72.60.51.200",
+    port: 5432,
+    database: "postgres",
+    user: "postgres",
+    password: Deno.env.get("EXTERNAL_PG_CONNECTION_STRING") || "REDACTED_PG_PASS",
+    tls: { enabled: false },
+  });
   await client.connect();
   try {
     const result = await client.queryObject(sql, params);
@@ -287,6 +289,7 @@ function bumpFilter(config: ProjectConfig, productName: string): string {
 function allProductsFilter(config: ProjectConfig, productName: string): string {
   if (!productName) {
     const allNames = [...config.principalProducts, ...config.bumpProducts].map(p => `'${p}'`).join(',');
+    if (!allNames) return `1=0`;
     return `"Nome do produto" IN (${allNames})`;
   }
   return `("Nome do produto" = '${productName}' OR ${bumpFilter(config, productName)})`;
