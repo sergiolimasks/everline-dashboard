@@ -113,7 +113,7 @@ export function SistemaCreativesTable({ data, isLoading }: { data: AdData[] | un
               <td className="text-right">{totalCtr.toFixed(2)}%</td>
               <td className="text-right">{totalTsr.toFixed(2)}%</td>
               <td className="text-right">—</td>
-              <td />
+              
             </tr>
           </tfoot>
         </table>
