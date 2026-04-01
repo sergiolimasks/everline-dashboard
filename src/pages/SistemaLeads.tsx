@@ -20,7 +20,7 @@ const SUB_FILTERS = [
   { key: 'limpa-nome', label: 'Limpa Nome' },
 ] as const;
 
-const SistemaLeads = () => {
+const SistemaLeads = ({ clientView = false }: { clientView?: boolean }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const today = new Date();
