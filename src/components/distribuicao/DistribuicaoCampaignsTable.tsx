@@ -89,7 +89,7 @@ export function DistribuicaoCampaignsTable({ data, isLoading }: { data: Campaign
                   <td className="text-right font-display font-semibold">{formatCurrency(gasto)}</td>
                   <td className="text-right">{formatNumber(impressoes)}</td>
                   <td className="text-right">{formatNumber(alcance)}</td>
-                  <td className="text-right">{formatNumber(Number(c.cliques_link))}</td>
+                  <td className="text-right">{formatNumber(Number(c.cliques))}</td>
                   <td className="text-right">{formatCurrency(cpc)}</td>
                   <td className="text-right">{formatCurrency(cpm)}</td>
                   <td className="text-right">{tsr.toFixed(2)}%</td>
