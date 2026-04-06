@@ -17,8 +17,8 @@ if (!externalPgConnectionString) {
 
 // Parse connection string manually since Pool doesn't accept URI directly
 function parsePgUri(uri: string) {
-  const match = uri.match(/^postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)$/);
-  if (!match) throw new Error('Invalid PG connection string format');
+  const match = uri.match(/^postgres(?:ql)?:\/\/([^:]+):([^@]+)@([^:\/]+):(\d+)\/(.+)$/);
+  if (!match) throw new Error('Invalid PG connection string format: ' + uri.substring(0, 30));
   return {
     user: match[1],
     password: match[2],
@@ -28,8 +28,15 @@ function parsePgUri(uri: string) {
   };
 }
 
-const pgParams = parsePgUri(externalPgConnectionString);
-const externalPgPool = new Pool(pgParams, 6, true);
+let externalPgPool: Pool;
+try {
+  const pgParams = parsePgUri(externalPgConnectionString);
+  console.log('PG connection params:', { user: pgParams.user, hostname: pgParams.hostname, port: pgParams.port, database: pgParams.database });
+  externalPgPool = new Pool(pgParams, 6, true);
+} catch (e) {
+  console.error('Failed to create PG pool:', e.message);
+  throw e;
+}
 
 async function queryExternalPG(sql: string, params: unknown[] = []) {
   const client = await externalPgPool.connect();
