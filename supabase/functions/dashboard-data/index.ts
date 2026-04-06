@@ -31,7 +31,6 @@ function parsePgUri(uri: string) {
 let externalPgPool: Pool;
 try {
   const pgParams = parsePgUri(externalPgConnectionString);
-  console.log('PG connection params:', { user: pgParams.user, hostname: pgParams.hostname, port: pgParams.port, database: pgParams.database });
   externalPgPool = new Pool(pgParams, 6, true);
 } catch (e) {
   console.error('Failed to create PG pool:', e.message);
