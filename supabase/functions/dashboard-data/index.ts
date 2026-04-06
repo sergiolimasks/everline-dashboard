@@ -1,6 +1,6 @@
 // Dashboard data edge function v10 — multi-project + leads + attribution
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
+import { Pool } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,21 +9,21 @@ const corsHeaders = {
 
 const APPROVED_STATUSES = `('paid','Paid','approved','Aprovada','aprovada','Completa','completa')`;
 
+const externalPgConnectionString = Deno.env.get('EXTERNAL_PG_CONNECTION_STRING');
+
+if (!externalPgConnectionString) {
+  throw new Error('EXTERNAL_PG_CONNECTION_STRING is not configured');
+}
+
+const externalPgPool = new Pool(externalPgConnectionString, 6, true);
+
 async function queryExternalPG(sql: string, params: unknown[] = []) {
-  const client = new Client({
-    hostname: "72.60.51.200",
-    port: 5432,
-    database: "postgres",
-    user: "postgres",
-    password: "REDACTED_PG_PASS",
-    tls: { enabled: false },
-  });
-  await client.connect();
+  const client = await externalPgPool.connect();
   try {
     const result = await client.queryObject(sql, params);
     return result.rows;
   } finally {
-    await client.end();
+    client.release();
   }
 }
 
