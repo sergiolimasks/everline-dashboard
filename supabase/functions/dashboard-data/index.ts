@@ -9,13 +9,34 @@ const corsHeaders = {
 
 const APPROVED_STATUSES = `('paid','Paid','approved','Aprovada','aprovada','Completa','completa')`;
 
-const externalPgConnectionString = Deno.env.get('EXTERNAL_PG_CONNECTION_STRING');
+const externalPgConnectionString = Deno.env.get('EXTERNAL_PG_CONNECTION_STRING') || '';
 
 if (!externalPgConnectionString) {
   throw new Error('EXTERNAL_PG_CONNECTION_STRING is not configured');
 }
 
-const externalPgPool = new Pool(externalPgConnectionString, 6, true);
+// Parse connection string manually since Pool doesn't accept URI directly
+function parsePgUri(uri: string) {
+  const match = uri.match(/^postgres(?:ql)?:\/\/([^:]+):([^@]+)@([^:\/]+):(\d+)\/(.+)$/);
+  if (!match) throw new Error('Invalid PG connection string format: ' + uri.substring(0, 30));
+  return {
+    user: match[1],
+    password: match[2],
+    hostname: match[3],
+    port: parseInt(match[4]),
+    database: match[5],
+  };
+}
+
+let externalPgPool: Pool;
+try {
+  const pgParams = parsePgUri(externalPgConnectionString);
+  console.log('PG connection params:', { user: pgParams.user, hostname: pgParams.hostname, port: pgParams.port, database: pgParams.database });
+  externalPgPool = new Pool(pgParams, 6, true);
+} catch (e) {
+  console.error('Failed to create PG pool:', e.message);
+  throw e;
+}
 
 async function queryExternalPG(sql: string, params: unknown[] = []) {
   const client = await externalPgPool.connect();
