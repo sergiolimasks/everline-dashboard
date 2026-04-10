@@ -1043,6 +1043,8 @@ serve(async (req) => {
         } : null,
         ciclo_medio_venda: cicloMedioVenda,
       }];
+
+    } else if (endpoint === 'campaigns') {
       data = await queryExternalPG(`
         SELECT 
           campanha,
