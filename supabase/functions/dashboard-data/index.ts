@@ -1004,7 +1004,10 @@ serve(async (req) => {
         coProdutorTotal += tmbSummary.repasse_coprodutor;
       }
 
-      const totalLeads = await queryLeadsTotal(filteredConfig, params);
+      const [totalLeads, cicloMedioVenda] = await Promise.all([
+        queryLeadsTotal(filteredConfig, params),
+        queryCicloMedioVenda(config, params),
+      ]);
 
       // Add TMB products to products list if there are TMB sales
       const productsArr = products as any[];
