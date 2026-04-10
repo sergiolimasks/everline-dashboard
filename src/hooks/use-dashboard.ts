@@ -7,6 +7,7 @@ export function useSummary(dateFrom?: string, dateTo?: string, offer?: string, p
     queryKey: ['summary', dateFrom, dateTo, offer, project],
     queryFn: () => fetchSummary(dateFrom, dateTo, offer, project),
     staleTime: 1000 * 60 * 5,
+    retry: false,
   });
 }
 
@@ -73,6 +74,7 @@ export function useTrafficDaily(dateFrom?: string, dateTo?: string, offer?: stri
     queryKey: ['traffic_daily', dateFrom, dateTo, offer, project],
     queryFn: () => fetchTrafficDaily(dateFrom, dateTo, offer, project),
     staleTime: 1000 * 60 * 5,
+    retry: false,
   });
 }
 
@@ -81,6 +83,7 @@ export function useSalesDaily(dateFrom?: string, dateTo?: string, offer?: string
     queryKey: ['sales_daily', dateFrom, dateTo, offer, project],
     queryFn: () => fetchSalesDaily(dateFrom, dateTo, offer, project),
     staleTime: 1000 * 60 * 5,
+    retry: false,
   });
 }
 
@@ -89,6 +92,7 @@ export function useCampaigns(dateFrom?: string, dateTo?: string, offer?: string,
     queryKey: ['campaigns', dateFrom, dateTo, offer, project],
     queryFn: () => fetchCampaigns(dateFrom, dateTo, offer, project),
     staleTime: 1000 * 60 * 5,
+    retry: false,
   });
 }
 
@@ -97,6 +101,7 @@ export function useAds(dateFrom?: string, dateTo?: string, offer?: string, proje
     queryKey: ['ads', dateFrom, dateTo, offer, project],
     queryFn: () => fetchAds(dateFrom, dateTo, offer, project),
     staleTime: 1000 * 60 * 5,
+    retry: false,
   });
 }
 
@@ -106,5 +111,6 @@ export function useAttribution(dateFrom?: string, dateTo?: string, offer?: strin
     queryFn: () => fetchAttribution(dateFrom, dateTo, offer, project),
     staleTime: 1000 * 60 * 5,
     enabled,
+    retry: false,
   });
 }
