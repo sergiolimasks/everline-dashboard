@@ -1041,9 +1041,8 @@ serve(async (req) => {
           taxa_tmb: tmbParcelas.taxa_tmb,
           por_parcela: tmbParcelas.por_parcela,
         } : null,
+        ciclo_medio_venda: cicloMedioVenda,
       }];
-
-    } else if (endpoint === 'campaigns') {
       data = await queryExternalPG(`
         SELECT 
           campanha,
