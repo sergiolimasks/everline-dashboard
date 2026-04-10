@@ -318,7 +318,7 @@ function buildPhoneFilter(filteredConfig: ProjectConfig, salesPhoneCol: string):
 }
 
 // Calculate average sales cycle in days (lead capture → sale date) by matching phone numbers
-async function queryCicloMedioVenda(config: ProjectConfig, params: string[]): Promise<number | null> {
+async function queryCicloMedioVenda(config: ProjectConfig, params: string[], salesPhoneFilter: string = ''): Promise<number | null> {
   if (config.leadConfigs.length === 0) return null;
   
   // Detect phone column in sales table
@@ -329,7 +329,7 @@ async function queryCicloMedioVenda(config: ProjectConfig, params: string[]): Pr
   const pFilter = principalFilter(config, '');
   const salesDateFilter = params.length >= 2 ? ` AND "Data"::date >= $1 AND "Data"::date <= $2` : '';
 
-  // Build UNION of all lead tables with phone + earliest date
+  // Build UNION of all lead tables with phone + earliest date (uses filtered leadConfigs)
   const leadUnions = config.leadConfigs.map(lc =>
     `SELECT REGEXP_REPLACE(TRIM(${lc.phoneColumn}), '[^0-9]', '', 'g') as telefone, MIN(${lc.dateColumn}::date) as data_lead FROM ${lc.table} WHERE ${lc.phoneColumn} IS NOT NULL AND TRIM(${lc.phoneColumn}) != '' GROUP BY REGEXP_REPLACE(TRIM(${lc.phoneColumn}), '[^0-9]', '', 'g')`
   ).join(' UNION ALL ');
@@ -343,7 +343,7 @@ async function queryCicloMedioVenda(config: ProjectConfig, params: string[]): Pr
       SELECT REGEXP_REPLACE(TRIM(${salesPhoneCol}), '[^0-9]', '', 'g') as telefone, MIN("Data"::date) as data_venda
       FROM ${config.greenSchema}
       WHERE ${pFilter} AND "Status da venda" IN ${APPROVED_STATUSES} ${salesDateFilter}
-        AND ${salesPhoneCol} IS NOT NULL AND TRIM(${salesPhoneCol}) != ''
+        AND ${salesPhoneCol} IS NOT NULL AND TRIM(${salesPhoneCol}) != '' ${salesPhoneFilter}
       GROUP BY REGEXP_REPLACE(TRIM(${salesPhoneCol}), '[^0-9]', '', 'g')
     )
     SELECT AVG(v.data_venda - l.primeira_captacao) as ciclo_medio
@@ -1006,7 +1006,7 @@ serve(async (req) => {
 
       const [totalLeads, cicloMedioVenda] = await Promise.all([
         queryLeadsTotal(filteredConfig, params),
-        queryCicloMedioVenda(config, params),
+        queryCicloMedioVenda(filteredConfig, params, salesPhoneFilter),
       ]);
 
       // Add TMB products to products list if there are TMB sales
