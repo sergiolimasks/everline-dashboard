@@ -768,13 +768,18 @@ serve(async (req) => {
 
     // Build phone-based sales filter when a specific campaign is selected
     let salesPhoneFilter = '';
+    let detectedSalesPhoneCol: string | null = null;
     if (filters.leadSources && filteredConfig.leadConfigs.length > 0) {
       // Detect phone column in sales table
       const salesCols = await getTableColumns(config.greenSchema);
-      const salesPhoneCol = findColumn(salesCols, PHONE_CANDIDATES);
-      if (salesPhoneCol) {
-        salesPhoneFilter = buildPhoneFilter(filteredConfig, salesPhoneCol);
+      detectedSalesPhoneCol = findColumn(salesCols, PHONE_CANDIDATES);
+      if (detectedSalesPhoneCol) {
+        salesPhoneFilter = buildPhoneFilter(filteredConfig, detectedSalesPhoneCol);
       }
+    } else if (config.leadConfigs.length > 0) {
+      // Still detect phone col for ciclo medio even when no specific filter
+      const salesCols = await getTableColumns(config.greenSchema);
+      detectedSalesPhoneCol = findColumn(salesCols, PHONE_CANDIDATES);
     }
 
     let dateFilter = '';
