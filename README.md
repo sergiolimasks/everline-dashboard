@@ -102,6 +102,20 @@ Credenciais sensíveis (senhas SSH, senha PG, JWT prod, login admin) ficam em
 - Histórico do repositório foi purgado de credenciais vazadas via
   `git-filter-repo` antes do primeiro push.
 
+## Setup pós-clone
+
+GitHub branch protection exige Pro em repos privados. Usamos um git hook
+local como equivalente grátis — bloqueia force push e deletion de `main`
+antes de sair da sua máquina. Instale uma vez após clonar:
+
+```bash
+ln -sf ../../scripts/git-hooks/pre-push .git/hooks/pre-push
+```
+
+O hook vive em [`scripts/git-hooks/pre-push`](./scripts/git-hooks/pre-push).
+Pra contornar intencionalmente (raro), remova o symlink, faça o push, e
+reinstale.
+
 ## Checks pré-deploy
 
 ```bash

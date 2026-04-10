@@ -1,0 +1,49 @@
+#!/bin/sh
+# pre-push hook — blocks force push and deletion of protected branches.
+#
+# GitHub's branch protection (rulesets + classic) requires Pro on private
+# repos. This hook is the free equivalent for solo-dev: last line of defense
+# before a destructive push reaches the remote from THIS machine.
+#
+# Install (run once per clone):
+#   ln -sf ../../scripts/git-hooks/pre-push .git/hooks/pre-push
+#
+# To intentionally bypass (e.g. you really meant to force-push), remove the
+# link temporarily:
+#   rm .git/hooks/pre-push
+# ...then reinstall after the push.
+
+PROTECTED_BRANCHES="main"
+ZERO_SHA="0000000000000000000000000000000000000000"
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    # Only enforce for the branches listed above
+    branch="${remote_ref#refs/heads/}"
+    case " $PROTECTED_BRANCHES " in
+      *" $branch "*) ;;
+      *) continue ;;
+    esac
+
+    # Block deletion: local_sha is all-zero when deleting a remote ref
+    if [ "$local_sha" = "$ZERO_SHA" ]; then
+        printf '\033[0;31mERROR\033[0m: deleting "%s" is blocked by pre-push hook.\n' "$branch" >&2
+        printf '       Remove .git/hooks/pre-push to bypass.\n' >&2
+        exit 1
+    fi
+
+    # First push of a branch that doesn't exist remotely — allow
+    if [ "$remote_sha" = "$ZERO_SHA" ]; then
+        continue
+    fi
+
+    # Non-fast-forward check: remote_sha must be an ancestor of local_sha.
+    # If not, it's a force push (history rewrite) — block.
+    if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
+        printf '\033[0;31mERROR\033[0m: non-fast-forward push to "%s" is blocked by pre-push hook.\n' "$branch" >&2
+        printf '       This usually means you rebased or amended a commit that was already pushed.\n' >&2
+        printf '       Remove .git/hooks/pre-push to bypass (make sure you really mean it).\n' >&2
+        exit 1
+    fi
+done
+
+exit 0
