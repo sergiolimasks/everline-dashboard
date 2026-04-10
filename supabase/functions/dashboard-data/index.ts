@@ -318,23 +318,16 @@ function buildPhoneFilter(filteredConfig: ProjectConfig, salesPhoneCol: string):
 }
 
 // Calculate average sales cycle in days (lead capture → sale date) by matching phone numbers
-async function queryCicloMedioVenda(config: ProjectConfig, params: string[], salesPhoneFilter: string = ''): Promise<number | null> {
-  if (config.leadConfigs.length === 0) return null;
-  
-  // Detect phone column in sales table
-  const salesCols = await getTableColumns(config.greenSchema);
-  const salesPhoneCol = findColumn(salesCols, PHONE_CANDIDATES);
-  if (!salesPhoneCol) return null;
+async function queryCicloMedioVenda(config: ProjectConfig, params: string[], salesPhoneFilter: string, salesPhoneCol: string | null): Promise<number | null> {
+  if (config.leadConfigs.length === 0 || !salesPhoneCol) return null;
 
   const pFilter = principalFilter(config, '');
   const salesDateFilter = params.length >= 2 ? ` AND "Data"::date >= $1 AND "Data"::date <= $2` : '';
 
-  // Build UNION of all lead tables with phone + earliest date (uses filtered leadConfigs)
   const leadUnions = config.leadConfigs.map(lc =>
     `SELECT REGEXP_REPLACE(TRIM(${lc.phoneColumn}), '[^0-9]', '', 'g') as telefone, MIN(${lc.dateColumn}::date) as data_lead FROM ${lc.table} WHERE ${lc.phoneColumn} IS NOT NULL AND TRIM(${lc.phoneColumn}) != '' GROUP BY REGEXP_REPLACE(TRIM(${lc.phoneColumn}), '[^0-9]', '', 'g')`
   ).join(' UNION ALL ');
 
-  // Query: for each sale, find the earliest lead date for matching phone, compute avg days
   const sql = `
     WITH leads_agg AS (
       SELECT telefone, MIN(data_lead) as primeira_captacao FROM (${leadUnions}) sub GROUP BY telefone
@@ -775,13 +768,18 @@ serve(async (req) => {
 
     // Build phone-based sales filter when a specific campaign is selected
     let salesPhoneFilter = '';
+    let detectedSalesPhoneCol: string | null = null;
     if (filters.leadSources && filteredConfig.leadConfigs.length > 0) {
       // Detect phone column in sales table
       const salesCols = await getTableColumns(config.greenSchema);
-      const salesPhoneCol = findColumn(salesCols, PHONE_CANDIDATES);
-      if (salesPhoneCol) {
-        salesPhoneFilter = buildPhoneFilter(filteredConfig, salesPhoneCol);
+      detectedSalesPhoneCol = findColumn(salesCols, PHONE_CANDIDATES);
+      if (detectedSalesPhoneCol) {
+        salesPhoneFilter = buildPhoneFilter(filteredConfig, detectedSalesPhoneCol);
       }
+    } else if (config.leadConfigs.length > 0) {
+      // Still detect phone col for ciclo medio even when no specific filter
+      const salesCols = await getTableColumns(config.greenSchema);
+      detectedSalesPhoneCol = findColumn(salesCols, PHONE_CANDIDATES);
     }
 
     let dateFilter = '';
@@ -1006,7 +1004,7 @@ serve(async (req) => {
 
       const [totalLeads, cicloMedioVenda] = await Promise.all([
         queryLeadsTotal(filteredConfig, params),
-        queryCicloMedioVenda(filteredConfig, params, salesPhoneFilter),
+        queryCicloMedioVenda(filteredConfig, params, salesPhoneFilter, detectedSalesPhoneCol),
       ]);
 
       // Add TMB products to products list if there are TMB sales
