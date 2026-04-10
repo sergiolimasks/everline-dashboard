@@ -12,8 +12,12 @@ const migrationsDir = join(__dirname, '..', 'db', 'migrations');
 // write to public.schema_migrations — two projects with the same file name
 // (e.g. both shipping a 001_init.sql) would see each other's IDs as "already
 // applied" and silently skip. Scoping the table per schema eliminates that.
+//
+// The `auth_everline` schema itself is bootstrapped by 001_init.sql on first
+// run of an older install, or pre-existed when this code rolled out — we
+// never CREATE SCHEMA here because the runtime PG user isn't granted CREATE
+// on the database and would fail before even reaching the IF NOT EXISTS.
 async function ensureMigrationsTable() {
-  await query(`CREATE SCHEMA IF NOT EXISTS auth_everline`);
   await query(`
     CREATE TABLE IF NOT EXISTS auth_everline.schema_migrations (
       id          text PRIMARY KEY,
@@ -21,16 +25,27 @@ async function ensureMigrationsTable() {
     )
   `);
   // One-time seamless takeover from the legacy public.schema_migrations table.
-  // If the new table is empty and the old one has rows, copy them over so
-  // already-applied migrations aren't re-run. Uses `to_regclass` so it's a
-  // no-op when the legacy table never existed (fresh installs).
-  await query(`
-    INSERT INTO auth_everline.schema_migrations (id, applied_at)
-    SELECT id, applied_at FROM public.schema_migrations
-    WHERE to_regclass('public.schema_migrations') IS NOT NULL
-      AND NOT EXISTS (SELECT 1 FROM auth_everline.schema_migrations)
-    ON CONFLICT (id) DO NOTHING
-  `);
+  // Wrapped in try/catch because the runtime PG user may not have any
+  // privileges on `public` at all — that's the desired hardened state.
+  // If the new table is empty and the copy fails or is unreachable, we just
+  // move on and let the migration runner re-apply (migrations are idempotent).
+  try {
+    const fresh = await query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM auth_everline.schema_migrations`
+    );
+    if (fresh[0]?.count === '0') {
+      await query(`
+        INSERT INTO auth_everline.schema_migrations (id, applied_at)
+        SELECT id, applied_at FROM public.schema_migrations
+        ON CONFLICT (id) DO NOTHING
+      `);
+      console.log('[migrate] seeded auth_everline.schema_migrations from legacy public table');
+    }
+  } catch (err: unknown) {
+    // Expected on hardened installs where the user has no access to public.
+    const msg = err instanceof Error ? err.message : String(err);
+    console.log(`[migrate] legacy public.schema_migrations not reachable (ok): ${msg}`);
+  }
 }
 
 async function applied(): Promise<Set<string>> {
