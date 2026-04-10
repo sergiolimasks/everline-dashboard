@@ -501,7 +501,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
   return (
     <div className="space-y-4">
       {/* Fixed: Investimento, Vendas, Order Bumps, Lucro, ROI */}
-      <div className={`grid grid-cols-2 ${showLeads ? 'md:grid-cols-7' : 'md:grid-cols-5'} gap-4`}>
+      <div className={`grid grid-cols-2 ${showLeads ? 'md:grid-cols-6' : 'md:grid-cols-5'} gap-4`}>
         <KPICard
           label="Investimento Total" value={isLoading ? null : formatCurrency(current?.totalGasto || 0)}
           icon={DollarSign} color="text-chart-orange" isLoading={isLoading}
@@ -597,27 +597,6 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                   </div>
                 </div>
                 {getSparkline("cpl")}
-              </div>
-            ) : undefined}
-          />
-        )}
-        {showLeads && (
-          <KPICard
-            label="Ciclo Médio de Venda" value={isLoading ? null : (data?.ciclo_medio_venda != null ? `${data.ciclo_medio_venda} dias` : '--')}
-            icon={Target} color="text-chart-blue" isLoading={isLoading}
-            metricKey="" current={current} comp7d={null} comp14d={null}
-            tooltipContent={!isLoading && data?.ciclo_medio_venda != null ? (
-              <div className="w-72 max-w-full p-3">
-                <p className="text-xs font-semibold mb-2 text-foreground">Ciclo Médio de Venda</p>
-                <div className="space-y-1.5 text-[11px]">
-                  <div className="bg-muted/50 rounded-md p-2 text-center font-mono text-xs text-foreground">
-                    Média de dias entre a captação do lead e a venda
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Tempo médio</span>
-                    <span className="font-medium text-foreground">{data.ciclo_medio_venda} dias</span>
-                  </div>
-                </div>
               </div>
             ) : undefined}
           />

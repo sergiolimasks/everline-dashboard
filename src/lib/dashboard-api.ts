@@ -45,7 +45,6 @@ export interface SummaryData {
       taxa_tmb: number;
     }>;
   } | null;
-  ciclo_medio_venda?: number | null;
 }
 
 export interface TrafficDaily {
