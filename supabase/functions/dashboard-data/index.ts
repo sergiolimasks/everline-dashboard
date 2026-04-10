@@ -1004,7 +1004,7 @@ serve(async (req) => {
 
       const [totalLeads, cicloMedioVenda] = await Promise.all([
         queryLeadsTotal(filteredConfig, params),
-        queryCicloMedioVenda(filteredConfig, params, salesPhoneFilter),
+        queryCicloMedioVenda(filteredConfig, params, salesPhoneFilter, detectedSalesPhoneCol),
       ]);
 
       // Add TMB products to products list if there are TMB sales
