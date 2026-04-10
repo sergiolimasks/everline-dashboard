@@ -1,0 +1,69 @@
+version: 2
+updates:
+  # Frontend dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    groups:
+      react-ecosystem:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-router*"
+          - "@tanstack/react-query"
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+      dev-tooling:
+        patterns:
+          - "typescript"
+          - "vite"
+          - "@vitejs/*"
+          - "eslint*"
+          - "@types/*"
+        dependency-type: "development"
+
+  # Backend dependencies
+  - package-ecosystem: "npm"
+    directory: "/api"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(api)"
+      include: "scope"
+    groups:
+      express-ecosystem:
+        patterns:
+          - "express"
+          - "express-*"
+          - "cors"
+          - "helmet"
+          - "cookie-parser"
+          - "morgan"
+      dev-tooling:
+        patterns:
+          - "typescript"
+          - "tsx"
+          - "eslint*"
+          - "@types/*"
+        dependency-type: "development"
+
+  # GitHub Actions versions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "ci"

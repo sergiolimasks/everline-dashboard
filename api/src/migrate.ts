@@ -7,17 +7,36 @@ import { pool, query } from './db.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const migrationsDir = join(__dirname, '..', 'db', 'migrations');
 
+// Migration bookkeeping lives in auth_everline.schema_migrations (not public).
+// The shared `postgres` database is used by CC360 and other projects that also
+// write to public.schema_migrations — two projects with the same file name
+// (e.g. both shipping a 001_init.sql) would see each other's IDs as "already
+// applied" and silently skip. Scoping the table per schema eliminates that.
 async function ensureMigrationsTable() {
+  await query(`CREATE SCHEMA IF NOT EXISTS auth_everline`);
   await query(`
-    CREATE TABLE IF NOT EXISTS public.schema_migrations (
+    CREATE TABLE IF NOT EXISTS auth_everline.schema_migrations (
       id          text PRIMARY KEY,
       applied_at  timestamptz NOT NULL DEFAULT now()
     )
   `);
+  // One-time seamless takeover from the legacy public.schema_migrations table.
+  // If the new table is empty and the old one has rows, copy them over so
+  // already-applied migrations aren't re-run. Uses `to_regclass` so it's a
+  // no-op when the legacy table never existed (fresh installs).
+  await query(`
+    INSERT INTO auth_everline.schema_migrations (id, applied_at)
+    SELECT id, applied_at FROM public.schema_migrations
+    WHERE to_regclass('public.schema_migrations') IS NOT NULL
+      AND NOT EXISTS (SELECT 1 FROM auth_everline.schema_migrations)
+    ON CONFLICT (id) DO NOTHING
+  `);
 }
 
 async function applied(): Promise<Set<string>> {
-  const rows = await query<{ id: string }>(`SELECT id FROM public.schema_migrations`);
+  const rows = await query<{ id: string }>(
+    `SELECT id FROM auth_everline.schema_migrations`
+  );
   return new Set(rows.map((r) => r.id));
 }
 
@@ -37,7 +56,10 @@ export async function runMigrations() {
     try {
       await client.query('BEGIN');
       await client.query(sql);
-      await client.query(`INSERT INTO public.schema_migrations (id) VALUES ($1)`, [file]);
+      await client.query(
+        `INSERT INTO auth_everline.schema_migrations (id) VALUES ($1)`,
+        [file]
+      );
       await client.query('COMMIT');
       ran++;
     } catch (err) {

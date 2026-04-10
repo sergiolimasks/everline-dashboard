@@ -11,10 +11,9 @@ version: '3.8'
 
 services:
   api:
+    # Image is built ahead of deploy via `docker build -t everline-api:latest .`
+    # Swarm mode ignores `build:` and warns about it, so we just keep the image reference.
     image: everline-api:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
     environment:
       NODE_ENV: production
       PORT: 3001

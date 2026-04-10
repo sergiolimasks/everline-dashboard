@@ -58,6 +58,15 @@ function validate<T>(schema: z.ZodType<T>) {
   };
 }
 
+// Single source of truth for "is this user allowed to act as admin". The
+// requireAdmin middleware covers most routes, but /user_campaign_access has
+// custom logic ("me" vs listing someone else) that can't use the middleware
+// directly — it needs to branch on the role inline.
+const ADMIN_ROLES = new Set(['admin', 'super_admin', 'gestor']);
+function isAdminRole(user: { roles: string[] } | undefined): boolean {
+  return !!user?.roles.some((r) => ADMIN_ROLES.has(r));
+}
+
 // ======================== PROFILES / USERS ========================
 
 adminRouter.get('/profiles', requireAuth, requireAdmin, async (_req, res) => {
@@ -171,7 +180,7 @@ adminRouter.get('/user_campaign_access', requireAuth, async (req: AuthedRequest,
   if (user_id === 'me' || !user_id) {
     if (!user_id) {
       // Listing everything requires admin.
-      if (!req.user!.roles.some((r) => r === 'admin' || r === 'super_admin' || r === 'gestor')) {
+      if (!isAdminRole(req.user)) {
         return res.status(403).json({ error: 'Acesso restrito a administradores' });
       }
       const rows = await query(
@@ -187,7 +196,7 @@ adminRouter.get('/user_campaign_access', requireAuth, async (req: AuthedRequest,
   }
 
   // Querying someone else's access — admin only.
-  if (!req.user!.roles.some((r) => r === 'admin' || r === 'super_admin' || r === 'gestor')) {
+  if (!isAdminRole(req.user)) {
     return res.status(403).json({ error: 'Acesso restrito a administradores' });
   }
   const rows = await query(

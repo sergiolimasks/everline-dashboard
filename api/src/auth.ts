@@ -2,9 +2,15 @@ import jwt from 'jsonwebtoken';
 import type { Request, Response, NextFunction } from 'express';
 import { query } from './db.js';
 
-const SECRET = process.env.JWT_SECRET || 'dev-secret';
-const TTL = '30d';
-const TTL_SECONDS = 60 * 60 * 24 * 30;
+// Fail hard if JWT_SECRET is missing in production. A silent fallback to
+// 'dev-secret' would mean anyone who knew that string could forge valid
+// tokens — exactly the class of footgun you never want in a security path.
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET env var is required in production');
+}
+const SECRET = process.env.JWT_SECRET || 'dev-secret-do-not-use-in-production';
+const TTL = '14d';
+const TTL_SECONDS = 60 * 60 * 24 * 14;
 
 export const COOKIE_NAME = 'everline_session';
 

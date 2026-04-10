@@ -2,6 +2,7 @@
 // Business logic lives in ./dashboard-config and ./dashboard-helpers.
 
 import { Router, type Request, type Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { query as queryExternalPG } from '../db.js';
 import { requireAuth } from '../auth.js';
 import {
@@ -31,7 +32,23 @@ import {
 
 export const dashboardRouter = Router();
 
-dashboardRouter.get('/dashboard-data', requireAuth, async (req: Request, res: Response) => {
+// Cap dashboard queries per IP. Each request hits multiple SQL queries on the
+// shared PG, so a misbehaving client (or a compromised session) can burn the
+// pool fast. 240 req / 5min / IP = ~50 per min per IP, well above any legit
+// interactive usage but low enough to contain abuse.
+const dashboardLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 240,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Muitas requisições. Aguarde alguns minutos.' },
+});
+
+dashboardRouter.get(
+  '/dashboard-data',
+  dashboardLimiter,
+  requireAuth,
+  async (req: Request, res: Response) => {
   try {
     const endpoint = (req.query.endpoint as string) || 'summary';
     const dateFrom = (req.query.date_from as string) || null;
@@ -427,4 +444,5 @@ dashboardRouter.get('/dashboard-data', requireAuth, async (req: Request, res: Re
       error: exposeDetails ? error?.message || 'Internal server error' : 'Erro ao processar requisição',
     });
   }
-});
+  }
+);
