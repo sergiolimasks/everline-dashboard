@@ -501,7 +501,7 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
   return (
     <div className="space-y-4">
       {/* Fixed: Investimento, Vendas, Order Bumps, Lucro, ROI */}
-      <div className={`grid grid-cols-2 ${showLeads ? 'md:grid-cols-6' : 'md:grid-cols-5'} gap-4`}>
+      <div className={`grid grid-cols-2 ${showLeads ? 'md:grid-cols-7' : 'md:grid-cols-5'} gap-4`}>
         <KPICard
           label="Investimento Total" value={isLoading ? null : formatCurrency(current?.totalGasto || 0)}
           icon={DollarSign} color="text-chart-orange" isLoading={isLoading}
