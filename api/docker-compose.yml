@@ -1,0 +1,45 @@
+# Everline API stack for Docker Swarm on the VPS.
+# Joins the existing `network_swarm_public` so the running Traefik picks it up
+# via labels — no manual edits to the Traefik config needed.
+#
+# Secrets are read from the shell environment at deploy time. On the VPS,
+# source /root/everline-api/.env.production before running `docker stack deploy`:
+#   set -a; . /root/everline-api/.env.production; set +a
+#   docker stack deploy -c docker-compose.yml everline-api
+
+version: '3.8'
+
+services:
+  api:
+    image: everline-api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://agenciaeverline.com.br}
+      PG_POOL_MAX: ${PG_POOL_MAX:-10}
+      PG_STATEMENT_TIMEOUT_MS: ${PG_STATEMENT_TIMEOUT_MS:-30000}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - network_swarm_public
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=network_swarm_public"
+        - "traefik.http.routers.everline-api.rule=Host(`api.agenciaeverline.com.br`)"
+        - "traefik.http.routers.everline-api.entrypoints=websecure"
+        - "traefik.http.routers.everline-api.tls=true"
+        - "traefik.http.routers.everline-api.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.everline-api.loadbalancer.server.port=3001"
+
+networks:
+  network_swarm_public:
+    external: true
