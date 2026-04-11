@@ -3,12 +3,12 @@ import bcrypt from 'bcryptjs';
 import { pool, query } from './db.js';
 
 async function main() {
-  const email = process.env.SEED_ADMIN_EMAIL || 'sergiolima@agenciaevergrowth.com.br';
+  const email = process.env.SEED_ADMIN_EMAIL;
   const password = process.env.SEED_ADMIN_PASSWORD;
-  const displayName = process.env.SEED_ADMIN_NAME || 'Sergio Lima';
+  const displayName = process.env.SEED_ADMIN_NAME || 'Admin';
 
-  if (!password) {
-    console.error('[seed] SEED_ADMIN_PASSWORD env var is required');
+  if (!email || !password) {
+    console.error('[seed] SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD env vars are required');
     process.exit(1);
   }
 

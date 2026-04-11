@@ -44,7 +44,7 @@ Ping do banco de dados. Usado pelo Traefik e uptime monitors.
 **Body**:
 ```json
 {
-  "email": "sergiolima@agenciaevergrowth.com.br",
+  "email": "admin@example.com",
   "password": "..."
 }
 ```
@@ -53,8 +53,8 @@ Ping do banco de dados. Usado pelo Traefik e uptime monitors.
 ```json
 {
   "user": {
-    "id": "a99382af-473f-4616-857b-8bb9c0649352",
-    "email": "sergiolima@agenciaevergrowth.com.br",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "email": "admin@example.com",
     "display_name": "Sergio Lima",
     "token_version": 0,
     "roles": ["super_admin"]
@@ -493,7 +493,7 @@ específicos por endpoint.
 # Login (grava cookie em /tmp/cookies.txt)
 curl -c /tmp/cookies.txt -X POST https://api.agenciaeverline.com.br/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"sergiolima@agenciaevergrowth.com.br","password":"..."}'
+  -d '{"email":"admin@example.com","password":"..."}'
 
 # Endpoint autenticado usando cookie
 curl -b /tmp/cookies.txt https://api.agenciaeverline.com.br/auth/me
