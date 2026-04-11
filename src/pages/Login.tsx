@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { admin } from "@/lib/api";
 import { LogIn, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -18,47 +17,45 @@ export default function Login() {
     setError("");
     setLoading(true);
 
-    const { error } = await signIn(email, password);
-    if (error) {
+    const result = await signIn(email, password);
+    if (result.error) {
       setError("E-mail ou senha inválidos.");
       setLoading(false);
       return;
     }
 
-    // Get current user after sign in
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    if (!currentUser) {
-      navigate("/");
-      setLoading(false);
-      return;
-    }
+    // signIn just populated AuthContext. Re-derive admin from the fresh user
+    // instead of reading from context (which won't have re-rendered yet).
+    try {
+      const me = await admin.listMyRoles();
+      const adminRoles = new Set(["admin", "super_admin", "gestor"]);
+      const hasAdminAccess = me.some((r) => adminRoles.has(r.role));
 
-    // Check if admin
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", currentUser.id)
-      .in("role", ["admin", "super_admin", "gestor"] as any);
-
-    const hasAdminAccess = roleData && roleData.length > 0;
-
-    if (hasAdminAccess) {
-      navigate("/painel");
-    } else {
-      const { data: access } = await supabase
-        .from("user_campaign_access")
-        .select("offer_slug")
-        .eq("user_id", currentUser.id)
-        .limit(1)
-        .maybeSingle();
-
-      if (access?.offer_slug) {
-        navigate(`/cliente/${access.offer_slug}/painel`);
-      } else {
-        navigate("/");
+      if (hasAdminAccess) {
+        navigate("/painel");
+        return;
       }
+
+      // Regular users land on whichever client they have access to.
+      // listMyAccess may return multiple rows; pick the first client's slug.
+      const myAccess = await admin.listMyAccess();
+      if (myAccess.length > 0) {
+        // We need the client slug, not the client_id. Fetch clients once.
+        const clients = await admin.listClients();
+        const firstClient = clients.find((c) => c.id === myAccess[0].client_id);
+        if (firstClient) {
+          navigate(`/cliente/${firstClient.slug}/painel`);
+          return;
+        }
+      }
+      navigate("/");
+    } catch {
+      // If the role/access lookup fails, fall back to home — user is still
+      // signed in, they just hit an unexpected error on the post-login routing.
+      navigate("/");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

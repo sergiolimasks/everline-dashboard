@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { admin, type CampaignAccess, type Client, type ClientOffer } from "@/lib/api";
 import { useSummary } from "@/hooks/use-dashboard";
 import { usePageScroll, usePageState } from "@/hooks/use-page-state";
 import { formatDateString, formatDayMonth, getWeekStart, parseDateStringLocal } from "@/lib/date-utils";
@@ -100,20 +100,14 @@ function CacTooltip({ gastoMeta, imposto, custoConsultas, custoManychat, gastoTo
 }
 
 function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, dateLabel }: { client: ClientWithOffers; isAdmin: boolean; isGestor?: boolean; clientView?: boolean; dateFrom: string; dateTo: string; dateLabel: string }) {
-  // Check if this client card has any sales-related dashboards (checkup/formacao)
   const salesSlugs = ['checkup-performance', 'formacao-consultor'];
   const hasSalesDashboards = client.offers.some(o => salesSlugs.includes(o.offer_slug) || (!['sistema-leads', 'distribuicao'].includes(o.offer_slug)));
-  
-  // Fetch per-project summaries to apply correct cost formulas
-  const hasCheckup = client.offers.some(o => o.offer_slug !== 'formacao-consultor');
-  const hasFormacao = client.offers.some(o => o.offer_slug === 'formacao-consultor');
-  
+
   const { data: summaryCheckup, isLoading: loadingCheckup } = useSummary(dateFrom, dateTo, "all_no_filter", "checkup");
   const { data: summaryFormacao, isLoading: loadingFormacao } = useSummary(dateFrom, dateTo, "all_no_filter", "formacao-consultor");
-  
+
   const isLoading = loadingCheckup || loadingFormacao;
 
-  // Checkup metrics (has consultas + manychat costs)
   const ckGasto = Number(summaryCheckup?.traffic?.total_gasto || 0);
   const ckImposto = ckGasto * 0.125;
   const ckVendas = Number(summaryCheckup?.sales?.vendas_aprovadas || 0);
@@ -124,17 +118,14 @@ function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, d
   const ckGastoTotal = ckGasto + ckImposto + ckConsultas + ckManychat;
   const ckLucro = ckReceitaLiquida - ckGastoTotal;
 
-  // Formação metrics (no consultas, no manychat)
   const fmGasto = Number(summaryFormacao?.traffic?.total_gasto || 0);
   const fmImposto = fmGasto * 0.125;
   const fmVendas = Number(summaryFormacao?.sales?.vendas_aprovadas || 0);
   const fmReceitaLiquida = Number(summaryFormacao?.sales?.receita_liquida || 0);
   const fmCoProdutor = Number(summaryFormacao?.sales?.co_produtor || 0);
-  const fmTaxaTmb = Number(summaryFormacao?.sales?.taxa_green || 0); // taxa_tmb from TMB gateway
   const fmGastoTotal = fmGasto + fmImposto;
   const fmLucro = fmReceitaLiquida - fmGastoTotal;
 
-  // Combined totals
   const gastoMeta = ckGasto + fmGasto;
   const imposto = ckImposto + fmImposto;
   const vendasAprovadas = ckVendas + fmVendas;
@@ -220,7 +211,6 @@ function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, d
         <p className="text-sm font-medium text-muted-foreground">Relatórios</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {client.offers.map((offer) => {
-            // Map offer_slug to dashboard route
             const dashboardPath = offer.offer_slug === 'formacao-consultor'
               ? 'formacao-consultor'
               : offer.offer_slug === 'sistema-leads'
@@ -248,6 +238,41 @@ function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, d
       </div>
     </div>
   );
+}
+
+// Build the ClientWithOffers tree from flat clients + client_offers lists.
+function buildClientTree(clients: Client[], offers: ClientOffer[]): ClientWithOffers[] {
+  return clients.map((c) => ({
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+    offers: offers
+      .filter((o) => o.client_id === c.id)
+      .map((o) => ({ offer_slug: o.offer_slug, label: o.label })),
+  }));
+}
+
+// Same tree, but filtered down to only the (client, offer) pairs the user has
+// in their user_campaign_access rows. Empty access = empty tree.
+function buildAccessibleTree(
+  clients: Client[],
+  offers: ClientOffer[],
+  access: CampaignAccess[],
+): ClientWithOffers[] {
+  if (access.length === 0) return [];
+  const allowed = new Set(access.map((a) => `${a.client_id}::${a.offer_slug}`));
+  const clientIds = new Set(access.map((a) => a.client_id));
+  return clients
+    .filter((c) => clientIds.has(c.id))
+    .map((c) => ({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      offers: offers
+        .filter((o) => o.client_id === c.id && allowed.has(`${o.client_id}::${o.offer_slug}`))
+        .map((o) => ({ offer_slug: o.offer_slug, label: o.label })),
+    }))
+    .filter((c) => c.offers.length > 0);
 }
 
 export default function Panel({ clientView }: { clientView?: boolean }) {
@@ -306,69 +331,43 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
   };
 
   // Gestor loads clients the same way as a regular client user (only assigned ones)
-  // but sees the admin-style dashboard (without co-produtor)
+  // but sees the admin-style dashboard (without co-produtor).
   useEffect(() => {
     if (!user) return;
+    let cancelled = false;
 
-    async function loadClients() {
-      if (clientView || (isGestor && !isSuperAdmin)) {
-        // For client view or gestor, load only assigned campaigns
-        const { data: accessData } = await supabase
-          .from("user_campaign_access")
-          .select("offer_slug, label")
-          .eq("user_id", user!.id);
+    (async () => {
+      setLoading(true);
+      try {
+        const [clientList, offerList] = await Promise.all([
+          admin.listClients(),
+          admin.listClientOffers(),
+        ]);
 
-        if (!accessData || accessData.length === 0) {
-          setLoading(false);
-          return;
+        const restrictedView = clientView || (isGestor && !isSuperAdmin);
+
+        if (restrictedView) {
+          const myAccess = await admin.listMyAccess();
+          if (!cancelled) {
+            setClients(buildAccessibleTree(clientList, offerList, myAccess));
+          }
+        } else {
+          if (!cancelled) {
+            setClients(buildClientTree(clientList, offerList));
+          }
         }
-
-        const slugs = accessData.map((a: any) => a.offer_slug);
-        const { data: offersData } = await supabase
-          .from("client_offers")
-          .select("client_id, offer_slug, label")
-          .in("offer_slug", slugs);
-
-        const clientIds = [...new Set((offersData || []).map((o: any) => o.client_id))];
-        const { data: clientsData } = await supabase
-          .from("clients")
-          .select("id, name, slug")
-          .in("id", clientIds);
-
-        const clientsWithOffers: ClientWithOffers[] = (clientsData || []).map((c: any) => ({
-          ...c,
-          offers: (offersData || []).filter((o: any) => o.client_id === c.id),
-        }));
-
-        setClients(clientsWithOffers);
-      } else {
-        // Admin view - load all clients
-        const { data: clientsData, error: clientsError } = await supabase
-          .from("clients")
-          .select("id, name, slug");
-
-        if (clientsError || !clientsData) {
-          console.error("Error loading clients:", clientsError);
-          setLoading(false);
-          return;
-        }
-
-        const { data: offersData } = await supabase
-          .from("client_offers")
-          .select("client_id, offer_slug, label");
-
-        const clientsWithOffers: ClientWithOffers[] = clientsData.map((c: any) => ({
-          ...c,
-          offers: (offersData || []).filter((o: any) => o.client_id === c.id),
-        }));
-
-        setClients(clientsWithOffers);
+      } catch (err) {
+        console.error("[Panel] failed to load clients", err);
+        if (!cancelled) setClients([]);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      setLoading(false);
-    }
+    })();
 
-    loadClients();
-  }, [user, clientView, isGestor, isAdmin]);
+    return () => {
+      cancelled = true;
+    };
+  }, [user, clientView, isGestor, isSuperAdmin]);
 
   const handleLogout = async () => {
     await signOut();
@@ -427,7 +426,6 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
             </TabsList>
 
             <TabsContent value="clientes">
-              {/* Date filter */}
               <div className="flex items-center gap-2 flex-wrap mb-6">
                 <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                 {[
@@ -499,7 +497,6 @@ export default function Panel({ clientView }: { clientView?: boolean }) {
           </Tabs>
         ) : (
           <>
-            {/* Date filter for non-super-admin */}
             <div className="flex items-center gap-2 flex-wrap">
               <CalendarIcon className="h-4 w-4 text-muted-foreground" />
               {[

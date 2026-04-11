@@ -1,10 +1,23 @@
-import { createContext, useContext, useEffect, useState, useRef, ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { User, Session } from "@supabase/supabase-js";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  ApiError,
+  fetchMe,
+  login as apiLogin,
+  logout as apiLogout,
+  setUnauthorizedHandler,
+  type AuthUser,
+} from "@/lib/api";
 
-interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+interface AuthContextValue {
+  user: AuthUser | null;
   loading: boolean;
   isAdmin: boolean;
   isSuperAdmin: boolean;
@@ -13,90 +26,79 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+const ADMIN_ROLES = new Set(["admin", "super_admin", "gestor"]);
+
+function deriveRoleFlags(user: AuthUser | null) {
+  const roles = user?.roles ?? [];
+  return {
+    isAdmin: roles.some((r) => ADMIN_ROLES.has(r)),
+    isSuperAdmin: roles.includes("super_admin"),
+    isGestor: roles.includes("gestor"),
+  };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const [isGestor, setIsGestor] = useState(false);
-  const lastUserIdRef = useRef<string | null>(null);
-
-  const checkRoles = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
-    const roles = (data || []).map((r: any) => r.role);
-    setIsAdmin(roles.includes("admin") || roles.includes("super_admin") || roles.includes("gestor"));
-    setIsSuperAdmin(roles.includes("super_admin"));
-    setIsGestor(roles.includes("gestor"));
-  };
 
   useEffect(() => {
-    // Get initial session first
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      lastUserIdRef.current = session?.user?.id ?? null;
-      if (session?.user) {
-        checkRoles(session.user.id);
+    // On mount, try to restore the session from the httpOnly cookie.
+    // /auth/me returns 401 for anonymous visitors — api.ts's fetchMe swallows
+    // that and returns null so we don't trip the global 401 handler on boot.
+    let cancelled = false;
+    (async () => {
+      const me = await fetchMe();
+      if (!cancelled) {
+        setUser(me);
+        setLoading(false);
       }
-      setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, newSession) => {
-        const newUserId = newSession?.user?.id ?? null;
-
-        // Only update state if the user actually changed (sign in/out)
-        // Skip TOKEN_REFRESHED events that don't change the user
-        if (event === 'TOKEN_REFRESHED' && newUserId === lastUserIdRef.current) {
-          // Just update the session/token silently without triggering re-renders
-          // that would reset child component state
-          setSession(newSession);
-          return;
-        }
-
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED' || newUserId !== lastUserIdRef.current) {
-          lastUserIdRef.current = newUserId;
-          setSession(newSession);
-          setUser(newSession?.user ?? null);
-          if (newSession?.user) {
-            checkRoles(newSession.user.id);
-          } else {
-            setIsAdmin(false);
-            setIsSuperAdmin(false);
-            setIsGestor(false);
-          }
-          setLoading(false);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error as Error | null };
-  };
+  useEffect(() => {
+    // Any 401 from a non-/auth/me call means the session died (expired cookie,
+    // token_version bumped server-side, etc). Clear local state so the next
+    // render forces a redirect to /login via ProtectedRoute.
+    setUnauthorizedHandler(() => setUser(null));
+    return () => setUnauthorizedHandler(null);
+  }, []);
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
+  const signIn = useCallback(async (email: string, password: string) => {
+    try {
+      const next = await apiLogin(email, password);
+      setUser(next);
+      return { error: null };
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "Erro inesperado";
+      return { error: new Error(message) };
+    }
+  }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, isSuperAdmin, isGestor, signIn, signOut }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const signOut = useCallback(async () => {
+    await apiLogout();
+    setUser(null);
+  }, []);
+
+  const value = useMemo<AuthContextValue>(() => {
+    const flags = deriveRoleFlags(user);
+    return { user, loading, ...flags, signIn, signOut };
+  }, [user, loading, signIn, signOut]);
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
 }

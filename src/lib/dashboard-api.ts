@@ -1,4 +1,10 @@
-// Dashboard API service
+// Dashboard data client — talks to the Everline Express API at /dashboard-data.
+// The endpoint is polymorphic (query param `endpoint=summary|traffic_daily|...`),
+// and the server always replies with { data: T[] }. Authentication piggybacks
+// on the httpOnly session cookie set by /auth/login — we reuse the same
+// credentialed fetch wrapper from api.ts so 401s flow through the global handler.
+
+import { api } from "./api";
 
 export interface SummaryData {
   traffic: {
@@ -117,50 +123,6 @@ export interface AdData {
   meta_leads?: number;
 }
 
-async function fetchDashboard<T>(endpoint: string, dateFrom?: string, dateTo?: string, offer?: string, project?: string): Promise<T[]> {
-  const params = new URLSearchParams({ endpoint });
-  if (dateFrom) params.set('date_from', dateFrom);
-  if (dateTo) params.set('date_to', dateTo);
-  if (offer && offer !== 'all') params.set('offer', offer);
-  if (project && project !== 'checkup') params.set('project', project);
-
-  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-data?${params.toString()}`;
-  const response = await fetch(url, {
-    headers: {
-      'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-    },
-  });
-
-  if (!response.ok) {
-    const err = await response.json();
-    throw new Error(err.error || 'Failed to fetch dashboard data');
-  }
-
-  const result = await response.json();
-  return result.data;
-}
-
-export async function fetchSummary(dateFrom?: string, dateTo?: string, offer?: string, project?: string): Promise<SummaryData> {
-  const data = await fetchDashboard<SummaryData>('summary', dateFrom, dateTo, offer, project);
-  return data[0];
-}
-
-export async function fetchTrafficDaily(dateFrom?: string, dateTo?: string, offer?: string, project?: string): Promise<TrafficDaily[]> {
-  return fetchDashboard<TrafficDaily>('traffic_daily', dateFrom, dateTo, offer, project);
-}
-
-export async function fetchSalesDaily(dateFrom?: string, dateTo?: string, offer?: string, project?: string): Promise<SalesDaily[]> {
-  return fetchDashboard<SalesDaily>('sales_daily', dateFrom, dateTo, offer, project);
-}
-
-export async function fetchCampaigns(dateFrom?: string, dateTo?: string, offer?: string, project?: string): Promise<CampaignData[]> {
-  return fetchDashboard<CampaignData>('campaigns', dateFrom, dateTo, offer, project);
-}
-
-export async function fetchAds(dateFrom?: string, dateTo?: string, offer?: string, project?: string): Promise<AdData[]> {
-  return fetchDashboard<AdData>('ads', dateFrom, dateTo, offer, project);
-}
-
 export interface AttributionData {
   source: string;
   gasto: number;
@@ -175,6 +137,74 @@ export interface AttributionData {
   taxa_conversao: number;
 }
 
-export async function fetchAttribution(dateFrom?: string, dateTo?: string, offer?: string, project?: string): Promise<AttributionData[]> {
-  return fetchDashboard<AttributionData>('attribution', dateFrom, dateTo, offer, project);
+async function fetchDashboard<T>(
+  endpoint: string,
+  dateFrom?: string,
+  dateTo?: string,
+  offer?: string,
+  project?: string,
+): Promise<T[]> {
+  const params = new URLSearchParams({ endpoint });
+  if (dateFrom) params.set("date_from", dateFrom);
+  if (dateTo) params.set("date_to", dateTo);
+  if (offer && offer !== "all") params.set("offer", offer);
+  if (project && project !== "checkup") params.set("project", project);
+
+  const result = await api.get<{ data: T[] }>(`/dashboard-data?${params.toString()}`);
+  return result.data;
+}
+
+export async function fetchSummary(
+  dateFrom?: string,
+  dateTo?: string,
+  offer?: string,
+  project?: string,
+): Promise<SummaryData> {
+  const data = await fetchDashboard<SummaryData>("summary", dateFrom, dateTo, offer, project);
+  return data[0];
+}
+
+export async function fetchTrafficDaily(
+  dateFrom?: string,
+  dateTo?: string,
+  offer?: string,
+  project?: string,
+): Promise<TrafficDaily[]> {
+  return fetchDashboard<TrafficDaily>("traffic_daily", dateFrom, dateTo, offer, project);
+}
+
+export async function fetchSalesDaily(
+  dateFrom?: string,
+  dateTo?: string,
+  offer?: string,
+  project?: string,
+): Promise<SalesDaily[]> {
+  return fetchDashboard<SalesDaily>("sales_daily", dateFrom, dateTo, offer, project);
+}
+
+export async function fetchCampaigns(
+  dateFrom?: string,
+  dateTo?: string,
+  offer?: string,
+  project?: string,
+): Promise<CampaignData[]> {
+  return fetchDashboard<CampaignData>("campaigns", dateFrom, dateTo, offer, project);
+}
+
+export async function fetchAds(
+  dateFrom?: string,
+  dateTo?: string,
+  offer?: string,
+  project?: string,
+): Promise<AdData[]> {
+  return fetchDashboard<AdData>("ads", dateFrom, dateTo, offer, project);
+}
+
+export async function fetchAttribution(
+  dateFrom?: string,
+  dateTo?: string,
+  offer?: string,
+  project?: string,
+): Promise<AttributionData[]> {
+  return fetchDashboard<AttributionData>("attribution", dateFrom, dateTo, offer, project);
 }

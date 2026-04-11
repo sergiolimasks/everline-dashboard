@@ -1,54 +1,47 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useCallback, useEffect, useState } from "react";
+import { ApiError, admin, type Profile } from "@/lib/api";
 import { UserPlus, Trash2, KeyRound, X } from "lucide-react";
 import { toast } from "sonner";
-
-interface UserProfile {
-  user_id: string;
-  display_name: string | null;
-  email: string | null;
-}
 
 export function CreateUserTab() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [users, setUsers] = useState<Profile[]>([]);
   const [changingPassword, setChangingPassword] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [deletingUser, setDeletingUser] = useState<string | null>(null);
 
-  const loadUsers = async () => {
-    const { data } = await supabase.from("profiles").select("user_id, display_name, email");
-    setUsers(data || []);
-  };
+  const loadUsers = useCallback(async () => {
+    try {
+      const profiles = await admin.listProfiles();
+      setUsers(profiles);
+    } catch (err) {
+      toast.error(errorMessage(err, "Erro ao carregar usuários"));
+    }
+  }, []);
 
-  useEffect(() => { loadUsers(); }, []);
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !password) return;
     setLoading(true);
-
     try {
-      const { data, error } = await supabase.functions.invoke("create-user", {
-        body: { email, password, role: "user", displayName: name },
-      });
-
-      if (error || data?.error) {
-        toast.error(data?.error || error?.message || "Erro ao criar usuário");
-      } else {
-        toast.success("Usuário criado com sucesso!");
-        setName("");
-        setEmail("");
-        setPassword("");
-        loadUsers();
-      }
-    } catch {
-      toast.error("Erro ao criar usuário");
+      await admin.createUser({ email, password, role: "user", displayName: name });
+      toast.success("Usuário criado com sucesso!");
+      setName("");
+      setEmail("");
+      setPassword("");
+      await loadUsers();
+    } catch (err) {
+      toast.error(errorMessage(err, "Erro ao criar usuário"));
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleChangePassword = async (userId: string) => {
@@ -58,39 +51,29 @@ export function CreateUserTab() {
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("manage-user", {
-        body: { action: "change_password", userId, newPassword },
-      });
-      if (error || data?.error) {
-        toast.error(data?.error || error?.message || "Erro ao alterar senha");
-      } else {
-        toast.success("Senha alterada com sucesso!");
-        setChangingPassword(null);
-        setNewPassword("");
-      }
-    } catch {
-      toast.error("Erro ao alterar senha");
+      await admin.changePassword(userId, newPassword);
+      toast.success("Senha alterada com sucesso!");
+      setChangingPassword(null);
+      setNewPassword("");
+    } catch (err) {
+      toast.error(errorMessage(err, "Erro ao alterar senha"));
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleDeleteUser = async (userId: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("manage-user", {
-        body: { action: "delete_user", userId },
-      });
-      if (error || data?.error) {
-        toast.error(data?.error || error?.message || "Erro ao excluir usuário");
-      } else {
-        toast.success("Usuário excluído com sucesso!");
-        setDeletingUser(null);
-        loadUsers();
-      }
-    } catch {
-      toast.error("Erro ao excluir usuário");
+      await admin.deleteUser(userId);
+      toast.success("Usuário excluído com sucesso!");
+      setDeletingUser(null);
+      await loadUsers();
+    } catch (err) {
+      toast.error(errorMessage(err, "Erro ao excluir usuário"));
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -221,4 +204,10 @@ export function CreateUserTab() {
       </div>
     </div>
   );
+}
+
+function errorMessage(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) return err.message;
+  if (err instanceof Error) return err.message;
+  return fallback;
 }
