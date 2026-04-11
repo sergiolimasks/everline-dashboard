@@ -1,20 +1,7 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useCallback, useEffect, useState } from "react";
+import { ApiError, admin, type Client, type ClientOffer } from "@/lib/api";
 import { Shield, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-
-interface ClientOffer {
-  id: string;
-  offer_slug: string;
-  label: string;
-  client_id: string;
-}
-
-interface Client {
-  id: string;
-  name: string;
-  slug: string;
-}
 
 export function ManagePermissionsTab() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -24,46 +11,45 @@ export function ManagePermissionsTab() {
   const [selectedClient, setSelectedClient] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const loadData = async () => {
-    const [{ data: c }, { data: o }] = await Promise.all([
-      supabase.from("clients").select("id, name, slug"),
-      supabase.from("client_offers").select("id, offer_slug, label, client_id"),
-    ]);
-    setClients(c || []);
-    setOffers(o || []);
-    if (c && c.length > 0 && !selectedClient) setSelectedClient(c[0].id);
-  };
+  const loadData = useCallback(async () => {
+    try {
+      const [c, o] = await Promise.all([admin.listClients(), admin.listClientOffers()]);
+      setClients(c);
+      setOffers(o);
+      setSelectedClient((current) => current || c[0]?.id || "");
+    } catch (err) {
+      toast.error(errorMessage(err, "Erro ao carregar dados"));
+    }
+  }, []);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleAddOffer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLabel || !newSlug || !selectedClient) return;
     setLoading(true);
-
-    const { error } = await supabase.from("client_offers").insert({
-      client_id: selectedClient,
-      offer_slug: newSlug,
-      label: newLabel,
-    });
-
-    if (error) {
-      toast.error("Erro ao criar permissão: " + error.message);
-    } else {
+    try {
+      await admin.createClientOffer(selectedClient, newSlug, newLabel);
       toast.success("Permissão criada!");
       setNewLabel("");
       setNewSlug("");
-      loadData();
+      await loadData();
+    } catch (err) {
+      toast.error(errorMessage(err, "Erro ao criar permissão"));
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase.from("client_offers").delete().eq("id", id);
-    if (error) toast.error("Erro ao remover");
-    else {
+    try {
+      await admin.deleteClientOffer(id);
       toast.success("Removido!");
-      loadData();
+      await loadData();
+    } catch (err) {
+      toast.error(errorMessage(err, "Erro ao remover"));
     }
   };
 
@@ -156,4 +142,10 @@ export function ManagePermissionsTab() {
       </div>
     </div>
   );
+}
+
+function errorMessage(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) return err.message;
+  if (err instanceof Error) return err.message;
+  return fallback;
 }

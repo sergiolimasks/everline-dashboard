@@ -1,69 +1,54 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useCallback, useEffect, useState } from "react";
+import {
+  ApiError,
+  admin,
+  type CampaignAccess,
+  type Client,
+  type ClientOffer,
+  type Profile,
+  type UserRoleRow,
+} from "@/lib/api";
 import { UserCheck, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
-interface Profile {
-  user_id: string;
-  display_name: string | null;
-  email: string | null;
-}
-
-interface AccessRow {
-  id: string;
-  user_id: string;
-  offer_slug: string;
-  label: string | null;
-}
-
-interface ClientOffer {
-  offer_slug: string;
-  label: string;
-  client_id: string;
-}
-
-interface Client {
-  id: string;
-  name: string;
-  slug: string;
-}
-
-interface UserRole {
-  id: string;
-  user_id: string;
-  role: string;
-}
+type AppRole = "user" | "gestor" | "admin" | "super_admin";
 
 export function AssignAccessTab() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [access, setAccess] = useState<AccessRow[]>([]);
+  const [access, setAccess] = useState<CampaignAccess[]>([]);
   const [offers, setOffers] = useState<ClientOffer[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
-  const [roles, setRoles] = useState<UserRole[]>([]);
+  const [roles, setRoles] = useState<UserRoleRow[]>([]);
   const [selectedUser, setSelectedUser] = useState("");
   const [selectedClient, setSelectedClient] = useState("");
   const [selectedOffer, setSelectedOffer] = useState("__all__");
   const [loading, setLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<"user" | "admin" | "super_admin" | "gestor">("user");
+  const [selectedRole, setSelectedRole] = useState<AppRole>("user");
 
-  const loadData = async () => {
-    const [{ data: p }, { data: a }, { data: o }, { data: r }, { data: c }] = await Promise.all([
-      supabase.from("profiles").select("user_id, display_name, email"),
-      supabase.from("user_campaign_access").select("id, user_id, offer_slug, label"),
-      supabase.from("client_offers").select("offer_slug, label, client_id"),
-      supabase.from("user_roles").select("id, user_id, role"),
-      supabase.from("clients").select("id, name, slug"),
-    ]);
-    setProfiles(p || []);
-    setAccess(a || []);
-    setOffers(o || []);
-    setRoles(r || []);
-    setClients(c || []);
-    if (p && p.length > 0 && !selectedUser) setSelectedUser(p[0].user_id);
-    if (c && c.length > 0 && !selectedClient) setSelectedClient(c[0].id);
-  };
+  const loadData = useCallback(async () => {
+    try {
+      const [p, a, o, r, c] = await Promise.all([
+        admin.listProfiles(),
+        admin.listAccess(),
+        admin.listClientOffers(),
+        admin.listUserRoles(),
+        admin.listClients(),
+      ]);
+      setProfiles(p);
+      setAccess(a);
+      setOffers(o);
+      setRoles(r);
+      setClients(c);
+      setSelectedUser((current) => current || p[0]?.user_id || "");
+      setSelectedClient((current) => current || c[0]?.id || "");
+    } catch (err) {
+      toast.error(errorMessage(err, "Erro ao carregar dados"));
+    }
+  }, []);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // Filter offers by selected client
   const filteredOffers = offers.filter((o) => o.client_id === selectedClient);
@@ -74,9 +59,10 @@ export function AssignAccessTab() {
     setLoading(true);
 
     // If "Todos" is selected, assign all offers for this client
-    const offersToAssign = selectedOffer === "__all__"
-      ? filteredOffers
-      : filteredOffers.filter((o) => o.offer_slug === selectedOffer);
+    const offersToAssign =
+      selectedOffer === "__all__"
+        ? filteredOffers
+        : filteredOffers.filter((o) => o.offer_slug === selectedOffer);
 
     if (offersToAssign.length === 0) {
       toast.error("Nenhum dashboard encontrado para este cliente.");
@@ -85,22 +71,40 @@ export function AssignAccessTab() {
     }
 
     let assigned = 0;
+    let skippedExisting = 0;
     for (const offer of offersToAssign) {
-      const exists = access.find((a) => a.user_id === selectedUser && a.offer_slug === offer.offer_slug);
-      if (exists) continue;
-
-      const { error } = await supabase.from("user_campaign_access").insert({
-        user_id: selectedUser,
-        offer_slug: offer.offer_slug,
-        label: offer.label || offer.offer_slug,
-      });
-      if (!error) assigned++;
+      const exists = access.find(
+        (a) =>
+          a.user_id === selectedUser &&
+          a.client_id === selectedClient &&
+          a.offer_slug === offer.offer_slug,
+      );
+      if (exists) {
+        skippedExisting++;
+        continue;
+      }
+      try {
+        await admin.assignAccess(
+          selectedUser,
+          selectedClient,
+          offer.offer_slug,
+          offer.label || offer.offer_slug,
+        );
+        assigned++;
+      } catch (err) {
+        // 409 = "already assigned" (race); anything else is a real error
+        if (err instanceof ApiError && err.status === 409) {
+          skippedExisting++;
+        } else {
+          toast.error(errorMessage(err, `Erro ao atribuir ${offer.label}`));
+        }
+      }
     }
 
     if (assigned > 0) {
       toast.success(`${assigned} acesso(s) atribuído(s)!`);
-      loadData();
-    } else {
+      await loadData();
+    } else if (skippedExisting > 0) {
       toast.error("Usuário já tem acesso a todos os dashboards selecionados.");
     }
     setLoading(false);
@@ -110,38 +114,33 @@ export function AssignAccessTab() {
     if (!selectedUser) return;
     setLoading(true);
 
-    const { data: existing } = await supabase
-      .from("user_roles")
-      .select("id")
-      .eq("user_id", selectedUser)
-      .eq("role", selectedRole as any);
-
-    if (existing && existing.length > 0) {
+    // user_roles has UNIQUE(user_id) now — assignRole is an upsert server-side.
+    // So re-assigning the same role is a no-op, and a different role replaces.
+    const existing = roles.find((r) => r.user_id === selectedUser);
+    if (existing && existing.role === selectedRole) {
       toast.error("Usuário já possui esse papel.");
       setLoading(false);
       return;
     }
 
-    const { error } = await supabase.from("user_roles").insert({
-      user_id: selectedUser,
-      role: selectedRole as any,
-    });
-
-    if (error) {
-      toast.error("Erro: " + error.message);
-    } else {
+    try {
+      await admin.assignRole(selectedUser, selectedRole);
       toast.success(`Papel "${selectedRole}" atribuído!`);
-      loadData();
+      await loadData();
+    } catch (err) {
+      toast.error(errorMessage(err, "Erro ao atribuir papel"));
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleRemoveAccess = async (id: string) => {
-    const { error } = await supabase.from("user_campaign_access").delete().eq("id", id);
-    if (error) toast.error("Erro ao remover");
-    else {
+    try {
+      await admin.removeAccess(id);
       toast.success("Acesso removido!");
-      loadData();
+      await loadData();
+    } catch (err) {
+      toast.error(errorMessage(err, "Erro ao remover"));
     }
   };
 
@@ -171,15 +170,11 @@ export function AssignAccessTab() {
     roles.forEach((r) => userIds.add(r.user_id));
 
     return Array.from(userIds).map((userId) => {
-      const userRoles = roles.filter((r) => r.user_id === userId);
+      // Post-migration, user_roles has UNIQUE(user_id) — only one role per user.
+      const userRole = roles.find((r) => r.user_id === userId);
       const userAccess = access.filter((a) => a.user_id === userId);
-      const highestRole = userRoles.find((r) => r.role === "super_admin")
-        || userRoles.find((r) => r.role === "admin")
-        || userRoles.find((r) => r.role === "gestor")
-        || userRoles.find((r) => r.role === "user")
-        || null;
 
-      const role = highestRole?.role || "user";
+      const role = userRole?.role || "user";
       const isAdminOrSuper = role === "admin" || role === "super_admin";
       const isGestor = role === "gestor";
 
@@ -280,7 +275,7 @@ export function AssignAccessTab() {
             <label className="block text-sm font-medium text-foreground mb-1.5">Papel</label>
             <select
               value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value as any)}
+              onChange={(e) => setSelectedRole(e.target.value as AppRole)}
               className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="user">Usuário (Cliente)</option>
@@ -380,4 +375,10 @@ export function AssignAccessTab() {
       </div>
     </div>
   );
+}
+
+function errorMessage(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) return err.message;
+  if (err instanceof Error) return err.message;
+  return fallback;
 }
