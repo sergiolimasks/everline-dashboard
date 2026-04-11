@@ -12,6 +12,14 @@ updates:
     commit-message:
       prefix: "deps"
       include: "scope"
+    ignore:
+      # next-themes ainda nao suporta React 19 (peer dep ^16.8 || ^17 || ^18)
+      - dependency-name: "next-themes"
+      # eslint-plugin-react-hooks conflita com React 19 ate release compativel
+      - dependency-name: "eslint-plugin-react-hooks"
+      # date-fns v4 major ignorada (breaking changes nao desejadas agora)
+      - dependency-name: "date-fns"
+        update-types: ["version-update:semver-major"]
     groups:
       react-ecosystem:
         patterns:
