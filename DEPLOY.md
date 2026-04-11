@@ -141,7 +141,7 @@ HT
 
 # 4. Upload via SSH tar (troca o conteúdo inteiro)
 cd dist && tar czf - . | \
-  sshpass -p "$HOSTINGER_SSH_PASS" ssh -o StrictHostKeyChecking=no -p 65002 u435641156@"$HOSTINGER_HOST" \
+  sshpass -p "$HOSTINGER_SSH_PASS" ssh -o StrictHostKeyChecking=no -p 65002 "$HOSTINGER_USER"@"$HOSTINGER_HOST" \
   "cd ~/domains/agenciaeverline.com.br/public_html && rm -rf ./* .htaccess 2>/dev/null; tar xzf - && find . -name '._*' -delete"
 cd ..
 
@@ -163,7 +163,7 @@ curl -I https://agenciaeverline.com.br
 |---|---|
 | Frontend URL | https://agenciaeverline.com.br |
 | API URL | https://api.agenciaeverline.com.br |
-| Admin login | `sergiolima@agenciaevergrowth.com.br` — senha em `.env.deploy.local` |
+| Admin login | email em `.env.deploy.local` (`SEED_ADMIN_EMAIL`), senha em `SEED_ADMIN_PASSWORD` |
 | JWT_SECRET prod | em `.env.deploy.local` (`JWT_SECRET`) |
 
 ### VPS (backend)
@@ -181,10 +181,10 @@ curl -I https://agenciaeverline.com.br
 | Item | Valor |
 |---|---|
 | IP / SSH host | em `.env.deploy.local` (`HOSTINGER_HOST`) porta `65002` |
-| SSH user/senha | `u435641156` / em `.env.deploy.local` (`HOSTINGER_SSH_PASS`) |
-| Public dir | `/home/u435641156/domains/agenciaeverline.com.br/public_html/` |
+| SSH user/senha | em `.env.deploy.local` (`HOSTINGER_USER` / `HOSTINGER_SSH_PASS`) |
+| Public dir | `/home/$HOSTINGER_USER/domains/agenciaeverline.com.br/public_html/` |
 | FTP host | mesmo IP da coluna acima, porta `21` |
-| FTP user | `u435641156.agenciaeverline.com.br` / mesma senha do SSH |
+| FTP user | `$HOSTINGER_USER.agenciaeverline.com.br` / mesma senha do SSH |
 
 ### DNS (Hostinger ou Cloudflare — confirmar quem gerencia)
 | Record | Tipo | Valor |
@@ -282,11 +282,11 @@ sshpass -p "$VPS_SSH_PASS" ssh root@"$VPS_HOST" \
 cd /Users/srglimasks/Documents/backup-cc/Everline && npm run build
 
 # Listar arquivos na Hostinger
-sshpass -p "$HOSTINGER_SSH_PASS" ssh -p 65002 u435641156@"$HOSTINGER_HOST" \
+sshpass -p "$HOSTINGER_SSH_PASS" ssh -p 65002 "$HOSTINGER_USER"@"$HOSTINGER_HOST" \
   "ls -la ~/domains/agenciaeverline.com.br/public_html/"
 
 # Limpar public_html
-sshpass -p "$HOSTINGER_SSH_PASS" ssh -p 65002 u435641156@"$HOSTINGER_HOST" \
+sshpass -p "$HOSTINGER_SSH_PASS" ssh -p 65002 "$HOSTINGER_USER"@"$HOSTINGER_HOST" \
   "cd ~/domains/agenciaeverline.com.br/public_html && rm -rf ./* .htaccess"
 ```
 
