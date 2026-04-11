@@ -92,9 +92,14 @@ ok "bundle has no supabase references"
 
 # 5. No leaked secrets staged. Catches the case where someone added a real
 #    credential to a tracked file by accident.
+#    NOTE: this script intentionally contains the patterns as a tripwire — it
+#    is excluded from the scan via `grep -v` so it doesn't trigger itself.
 printf '\n%s%s%s\n' "$YELLOW" "secrets scan" "$RESET"
 LEAK_PATTERNS='wJpDF3KZ|EdAvBOwn|h3w0Ur|Rodomoto|2408#Yasmin|P5JRE2Cp|PmClHel6cKK'
-LEAKS=$(git ls-files | xargs grep -lE "$LEAK_PATTERNS" 2>/dev/null || true)
+LEAKS=$(git ls-files \
+  | grep -v '^scripts/pre-deploy-check\.sh$' \
+  | grep -v '^docs/POSTMORTEM-' \
+  | xargs grep -lE "$LEAK_PATTERNS" 2>/dev/null || true)
 if [ -n "$LEAKS" ]; then
   printf '  files with leaked credentials:\n'
   printf '    %s\n' $LEAKS
