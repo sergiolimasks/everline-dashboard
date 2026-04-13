@@ -29,6 +29,8 @@ export interface SummaryData {
     co_produtor: number;
     taxa_green: number;
     taxa_tmb: number;
+    lead_to_sale_avg_days?: number | null;
+    lead_to_sale_matched?: number;
   };
   products: Array<{
     produto: string;
