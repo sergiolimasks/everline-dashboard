@@ -902,17 +902,22 @@ export function KPICards({ data, isLoading, comparison7d, comparison14d, traffic
                 value={isLoading ? null : `${data.sales.lead_to_sale_avg_days.toFixed(1)} dias`}
                 icon={Target} color="text-chart-orange" isLoading={isLoading}
                 tooltipContent={!isLoading ? (
-                  <div className="w-64 max-w-full p-3">
-                    <p className="text-xs font-semibold mb-2 text-foreground">Tempo Médio Lead → Venda</p>
-                    <div className="space-y-1.5 text-[11px]">
-                      <div className="bg-muted/50 rounded-md p-2 text-center font-mono text-xs text-foreground">
-                        Média de dias entre cadastro e compra
-                      </div>
+                  <div className="w-72 max-w-full p-3">
+                    <p className="text-xs font-semibold mb-2 text-foreground">Tempo Lead → Venda (distribuição)</p>
+                    <div className="space-y-1 text-[11px] max-h-48 overflow-y-auto">
+                      {(data.sales.lead_to_sale_distribution || []).map((d) => (
+                        <div key={d.days} className="flex justify-between">
+                          <span className="text-muted-foreground">{d.days === 0 ? 'Mesmo dia' : `${d.days} dia${d.days > 1 ? 's' : ''}`}</span>
+                          <span className="font-medium text-foreground">{d.count} {d.count === 1 ? 'lead' : 'leads'}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="border-t border-border mt-2 pt-1.5 space-y-1 text-[11px]">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Vendas com lead identificado</span>
+                        <span className="text-muted-foreground">Total identificados</span>
                         <span className="font-medium text-foreground">{data.sales.lead_to_sale_matched || 0}</span>
                       </div>
-                      <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
+                      <div className="flex justify-between font-semibold">
                         <span className="text-muted-foreground">Média</span>
                         <span className="text-foreground">{data.sales.lead_to_sale_avg_days?.toFixed(1)} dias</span>
                       </div>

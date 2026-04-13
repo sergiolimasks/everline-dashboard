@@ -31,6 +31,7 @@ export interface SummaryData {
     taxa_tmb: number;
     lead_to_sale_avg_days?: number | null;
     lead_to_sale_matched?: number;
+    lead_to_sale_distribution?: Array<{ days: number; count: number }>;
   };
   products: Array<{
     produto: string;

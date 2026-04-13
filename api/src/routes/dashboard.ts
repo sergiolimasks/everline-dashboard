@@ -332,6 +332,7 @@ dashboardRouter.get(
           taxa_tmb: tmbSummary.taxa_tmb,
           lead_to_sale_avg_days: leadToSale.avg_days,
           lead_to_sale_matched: leadToSale.matched,
+          lead_to_sale_distribution: leadToSale.distribution,
         },
         products: productsArr,
         parcelas: tmbParcelas.total_parcelas > 0 ? {
