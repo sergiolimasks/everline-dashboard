@@ -106,6 +106,15 @@ function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, d
   const { data: summaryCheckup, isLoading: loadingCheckup } = useSummary(dateFrom, dateTo, "all_no_filter", "checkup");
   const { data: summaryFormacao, isLoading: loadingFormacao } = useSummary(dateFrom, dateTo, "all_no_filter", "formacao-consultor");
 
+  // Últimos 7 dias para orçamento diário
+  const todayOrc = new Date();
+  const sevenDaysAgo = new Date(todayOrc);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const orcFrom = formatDateString(sevenDaysAgo);
+  const orcTo = formatDateString(todayOrc);
+  const { data: summaryCk7d } = useSummary(orcFrom, orcTo, "all_no_filter", "checkup");
+  const { data: summaryFm7d } = useSummary(orcFrom, orcTo, "all_no_filter", "formacao-consultor");
+
   const isLoading = loadingCheckup || loadingFormacao;
 
   const ckGasto = Number(summaryCheckup?.traffic?.total_gasto || 0);
@@ -140,10 +149,29 @@ function ClientCard({ client, isAdmin, isGestor, clientView, dateFrom, dateTo, d
   const cac = vendasAprovadas > 0 ? gastoTotal / vendasAprovadas : 0;
   const products = [...(summaryCheckup?.products || []), ...(summaryFormacao?.products || [])];
 
+  // Orçamento Diário: (gasto 7d / 7) + 15%
+  const gasto7dCk = Number(summaryCk7d?.traffic?.total_gasto || 0);
+  const gasto7dFm = Number(summaryFm7d?.traffic?.total_gasto || 0);
+  const gasto7dTotal = gasto7dCk + gasto7dFm;
+  const mediaDiaria = gasto7dTotal / 7;
+  const orcamentoDiario = mediaDiaria * 1.15;
+
   const kpis = [
     {
       label: `Investimento (${dateLabel})`, value: formatCurrency(gastoTotal), icon: Wallet, color: "text-red-400",
       tooltip: <GastoTooltip gastoMeta={gastoMeta} imposto={imposto} custoConsultas={custoConsultas} custoManychat={custoManychat} gastoTotal={gastoTotal} />,
+    },
+    {
+      label: "Orçamento Diário", value: formatCurrency(orcamentoDiario), icon: Target, color: "text-amber-400",
+      tooltip: (
+        <div className="space-y-1.5 text-xs">
+          <p className="font-semibold text-foreground mb-2">Cálculo do Orçamento Diário</p>
+          <div className="bg-muted/50 rounded-md p-2 text-center font-mono text-xs text-foreground mb-2">(Gasto 7d ÷ 7) + 15%</div>
+          <div className="flex justify-between"><span className="text-muted-foreground">Gasto últimos 7 dias</span><span className="font-medium text-foreground">{formatCurrency(gasto7dTotal)}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">Média diária</span><span className="font-medium text-foreground">{formatCurrency(mediaDiaria)}</span></div>
+          <div className="border-t border-border pt-1.5 flex justify-between font-semibold"><span className="text-foreground">+ Margem 15%</span><span className="text-foreground">{formatCurrency(orcamentoDiario)}</span></div>
+        </div>
+      ),
     },
     {
       label: `Vendas (${dateLabel})`, value: isLoading ? "..." : String(vendasAprovadas), icon: ShoppingCart, color: "text-blue-400",
