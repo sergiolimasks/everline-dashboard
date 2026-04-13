@@ -478,9 +478,9 @@ export async function queryLeadToSaleAvgDays(
   dateFrom: string | null,
   dateTo: string | null,
   salesPhoneFilter: string
-): Promise<{ avg_days: number | null; matched: number }> {
+): Promise<{ avg_days: number | null; matched: number; distribution: Array<{ days: number; count: number }> }> {
   if (filteredConfig.leadConfigs.length === 0) {
-    return { avg_days: null, matched: 0 };
+    return { avg_days: null, matched: 0, distribution: [] };
   }
 
   const params: string[] = [];
@@ -540,11 +540,42 @@ export async function queryLeadToSaleAvgDays(
     JOIN lead_first l ON s.phone = l.phone AND l.first_date <= s.sale_date
   `;
 
-  const rows = await queryExternalPG(sql, params);
+  const distSql = `
+    WITH lead_first AS (
+      SELECT phone, MIN(lead_date) AS first_date
+      FROM (${leadUnion}) all_leads
+      WHERE phone IS NOT NULL AND phone != ''
+      GROUP BY phone
+    ),
+    paid_sales AS (
+      SELECT ${canonicalPhoneSql('g.telefone')} AS phone,
+             g."Data"::timestamp AS sale_date
+      FROM ${config.greenSchema} g
+      WHERE ${pFilter}
+        AND g."Status da venda" IN ${APPROVED_STATUSES}
+        AND g.telefone IS NOT NULL AND TRIM(g.telefone) != ''
+        ${greenDateFilter}
+        ${salesPhoneFilter}
+      ${tmbUnion}
+    )
+    SELECT
+      CEIL(EXTRACT(EPOCH FROM (s.sale_date - l.first_date)) / 86400.0)::int AS days,
+      COUNT(*)::int AS count
+    FROM paid_sales s
+    JOIN lead_first l ON s.phone = l.phone AND l.first_date <= s.sale_date
+    GROUP BY days
+    ORDER BY days
+  `;
+
+  const [rows, distRows] = await Promise.all([
+    queryExternalPG(sql, params),
+    queryExternalPG(distSql, params),
+  ]);
   const row = rows[0] as any;
   return {
     avg_days: row?.avg_days != null ? Number(row.avg_days) : null,
     matched: Number(row?.matched || 0),
+    distribution: (distRows as any[]).filter((r) => r.count > 0).map((r) => ({ days: Number(r.days), count: Number(r.count) })),
   };
 }
 
