@@ -75,10 +75,21 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="px-6 py-5 border-t border-border bg-card/80 text-center">
-        <p className="text-xs text-muted-foreground">
-          CNPJ: 64.268.398/0001-24 — Ever Line Lançamentos Digitais Ltda - EPP
-        </p>
+      <footer className="px-6 py-5 border-t border-border bg-card/80">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-3 max-w-6xl mx-auto">
+          <p className="text-xs text-muted-foreground text-center md:text-left">
+            © {new Date().getFullYear()} Ever Line Lançamentos Digitais Ltda - EPP — CNPJ: 64.268.398/0001-24
+          </p>
+          <nav className="flex items-center gap-5 text-xs">
+            <Link to="/politica-de-privacidade" className="text-muted-foreground hover:text-primary transition-colors">
+              Política de Privacidade
+            </Link>
+            <span className="text-muted-foreground/40">·</span>
+            <Link to="/termos-de-uso" className="text-muted-foreground hover:text-primary transition-colors">
+              Termos de Uso
+            </Link>
+          </nav>
+        </div>
       </footer>
     </div>
   );
