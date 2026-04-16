@@ -207,7 +207,7 @@ export async function queryAttribution(config: ProjectConfig, params: string[]):
   }
 
   const salesDateFilter = params.length >= 2
-    ? ` AND "Data"::date >= $1 AND "Data"::date <= $2`
+    ? ` AND "Data de pagamento"::date >= $1 AND "Data de pagamento"::date <= $2`
     : '';
   const pFilter = principalFilter(config, '');
 
@@ -488,7 +488,7 @@ export async function queryLeadToSaleAvgDays(
   let tmbDateFilter = '';
   if (dateFrom && dateTo) {
     params.push(dateFrom, dateTo);
-    greenDateFilter = ` AND g."Data"::date >= $1 AND g."Data"::date <= $2`;
+    greenDateFilter = ` AND g."Data de pagamento"::date >= $1 AND g."Data de pagamento"::date <= $2`;
     tmbDateFilter = ` AND t.data_pagamento::date >= $1 AND t.data_pagamento::date <= $2`;
   }
 
@@ -524,7 +524,7 @@ export async function queryLeadToSaleAvgDays(
     ),
     paid_sales AS (
       SELECT ${canonicalPhoneSql('g.telefone')} AS phone,
-             g."Data"::timestamp AS sale_date
+             g."Data de pagamento"::timestamp AS sale_date
       FROM ${config.greenSchema} g
       WHERE ${pFilter}
         AND g."Status da venda" IN ${APPROVED_STATUSES}
@@ -549,7 +549,7 @@ export async function queryLeadToSaleAvgDays(
     ),
     paid_sales AS (
       SELECT ${canonicalPhoneSql('g.telefone')} AS phone,
-             g."Data"::timestamp AS sale_date
+             g."Data de pagamento"::timestamp AS sale_date
       FROM ${config.greenSchema} g
       WHERE ${pFilter}
         AND g."Status da venda" IN ${APPROVED_STATUSES}

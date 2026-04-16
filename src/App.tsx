@@ -13,6 +13,8 @@ import Panel from "./pages/Panel";
 import Index from "./pages/Index";
 import SistemaLeads from "./pages/SistemaLeads";
 import Distribuicao from "./pages/Distribuicao";
+import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
+import TermosUso from "./pages/TermosUso";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -40,6 +42,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Page><Home /></Page>} />
             <Route path="/login" element={<Page><Login /></Page>} />
+            <Route path="/politica-de-privacidade" element={<Page><PoliticaPrivacidade /></Page>} />
+            <Route path="/termos-de-uso" element={<Page><TermosUso /></Page>} />
             <Route path="/painel" element={<Page><ProtectedRoute adminOnly><Panel /></ProtectedRoute></Page>} />
             <Route path="/cliente/:slug/painel" element={<Page><ProtectedRoute><Panel clientView /></ProtectedRoute></Page>} />
             <Route path="/interno/uelicon/checkup-performance" element={<Page><ProtectedRoute adminOnly><Index /></ProtectedRoute></Page>} />

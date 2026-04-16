@@ -117,37 +117,37 @@ dashboardRouter.get(
 
     } else if (endpoint === 'sales_daily') {
       const salesDateFilter = dateFrom && dateTo
-        ? ` AND "Data"::date >= $1 AND "Data"::date <= $2`
+        ? ` AND "Data de pagamento"::date >= $1 AND "Data de pagamento"::date <= $2`
         : '';
 
       const pFilter = principalFilter(config, filters.principalProduct);
 
       const principalRows = await queryExternalPG(`
-        SELECT 
-          TO_CHAR("Data"::date, 'YYYY-MM-DD') as dia,
+        SELECT
+          TO_CHAR("Data de pagamento"::date, 'YYYY-MM-DD') as dia,
           COUNT(*) FILTER (WHERE "Status da venda" IN ${APPROVED_STATUSES}) as vendas_aprovadas,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_bruta,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_liquida,
           SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor
         FROM ${config.greenSchema}
         WHERE ${pFilter} ${salesDateFilter} ${salesPhoneFilter}
-        GROUP BY "Data"::date
-        ORDER BY "Data"::date DESC
+        GROUP BY "Data de pagamento"::date
+        ORDER BY "Data de pagamento"::date DESC
       `, params);
 
       let bumpRows: any[] = [];
       if (config.bumpProducts.length > 0) {
         const bFilter = bumpFilter(config, filters.principalProduct);
         bumpRows = await queryExternalPG(`
-          SELECT 
-            TO_CHAR("Data"::date, 'YYYY-MM-DD') as dia,
+          SELECT
+            TO_CHAR("Data de pagamento"::date, 'YYYY-MM-DD') as dia,
             SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Bruto", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_bruta_bump,
             SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Valor Líquido", ',', '.'), '')::numeric, 0) ELSE 0 END) as receita_liquida_bump,
             SUM(CASE WHEN "Status da venda" IN ${APPROVED_STATUSES} THEN COALESCE(NULLIF(REPLACE("Co-Produtor", ',', '.'), '')::numeric, 0) ELSE 0 END) as co_produtor_bump,
             COUNT(*) FILTER (WHERE "Status da venda" IN ${APPROVED_STATUSES} AND "Nome do produto" = 'Check-up do CNPJ') as vendas_cnpj
           FROM ${config.greenSchema}
           WHERE ${bFilter} ${salesDateFilter} ${salesPhoneFilter}
-          GROUP BY "Data"::date
+          GROUP BY "Data de pagamento"::date
         `, params) as any[];
       }
 
@@ -212,7 +212,7 @@ dashboardRouter.get(
       `, params);
 
       const salesDateFilter = dateFrom && dateTo
-        ? ` AND "Data"::date >= $1 AND "Data"::date <= $2`
+        ? ` AND "Data de pagamento"::date >= $1 AND "Data de pagamento"::date <= $2`
         : '';
 
       const isPanel = (filters as any).isAllNoFilter;
